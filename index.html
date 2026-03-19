@@ -90,7 +90,42 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
-      .app { justify-content: space-between; padding-top: 3rem; padding-bottom: 3rem; }
+      .app { justify-content: space-evenly; padding: 2dvh 3rem; gap: 2dvh; }
+      .app-title { font-size: 2.2rem; }
+      .app-subtitle { font-size: 0.9rem; }
+      .display { padding: 3dvh 2rem; min-height: 25dvh; }
+      .exercise-label { font-size: 1rem; }
+      .exercise-number { font-size: clamp(7rem, 20vw, 14rem); }
+      .next-exercise { font-size: clamp(2rem, 5vw, 3rem); }
+      .idle-summary { font-size: 1rem; }
+      .controls { gap: 2dvh; }
+      .section-grid { gap: 1.5dvh 2rem; }
+      .control-group label { font-size: 0.85rem; }
+      .sel-btn { height: 6dvh; min-height: 50px; font-size: 1rem; }
+      .bpm-widget { height: 6dvh; min-height: 50px; }
+      .bpm-btn { width: 6dvh; height: 6dvh; min-width: 50px; min-height: 50px; font-size: 1.4rem; }
+      .bpm-tap { height: 6dvh; min-height: 50px; font-size: 1.2rem; }
+      .stepper { height: 6dvh; min-height: 50px; }
+      .stepper-btn { width: 6dvh; height: 6dvh; min-width: 50px; min-height: 50px; font-size: 1.4rem; }
+      .stepper-val { height: 6dvh; min-height: 50px; font-size: 1.4rem; }
+      .range-row input[type="number"] { height: 6dvh; min-height: 50px; width: 80px; font-size: 1.2rem; }
+      .action-btn { padding: 2dvh 1rem; font-size: 1.1rem; }
+      .vol-label-btn { padding: 2dvh 1rem; }
+      .check-row { font-size: 1rem; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: landscape) {
+      .app-title { font-size: 1.6rem; }
+      .app-subtitle { font-size: 0.8rem; }
+      .display { min-height: 20dvh; }
+      .exercise-label { font-size: 0.9rem; }
+      .exercise-number { font-size: clamp(6rem, 15vw, 12rem); }
+      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+      .idle-summary { font-size: 0.9rem; }
+      .section-grid { gap: 0.75dvh 2rem; }
+      .control-group label { font-size: 0.8rem; }
+      .check-row { font-size: 0.9rem; }
+      .action-btn { font-size: 1rem; }
     }
 
     /* ── Header ── */
@@ -1449,7 +1484,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.0.7 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.9 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
