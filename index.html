@@ -90,31 +90,18 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
-      .app { justify-content: space-evenly; padding: 2dvh 3rem; gap: 1dvh; }
+      .app { justify-content: space-evenly; padding: 2dvh 2.5rem; gap: 1dvh; }
       .display { height: 26dvh !important; display: flex; flex-direction: column; justify-content: center; }
-      .app-title { font-size: 2.8rem !important; }
-      .app-subtitle { font-size: 1rem !important; }
-      .exercise-label { font-size: 1rem; }
-      .exercise-number { font-size: clamp(7rem, 20vw, 14rem) !important; }
-      .next-exercise { font-size: clamp(2rem, 5vw, 3rem) !important; }
-      .idle-summary { font-size: 1rem; }
-      .controls { gap: 2dvh; }
-      .section-grid { gap: 2dvh 2rem; }
-      .section-divider { margin: 1dvh 0; }
-      .control-group { gap: 1dvh; }
-      .control-group label { font-size: 0.85rem; }
-      .sel-btn { height: 6dvh !important; min-height: 50px; font-size: 1rem; }
-      .bpm-widget { height: 6dvh !important; min-height: 50px; }
-      .bpm-btn { width: 6dvh !important; height: 6dvh !important; min-width: 50px; min-height: 50px; font-size: 1.4rem; }
-      .bpm-tap { height: 6dvh !important; min-height: 50px; font-size: 1.2rem; }
-      .stepper { height: 6dvh !important; min-height: 50px; }
-      .stepper-btn { width: 6dvh !important; height: 6dvh !important; min-width: 50px; min-height: 50px; font-size: 1.4rem; }
-      .stepper-val { height: 6dvh !important; min-height: 50px; font-size: 1.4rem; }
-      .range-row input[type="number"] { height: 6dvh !important; min-height: 50px; width: 80px; font-size: 1.2rem; }
-      .action-btn { padding: 2dvh 1rem; font-size: 1.1rem; }
-      .vol-label-btn { padding: 2dvh 1rem; }
-      .check-row { font-size: 1rem; gap: 0.75rem; }
-      .btn-row { margin-top: 1dvh; }
+      .app-title { font-size: 2rem !important; }
+      .app-subtitle { font-size: 0.75rem !important; }
+      .idle-summary { font-size: 0.85rem; }
+      .controls { gap: 1.2dvh; }
+      .section-grid { gap: 1dvh 1.5rem; }
+      .section-divider { margin: 0.5dvh 0; }
+      .control-group label { font-size: 0.72rem; }
+      .check-row { font-size: 0.85rem; }
+      .action-btn { padding: 1.1rem 1rem; font-size: 0.95rem; }
+      .vol-label-btn { padding: 1.1rem 1rem; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: landscape) {
@@ -1487,7 +1474,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.1.4 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.1.5 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
