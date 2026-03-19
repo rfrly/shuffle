@@ -56,7 +56,7 @@
       position: relative;
     }
 
-    @media (max-height: 840px) {
+    @media (max-height: 840px) and (max-width: 767px) {
       .app { gap: 0.4rem; padding-top: 0.5rem; padding-bottom: 0.25rem; }
       .app-header { margin-bottom: 0; }
       .display { padding: 0.6rem 1rem 0.5rem; }
@@ -64,6 +64,30 @@
       .controls { gap: 0.4rem; }
       .btn-row { margin-top: 0.25rem; }
       .version-footer { margin-top: 0.1rem; }
+    }
+
+    @media (min-width: 768px) {
+      .app { gap: 1.25rem; padding: 2rem; }
+      .app-header { max-width: 560px; }
+      .app-title { font-size: 1.4rem; }
+      .app-subtitle { font-size: 0.7rem; }
+      .display { max-width: 560px; padding: 1.5rem 1.5rem 1.25rem; }
+      .exercise-number { font-size: clamp(6rem, 18vw, 10rem); }
+      .controls { max-width: 560px; gap: 1rem; }
+      .section-grid { gap: 0.8rem 1.5rem; }
+      .btn-row { max-width: 560px; margin-top: 0.75rem; }
+      .vol-slider-row { max-width: 560px; }
+      .bpm-widget { height: 54px; }
+      .bpm-btn { width: 54px; height: 54px; }
+      .bpm-tap { height: 54px; }
+      .stepper { height: 54px; }
+      .stepper-btn { width: 54px; height: 54px; }
+      .stepper-val { height: 54px; }
+      .sel-btn { height: 54px; padding: 0 0.85rem; font-size: 0.85rem; }
+      .range-row input[type="number"] { height: 54px; width: 68px; font-size: 1.1rem; }
+      .action-btn { padding: 1.2rem; font-size: 0.95rem; }
+      .vol-label-btn { padding: 1.2rem 1rem; }
+      .help-btn { font-size: 0.9rem; }
     }
 
     /* ── Header ── */
@@ -1378,7 +1402,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v0.9.4 · by Ross Farley · rossfarley.uk/shuffle</div>
+          <div className="version-footer">v0.9.5 · by Ross Farley · rossfarley.uk/shuffle</div>
 
         </div>
       );
