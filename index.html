@@ -90,8 +90,8 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
-      .app { justify-content: flex-start; padding: 2dvh 3rem; gap: 2dvh; }
-      .display { flex: 1; min-height: 0; justify-content: center; }
+      .app { justify-content: space-evenly; padding: 2dvh 3rem; gap: 1dvh; }
+      .display { height: 32dvh; display: flex; flex-direction: column; justify-content: center; }
       .app-title { font-size: 2.2rem; }
       .app-subtitle { font-size: 0.9rem; }
       .exercise-label { font-size: 1rem; }
@@ -1487,7 +1487,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.1.0 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.1.2 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
