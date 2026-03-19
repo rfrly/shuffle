@@ -63,6 +63,10 @@
       .app { justify-content: space-evenly; }
     }
 
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
+      .app { justify-content: center; gap: 1.5rem; }
+    }
+
     /* ── Header ── */
     .app-header {
       display: flex;
@@ -1419,7 +1423,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.0.0 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.1 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
