@@ -60,7 +60,33 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
-      .app { justify-content: space-evenly; }
+      .app { justify-content: space-evenly; padding: 2rem 3rem; gap: 1.5rem; }
+      .app-header { max-width: 800px; }
+      .app-title { font-size: 1.8rem; }
+      .app-subtitle { font-size: 0.8rem; }
+      .display { max-width: 800px; padding: 1.5rem 2rem; }
+      .exercise-number { font-size: clamp(6rem, 15vw, 12rem); }
+      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.8rem); }
+      .countdown-display { font-size: clamp(6rem, 15vw, 12rem); }
+      .exercise-label { font-size: 0.8rem; }
+      .idle-summary { font-size: 0.9rem; }
+      .controls { max-width: 800px; gap: 1rem; }
+      .section-grid { gap: 0.75rem 2rem; }
+      .control-group label { font-size: 0.75rem; }
+      .btn-row { max-width: 800px; margin-top: 0.5rem; }
+      .vol-slider-row { max-width: 800px; }
+      .sel-btn { height: 56px; font-size: 1rem; padding: 0 1.2rem; }
+      .bpm-widget { height: 56px; }
+      .bpm-btn { width: 56px; height: 56px; font-size: 1.4rem; }
+      .bpm-tap { height: 56px; font-size: 1.2rem; }
+      .stepper { height: 56px; }
+      .stepper-btn { width: 56px; height: 56px; font-size: 1.4rem; }
+      .stepper-val { height: 56px; font-size: 1.4rem; min-width: 60px; }
+      .range-row input[type="number"] { height: 56px; width: 80px; font-size: 1.2rem; }
+      .action-btn { padding: 1.2rem; font-size: 1rem; }
+      .vol-label-btn { padding: 1.2rem 1rem; font-size: 0.8rem; }
+      .check-row { font-size: 0.9rem; }
+      .check-row input { width: 22px !important; height: 22px !important; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
@@ -1423,7 +1449,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.0.2 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.3 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
