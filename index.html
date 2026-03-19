@@ -59,26 +59,8 @@
       .version-footer { margin-top: 0.1rem; }
     }
 
-    @media (min-width: 768px) and (min-height: 900px) {
-      .app { gap: 2dvh; padding: 2dvh 2rem; }
-      .app-header { max-width: 560px; }
-      .app-title { font-size: 1.4rem; }
-      .app-subtitle { font-size: 0.7rem; }
-      .display { max-width: 560px; padding: 2dvh 1.5rem; }
-      .controls { max-width: 560px; gap: 1.5dvh; }
-      .section-grid { gap: 1dvh 1.5rem; }
-      .btn-row { max-width: 560px; margin-top: 1dvh; }
-      .vol-slider-row { max-width: 560px; }
-      .action-btn { padding: 1.5dvh 1rem; }
-      .vol-label-btn { padding: 1.5dvh 1rem; }
-      .sel-btn { height: 5dvh; min-height: 44px; }
-      .bpm-widget { height: 5dvh; min-height: 44px; }
-      .bpm-btn { width: 5dvh; height: 5dvh; min-width: 44px; min-height: 44px; }
-      .bpm-tap { height: 5dvh; min-height: 44px; }
-      .stepper { height: 5dvh; min-height: 44px; }
-      .stepper-btn { width: 5dvh; height: 5dvh; min-width: 44px; min-height: 44px; }
-      .stepper-val { height: 5dvh; min-height: 44px; }
-      .range-row input[type="number"] { height: 5dvh; min-height: 44px; }
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
+      .app { justify-content: space-evenly; }
     }
 
     /* ── Header ── */
@@ -1437,7 +1419,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v0.9.9 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.0 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
