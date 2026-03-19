@@ -49,18 +49,16 @@
       position: relative;
     }
 
-    /* Safari browser chrome fix — adds bottom padding only when vh > dvh (i.e. browser toolbar present) */
-    @supports (height: 100svh) {
-      @media (max-width: 767px) {
-        .app {
-          min-height: 100svh;
-          padding-bottom: max(5rem, env(safe-area-inset-bottom));
-        }
+    /* Safari browser chrome fix — only applies in Safari browser, not home screen app */
+    @media (max-width: 767px) {
+      @supports (-webkit-touch-callout: default) {
+        .app { padding-bottom: max(5rem, env(safe-area-inset-bottom)) !important; }
       }
     }
 
+    /* iPhone compact height */
     @media (max-height: 840px) and (max-width: 767px) {
-      .app { gap: 0.4rem; padding-top: 0.5rem; padding-bottom: 0.25rem; }
+      .app { gap: 0.4rem; padding-top: 0.5rem; }
       .app-header { margin-bottom: 0; }
       .display { padding: 0.6rem 1rem 0.5rem; }
       .section-grid { gap: 0.4rem 1.5rem; }
@@ -69,22 +67,16 @@
       .version-footer { margin-top: 0.1rem; }
     }
 
+    /* iPad general — both orientations */
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 900px) {
-      .app { background: #0f0f0f !important; justify-content: space-evenly; padding: 1.5rem 2rem; gap: 1.25rem; }
-      .app-header { max-width: 560px !important; }
-      .app-title { font-size: 1.6rem; }
+      .app { background: #0f0f0f !important; }
+      .app-header { max-width: 700px !important; }
+      .app-title { font-size: 1.8rem; }
       .app-subtitle { font-size: 0.75rem; }
-      .display { max-width: 560px !important; padding: 1.25rem 1.5rem; }
-      .exercise-number { font-size: clamp(6rem, 12vw, 10rem); }
-      .next-exercise { font-size: clamp(1.6rem, 3vw, 2.4rem); }
-      .countdown-display { font-size: clamp(6rem, 12vw, 10rem); }
-      .exercise-label { font-size: 0.75rem; }
-      .idle-summary { font-size: 0.85rem; }
-      .controls { max-width: 560px !important; gap: 0.9rem; }
-      .section-grid { gap: 0.7rem 1.5rem; }
-      .control-group label { font-size: 0.72rem; }
-      .btn-row { max-width: 560px !important; margin-top: 0.5rem; }
-      .vol-slider-row { max-width: 560px !important; }
+      .display { max-width: 700px !important; }
+      .controls { max-width: 700px !important; }
+      .btn-row { max-width: 700px !important; }
+      .vol-slider-row { max-width: 700px !important; }
       .sel-btn { height: 52px; font-size: 0.9rem; }
       .bpm-widget { height: 52px; }
       .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
@@ -94,39 +86,30 @@
       .stepper-val { height: 52px; font-size: 1.3rem; }
       .range-row input[type="number"] { height: 52px; font-size: 1.1rem; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
-      .vol-label-btn { padding: 1.1rem 0.9rem; font-size: 0.75rem; }
-      .check-row { font-size: 0.85rem; gap: 0.6rem; }
+      .vol-label-btn { padding: 1.1rem 0.9rem; }
+      .check-row { font-size: 0.85rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
+      .control-group label { font-size: 0.72rem; }
     }
 
-    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 900px) and (orientation: portrait) {
-      .app { justify-content: space-evenly; padding: 1dvh 2.5rem; gap: 0; }
-      .display { height: 22dvh !important; display: flex; flex-direction: column; justify-content: center; }
-      .app-title { font-size: 2rem !important; }
-      .app-subtitle { font-size: 0.75rem !important; }
+    /* iPad landscape */
+    @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+      .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
+      .display { min-height: 18dvh; }
+      .controls { gap: 0.9rem; }
+      .section-grid { gap: 0.7rem 1.5rem; }
       .idle-summary { font-size: 0.85rem; }
+    }
+
+    /* iPad portrait */
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 900px) and (orientation: portrait) {
+      .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 0.5dvh; }
+      .display { height: 22dvh !important; }
+      .app-title { font-size: 2rem !important; }
       .controls { gap: 0.8dvh; }
       .section-grid { gap: 0.6dvh 1.5rem; }
       .section-divider { margin: 0.3dvh 0; }
-      .control-group label { font-size: 0.72rem; }
-      .check-row { font-size: 0.85rem; }
-      .action-btn { padding: 1.1rem 1rem; font-size: 0.95rem; }
-      .vol-label-btn { padding: 1.1rem 1rem; }
       .btn-row { margin-top: 0.5dvh; }
-    }
-
-    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 900px) and (orientation: landscape) {
-      .app-title { font-size: 1.6rem; }
-      .app-subtitle { font-size: 0.8rem; }
-      .display { min-height: 20dvh; }
-      .exercise-label { font-size: 0.9rem; }
-      .exercise-number { font-size: clamp(6rem, 15vw, 12rem); }
-      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.8rem); }
-      .idle-summary { font-size: 0.9rem; }
-      .section-grid { gap: 0.75dvh 2rem; }
-      .control-group label { font-size: 0.8rem; }
-      .check-row { font-size: 0.9rem; }
-      .action-btn { font-size: 1rem; }
     }
 
     /* ── Header ── */
@@ -1486,7 +1469,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.1.8 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.2.0 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
