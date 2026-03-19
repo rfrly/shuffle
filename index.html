@@ -60,21 +60,21 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
-      .app { background: red; justify-content: space-evenly; padding: 2rem 3rem; gap: 1.5rem; }
-      .app-header { max-width: 800px; }
+      .app { background: #0f0f0f !important; justify-content: space-evenly; padding: 2rem 3rem; gap: 1.5rem; }
+      .app-header { max-width: 800px !important; }
       .app-title { font-size: 1.8rem; }
       .app-subtitle { font-size: 0.8rem; }
-      .display { max-width: 800px; padding: 1.5rem 2rem; }
+      .display { max-width: 800px !important; padding: 1.5rem 2rem; }
       .exercise-number { font-size: clamp(6rem, 15vw, 12rem); }
       .next-exercise { font-size: clamp(1.8rem, 4vw, 2.8rem); }
       .countdown-display { font-size: clamp(6rem, 15vw, 12rem); }
       .exercise-label { font-size: 0.8rem; }
       .idle-summary { font-size: 0.9rem; }
-      .controls { max-width: 800px; gap: 1rem; }
+      .controls { max-width: 800px !important; gap: 1rem; }
       .section-grid { gap: 0.75rem 2rem; }
       .control-group label { font-size: 0.75rem; }
-      .btn-row { max-width: 800px; margin-top: 0.5rem; }
-      .vol-slider-row { max-width: 800px; }
+      .btn-row { max-width: 800px !important; margin-top: 0.5rem; }
+      .vol-slider-row { max-width: 800px !important; }
       .sel-btn { height: 56px; font-size: 1rem; padding: 0 1.2rem; }
       .bpm-widget { height: 56px; }
       .bpm-btn { width: 56px; height: 56px; font-size: 1.4rem; }
@@ -1449,7 +1449,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.0.4 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.5 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
