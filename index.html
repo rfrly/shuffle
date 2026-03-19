@@ -90,7 +90,7 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (orientation: portrait) {
-      .app { justify-content: center; gap: 1.25rem; }
+      .app { justify-content: space-between; padding-top: 3rem; padding-bottom: 3rem; }
     }
 
     /* ── Header ── */
@@ -1449,7 +1449,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.0.6 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.0.7 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
