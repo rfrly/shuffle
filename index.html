@@ -1256,8 +1256,8 @@
                 {countInBeat > 0 ? fmt(((countInBeat - 1) % timeSig.beats) + 1) : "--"}
               </div>
             ) : setComplete ? (
-              <div className="exercise-number" style={{ color: "#4caf7d", textShadow: "0 0 30px rgba(76,175,125,0.3)" }}>
-                done
+              <div className="exercise-number" style={{ color: "#4caf7d", textShadow: "0 0 30px rgba(76,175,125,0.3)", fontSize: "clamp(2rem, 8vw, 3.5rem)", letterSpacing: "0.05em" }}>
+                {`${minEx}–${maxEx} · done ✓`}
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
@@ -1468,7 +1468,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.5 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.6 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
