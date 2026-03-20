@@ -1231,7 +1231,7 @@
         </svg>
       );
 
-      const modeSummary = mode === MODE_FULLSET ? "full set" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "click only";
+      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "click only";
 
       return (
         <div className="app">
@@ -1268,7 +1268,7 @@
                 <div className="help-section">
                   <h3>Modes</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                    <li>Full Set — plays every exercise once in a random order, then stops.</li>
+                    <li>Shuffle — plays every exercise once in random order, then stops.</li>
                     <li>Sequential — plays exercises in order, then stops.</li>
                     <li>Random — picks randomly and runs until you stop it.</li>
                     <li>Click Only — metronome with bar counter, runs until you stop it.</li>
@@ -1310,7 +1310,7 @@
               </div>
             ) : setComplete ? (
               <div className="exercise-number" style={{ color: "#4caf7d", textShadow: "0 0 30px rgba(76,175,125,0.3)", fontSize: "clamp(1.5rem, 5vw, 2.2rem)", letterSpacing: "0.1em", textTransform: "lowercase" }}>
-                set complete
+                done
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
@@ -1379,14 +1379,15 @@
                 <label>Mode</label>
                 <div className="selector-row">
                   {[
-                    { label: "Full Set",   value: MODE_FULLSET },
+                    { label: "Shuffle",    value: MODE_FULLSET },
                     { label: "Sequential", value: MODE_SEQUENTIAL },
                     { label: "Random",     value: MODE_RANDOM },
                     { label: "Click Only", value: MODE_CLICKONLY },
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
-                      onClick={() => setMode(m.value)} disabled={running}>
+                      onClick={() => setMode(m.value)} disabled={running}
+                      style={m.value === MODE_CLICKONLY ? { marginLeft: "1rem" } : {}}>
                       {m.label}
                     </button>
                   ))}
@@ -1534,7 +1535,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.0 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.1 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
