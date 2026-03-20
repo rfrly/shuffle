@@ -1248,12 +1248,16 @@
 
           <div className="display">
             <div className="exercise-label">
-              {phase === "countin" ? "count in" : phase === "idle" ? "ready" : "exercise"}
+              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : "exercise"}
             </div>
 
             {phase === "countin" ? (
               <div className="countdown-display">
                 {countInBeat > 0 ? fmt(((countInBeat - 1) % timeSig.beats) + 1) : "--"}
+              </div>
+            ) : setComplete ? (
+              <div className="exercise-number" style={{ color: "#4caf7d", textShadow: "0 0 30px rgba(76,175,125,0.3)" }}>
+                done
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
@@ -1263,7 +1267,7 @@
 
             {phase === "idle" ? (
               setComplete ? (
-                <div className="set-complete-summary">{`${minEx}–${maxEx} · done ✓`}</div>
+                <div className="idle-summary">&nbsp;</div>
               ) : (
                 <div className="idle-summary">
                   {`${bpm} bpm · ${minEx}–${maxEx} · ${modeSummary} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}${exerciseLength > 1 ? ` · ${exerciseLength} bars` : ""}`}
@@ -1464,7 +1468,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.4 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.5 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
