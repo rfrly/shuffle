@@ -700,7 +700,6 @@
       const playBeatCount     = useRef(0);
       const schedulerFn       = useRef(null);
       const setEndPending     = useRef(false);
-      const endBellFired      = useRef(false);
 
       const [currentBeat,  setCurrentBeat]  = useState(0);
       const [currentBar,   setCurrentBar]   = useState(0);
@@ -810,7 +809,6 @@
           deckRef.current = []; seqIndex.current = 0;
           countInProgress.current = false; countInBeatPos.current = 0;
           resumingRef.current = false; schedulerFn.current = null; setEndPending.current = false;
-          endBellFired.current = false;
         }
       }, [running]);
 
@@ -829,7 +827,6 @@
         nextBeatTime.current = ctx.currentTime + 0.1;
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false;
-        endBellFired.current = false;
 
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
@@ -927,15 +924,11 @@
                       setTimeout(() => { onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                       playBeatCount.current = 1;
                     } else {
-                      // Fire end bell once at the downbeat that starts the final transition
-                      if (!endBellFired.current) {
-                        endBellFired.current = true;
-                        scheduleEndBell(ctx, nextBeatTime.current, vol);
-                      }
+                      clearInterval(schedulerRef.current);
+                      scheduleEndBell(ctx, nextBeatTime.current, vol);
                       const t2 = t;
-                      setTimeout(() => onDone(), Math.max(0, (t2 - ctx.currentTime) * 1000 + 2000));
+                      setTimeout(() => onDone(), Math.max(0, (t2 - ctx.currentTime) * 1000));
                       setEndPending.current = false;
-                      playBeatCount.current = 1;
                     }
                   } else if (loopingRef.current) {
                     const current = lastExercise.current;
@@ -1079,12 +1072,10 @@
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
       const handleNextExercise = useCallback((n) => { setNextEx(n); setExerciseKey(k => k + 1); }, []);
       const handleSetComplete  = useCallback(() => {
+        setRunning(false); setPaused(false); setLooping(false); setResuming(false);
+        setExercise(null); setNextEx(null); setExerciseKey(0);
         setSetComplete(true);
-        setTimeout(() => {
-          setSetComplete(false);
-          setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-          setExercise(null); setNextEx(null); setExerciseKey(0);
-        }, 2000);
+        setTimeout(() => setSetComplete(false), 2000);
       }, []);
 
       const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
@@ -1473,7 +1464,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.3 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.4 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
