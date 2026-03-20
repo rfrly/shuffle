@@ -854,11 +854,23 @@
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
         setPhase("countin");
-        const firstEx  = pickNext(mn, mx, null, m);
+        const firstEx = pickNext(mn, mx, null, m);
         lastExercise.current = firstEx;
-        const secondEx = pickNext(mn, mx, firstEx, m);
-        nextExercise.current = secondEx;
-        cbNext(firstEx);
+
+        // If there's only one exercise in the set, mark end pending immediately
+        // so it stops after the first round rather than playing an extra one.
+        // We still pass firstEx to cbNext so "up next 01" shows during count-in;
+        // the scheduler will send -1 when playing starts (see count-in end block below).
+        const totalInSetAtStart = mx - mn + 1;
+        if ((m === MODE_FULLSET || m === MODE_SEQUENTIAL) && totalInSetAtStart === 1) {
+          nextExercise.current = firstEx;
+          setEndPending.current = true;
+          cbNext(firstEx);
+        } else {
+          const secondEx = pickNext(mn, mx, firstEx, m);
+          nextExercise.current = secondEx;
+          cbNext(firstEx);
+        }
 
         const scheduler = () => {
           const { bpm: b, beatsPerBar: bpb2, barsPerExercise: bpe,
@@ -885,7 +897,7 @@
                 Math.max(0, (t - ctx.currentTime) * 1000));
               if (bc === countInBeats - 1) {
                 const cur = lastExercise.current;
-                const nxt = nextExercise.current;
+                const nxt = setEndPending.current ? -1 : nextExercise.current;
                 setTimeout(() => {
                   onChange(cur);
                   onNext(nxt);
@@ -1474,7 +1486,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.1 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.2 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
