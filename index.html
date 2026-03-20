@@ -48,19 +48,16 @@
       position: relative;
     }
 
-    /* Safari browser chrome fix */
     @media (max-width: 767px) {
       @supports (-webkit-touch-callout: default) {
         .app { padding-bottom: max(6rem, env(safe-area-inset-bottom)) !important; }
       }
     }
 
-    /* Allow selector wrap on small iPhone screens */
     @media (max-width: 390px) {
       .selector-row { flex-wrap: wrap; }
     }
 
-    /* iPhone compact height */
     @media (max-height: 840px) and (max-width: 767px) {
       .app { gap: 0.4rem; padding-top: 0.5rem; }
       .app-header { margin-bottom: 0; }
@@ -71,7 +68,6 @@
       .version-footer { margin-top: 0.1rem; }
     }
 
-    /* iPad general — both orientations */
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .app { background: #0f0f0f !important; }
       .app-header { max-width: 700px !important; }
@@ -96,7 +92,6 @@
       .control-group label { font-size: 0.72rem; }
     }
 
-    /* iPad landscape */
     @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
       .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
       .display { min-height: 18dvh; }
@@ -105,7 +100,6 @@
       .idle-summary { font-size: 0.85rem; }
     }
 
-    /* iPad portrait */
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 0.5dvh; }
       .display { height: 22dvh !important; }
@@ -116,7 +110,6 @@
       .btn-row { margin-top: 0.5dvh; }
     }
 
-    /* ── Header ── */
     .app-header {
       display: flex;
       align-items: center;
@@ -125,15 +118,8 @@
       margin-bottom: 0.1rem;
     }
 
-    .app-header-text {
-      flex: 1;
-      text-align: center;
-    }
-
-    .app-header-spacer {
-      width: 28px;
-      flex-shrink: 0;
-    }
+    .app-header-text { flex: 1; text-align: center; }
+    .app-header-spacer { width: 28px; flex-shrink: 0; }
 
     .app-title {
       font-family: 'Share Tech Mono', monospace;
@@ -153,7 +139,6 @@
       text-align: center;
     }
 
-    /* ── Display zone ── */
     .display {
       display: flex;
       flex-direction: column;
@@ -237,6 +222,16 @@
       min-height: 1.2em;
     }
 
+    .set-complete-summary {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: #4caf7d;
+      text-align: center;
+      padding: 0.4rem 0 0.2rem;
+      min-height: 1.2em;
+    }
+
     .beat-dots {
       display: flex;
       gap: 0.6rem;
@@ -275,7 +270,6 @@
     .bar-block.countin-done { background: #7a2200; }
     .bar-block.countin-current { background: #ff4500; }
 
-    /* ── Controls ── */
     .controls {
       display: flex;
       flex-direction: column;
@@ -310,7 +304,6 @@
 
     .control-group.secondary label { color: #888; }
 
-    /* BPM */
     .bpm-widget { display: flex; align-items: center; height: 44px; }
 
     .bpm-btn {
@@ -337,18 +330,6 @@
     .bpm-tap:active { background: #252525; }
     .bpm-tap.tapped { background: #222; }
 
-    .bpm-hint-area {
-      min-height: 1.2rem;
-      margin-top: 0.1rem;
-    }
-
-    .bpm-hint {
-      font-size: 0.6rem; color: #666;
-      font-family: 'Share Tech Mono', monospace;
-      letter-spacing: 0.1em;
-    }
-
-    /* Stepper */
     .stepper { display: flex; align-items: center; height: 44px; }
 
     .stepper-btn {
@@ -374,7 +355,6 @@
       min-width: 40px;
     }
 
-    /* Range */
     .range-row { display: flex; align-items: center; gap: 0.5rem; }
 
     .range-row input[type="number"] {
@@ -391,7 +371,6 @@
     .range-row input[type="number"]:disabled { opacity: 0.25; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
-    /* Selector buttons */
     .selector-row { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
 
     .sel-btn {
@@ -405,10 +384,7 @@
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
     .sel-btn:disabled { opacity: 0.25; cursor: default; }
 
-    /* Checkboxes */
-    .check-row {
-      display: flex; align-items: center; gap: 0.5rem;
-    }
+    .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
       font-size: 0.75rem; color: #aaa;
       font-family: 'Share Tech Mono', monospace;
@@ -420,7 +396,6 @@
       min-height: 44px;
     }
 
-    /* Volume */
     input[type="range"] {
       flex: 1;
       -webkit-appearance: none; appearance: none;
@@ -462,20 +437,14 @@
       letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
     }
 
-    /* Transport */
     .btn-row {
       display: flex; gap: 0.5rem;
       width: 100%; max-width: 440px;
       margin-top: 0.5rem;
     }
 
-    .btn-group {
-      display: flex; gap: 0.5rem; flex: 1;
-    }
-
-    .btn-group-stop {
-      display: flex;
-    }
+    .btn-group { display: flex; gap: 0.5rem; flex: 1; }
+    .btn-group-stop { display: flex; }
 
     .action-btn {
       flex: 1; padding: 1rem;
@@ -486,20 +455,11 @@
       background: #f5c842; color: #0f0f0f;
     }
     .action-btn:active { background: #d4aa30; border-color: #d4aa30; }
-    .action-btn.secondary {
-      background: #1e1e1e;
-      border-color: #444; color: #bbb;
-    }
+    .action-btn.secondary { background: #1e1e1e; border-color: #444; color: #bbb; }
     .action-btn.secondary:active { background: #2a2a2a; color: #fff; border-color: #666; }
-    .action-btn.pause-active {
-      background: #1e1e1e;
-      border-color: #ccc; color: #ccc;
-    }
+    .action-btn.pause-active { background: #1e1e1e; border-color: #ccc; color: #ccc; }
     .action-btn.pause-active:active { background: #2a2a2a; border-color: #fff; color: #fff; }
-    .action-btn.stop {
-      background: #1e1e1e;
-      border-color: #7a2200; color: #c44;
-    }
+    .action-btn.stop { background: #1e1e1e; border-color: #7a2200; color: #c44; }
     .action-btn.stop:active { background: #2a2a2a; color: #ff4500; border-color: #ff4500; }
     .action-btn.loop-active { border-color: #f5c842; color: #0f0f0f; background: #f5c842; }
     .action-btn.loop-active:active { background: #d4aa30; border-color: #d4aa30; }
@@ -518,7 +478,6 @@
       margin-top: 0.25rem;
     }
 
-    /* ── Rotate overlay ── */
     .rotate-overlay {
       display: none;
       position: fixed;
@@ -542,7 +501,6 @@
       .rotate-overlay { display: flex; }
     }
 
-    /* ── Help overlay ── */
     .help-overlay {
       position: fixed;
       inset: 0;
@@ -677,6 +635,26 @@
       src.start(time); src.stop(time + 0.06);
     }
 
+    function scheduleEndBell(ctx, time, vol) {
+      // Single prominent woodblock at higher pitch to signal set completion
+      const bufSize = Math.floor(ctx.sampleRate * 0.06);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 8);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 2800;
+      filter.Q.value = 5;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+      src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      src.start(time); src.stop(time + 0.09);
+    }
+
     function scheduleMetronomeClick(ctx, time, isDownbeat, vol) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -722,6 +700,7 @@
       const playBeatCount     = useRef(0);
       const schedulerFn       = useRef(null);
       const setEndPending     = useRef(false);
+      const endBellFired      = useRef(false);
 
       const [currentBeat,  setCurrentBeat]  = useState(0);
       const [currentBar,   setCurrentBar]   = useState(0);
@@ -831,6 +810,7 @@
           deckRef.current = []; seqIndex.current = 0;
           countInProgress.current = false; countInBeatPos.current = 0;
           resumingRef.current = false; schedulerFn.current = null; setEndPending.current = false;
+          endBellFired.current = false;
         }
       }, [running]);
 
@@ -849,18 +829,14 @@
         nextBeatTime.current = ctx.currentTime + 0.1;
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false;
+        endBellFired.current = false;
 
-        // Fresh start — pick exercises and queue count-in
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
         setPhase("countin");
         const firstEx = pickNext(mn, mx, null, m);
         lastExercise.current = firstEx;
 
-        // If there's only one exercise in the set, mark end pending immediately
-        // so it stops after the first round rather than playing an extra one.
-        // We still pass firstEx to cbNext so "up next 01" shows during count-in;
-        // the scheduler will send -1 when playing starts (see count-in end block below).
         const totalInSetAtStart = mx - mn + 1;
         if ((m === MODE_FULLSET || m === MODE_SEQUENTIAL) && totalInSetAtStart === 1) {
           nextExercise.current = firstEx;
@@ -951,8 +927,13 @@
                       setTimeout(() => { onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                       playBeatCount.current = 1;
                     } else {
+                      // Fire end bell once at the downbeat that starts the final transition
+                      if (!endBellFired.current) {
+                        endBellFired.current = true;
+                        scheduleEndBell(ctx, nextBeatTime.current, vol);
+                      }
                       const t2 = t;
-                      setTimeout(() => onDone(), Math.max(0, (t2 - ctx.currentTime) * 1000));
+                      setTimeout(() => onDone(), Math.max(0, (t2 - ctx.currentTime) * 1000 + 2000));
                       setEndPending.current = false;
                       playBeatCount.current = 1;
                     }
@@ -1074,6 +1055,7 @@
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
+      const [setComplete,     setSetComplete]     = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -1097,8 +1079,12 @@
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
       const handleNextExercise = useCallback((n) => { setNextEx(n); setExerciseKey(k => k + 1); }, []);
       const handleSetComplete  = useCallback(() => {
-        setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setSetComplete(true);
+        setTimeout(() => {
+          setSetComplete(false);
+          setRunning(false); setPaused(false); setLooping(false); setResuming(false);
+          setExercise(null); setNextEx(null); setExerciseKey(0);
+        }, 2000);
       }, []);
 
       const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
@@ -1116,13 +1102,14 @@
       });
 
       const handleStart = () => {
+        setSetComplete(false);
         setExercise(null); setNextEx(null); setExerciseKey(0);
         setPaused(false); setLooping(false); setResuming(false); setRunning(true);
       };
 
       const handleStop = () => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false);
       };
 
       const handlePause = () => {
@@ -1137,7 +1124,6 @@
 
       const handleLoop = () => setLooping(l => !l);
 
-      // Clear resuming flag when timer signals count-in is done
       useEffect(() => {
         if (!isResuming && resuming) setResuming(false);
       }, [isResuming, resuming]);
@@ -1285,9 +1271,13 @@
             )}
 
             {phase === "idle" ? (
-              <div className="idle-summary">
-                {`${bpm} bpm · ${minEx}–${maxEx} · ${modeSummary} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}${exerciseLength > 1 ? ` · ${exerciseLength} bars` : ""}`}
-              </div>
+              setComplete ? (
+                <div className="set-complete-summary">{`${minEx}–${maxEx} · done ✓`}</div>
+              ) : (
+                <div className="idle-summary">
+                  {`${bpm} bpm · ${minEx}–${maxEx} · ${modeSummary} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}${exerciseLength > 1 ? ` · ${exerciseLength} bars` : ""}`}
+                </div>
+              )
             ) : (
               <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : nextOpacity }}>
                 {paused
@@ -1325,7 +1315,6 @@
 
           <div className="controls">
 
-            {/* ── Variable ── */}
             <div className="section-grid">
 
               <div className="control-group full-width">
@@ -1395,7 +1384,6 @@
 
             <div className="section-divider" />
 
-            {/* ── Fixed ── */}
             <div className="section-grid">
 
               <div className="control-group secondary">
@@ -1439,7 +1427,6 @@
 
           </div>
 
-          {/* ── Transport ── */}
           <div className="btn-row">
             {!running ? (
               <>
@@ -1486,7 +1473,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.2 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.3 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
