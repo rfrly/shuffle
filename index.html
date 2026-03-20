@@ -29,7 +29,9 @@
       color: #e8e8e8;
       font-family: 'Barlow', sans-serif;
       min-height: 100%;
-      overflow-x: hidden;
+      overflow: hidden;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     .app {
@@ -1533,7 +1535,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.9 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.10 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
