@@ -13,7 +13,6 @@
   <meta property="og:url" content="https://shuffleclick.com" />
   <meta property="og:image" content="https://shuffleclick.com/shuffle-icon.png" />
   <title>Shuffle</title>
-  <meta name="description" content="Shuffle — exercise randomiser and metronome for musicians." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
@@ -704,7 +703,7 @@
     function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                             onNewExercise, onNextExercise, onSetComplete,
                             running, paused, resuming,
-                            countIn, countInBars, countInEveryRound,
+                            countInBars, countInEveryRound,
                             mode, volume, looping }) {
 
       const audioCtx          = useRef(null);
@@ -716,7 +715,7 @@
       const nextExercise      = useRef(null);
       const deckRef           = useRef([]);
       const seqIndex          = useRef(0);
-      const exercisesPlayed   = useRef(0); // for set-completion tracking
+      const exercisesPlayed   = useRef(0);
       const loopingRef        = useRef(looping);
       const countInProgress   = useRef(false);
       const countInBeatPos    = useRef(0);
@@ -773,7 +772,7 @@
       useEffect(() => {
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete,
-                             countIn, countInBars, countInEveryRound,
+                             countInBars, countInEveryRound,
                              mode, volume };
       });
 
@@ -843,8 +842,7 @@
         if (ctx.state === "suspended") ctx.resume();
         if (!silentLoop.current) silentLoop.current = startSilentLoop(ctx);
 
-        const { beatsPerBar: bpb, countIn: ci, countInBars: cib,
-                minEx: mn, maxEx: mx,
+        const { countInBars: cib, minEx: mn, maxEx: mx,
                 onNewExercise: cb, onNextExercise: cbNext, mode: m } = stateRef.current;
 
         beatCount.current = 0; playBeatCount.current = 0;
@@ -852,28 +850,27 @@
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false;
 
-        // Fresh start — pick exercises
+        // Fresh start — pick exercises and queue count-in
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
-        setPhase(ci ? "countin" : "playing");
+        setPhase("countin");
         const firstEx  = pickNext(mn, mx, null, m);
         lastExercise.current = firstEx;
         const secondEx = pickNext(mn, mx, firstEx, m);
         nextExercise.current = secondEx;
-        if (ci) { cbNext(firstEx); }
-        else    { cb(firstEx); cbNext(secondEx); }
+        cbNext(firstEx);
 
         const scheduler = () => {
           const { bpm: b, beatsPerBar: bpb2, barsPerExercise: bpe,
                   minEx: min, maxEx: max,
                   onNewExercise: onChange, onNextExercise: onNext,
                   onSetComplete: onDone,
-                  countIn: ci2, countInBars: cib2, countInEveryRound: cier,
+                  countInBars: cib2, countInEveryRound: cier,
                   mode: currentMode, volume: vol } = stateRef.current;
 
           const beatLen           = 60 / b;
-          const countInBeats      = ci2 ? bpb2 * cib2 : 0;
-          const interCountInBeats = (ci2 && cier) ? bpb2 * cib2 : 0;
+          const countInBeats      = bpb2 * cib2;
+          const interCountInBeats = cier ? bpb2 * cib2 : 0;
           const totalInSet        = max - min + 1;
 
           while (nextBeatTime.current < ctx.currentTime + 0.2) {
@@ -938,7 +935,6 @@
                 if (isNewExercise) {
                   if (setEndPending.current) {
                     if (loopingRef.current) {
-                      // Stay on current exercise, don't end the set
                       const current = lastExercise.current;
                       setTimeout(() => { onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                       playBeatCount.current = 1;
@@ -1056,7 +1052,6 @@
       const [exerciseLength,  setExerciseLength]  = useState(saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(saved?.maxEx ?? 16);
-      const [countIn,         setCountIn]         = useState(true);
       const [countInBars,     setCountInBars]     = useState(saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(saved?.countInEvery ?? false);
       const [mode,            setMode]            = useState(saved?.mode ?? MODE_FULLSET);
@@ -1064,7 +1059,6 @@
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
       const [exerciseKey,     setExerciseKey]     = useState(0);
-      const [resumingEx,     setResumingEx]      = useState(null);
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
@@ -1104,7 +1098,7 @@
         onNextExercise: handleNextExercise,
         onSetComplete: handleSetComplete,
         running, paused, resuming,
-        countIn, countInBars,
+        countInBars,
         countInEveryRound: countInEvery,
         mode, volume, looping,
       });
@@ -1122,11 +1116,9 @@
       const handlePause = () => {
         if (paused) {
           setResuming(true);
-          setResumingEx(exercise);
           setPaused(false);
         } else {
           setResuming(false);
-          setResumingEx(null);
           setPaused(true);
         }
       };
@@ -1372,7 +1364,7 @@
                     {[{ label: "1 bar", bars: 1 }, { label: "2 bars", bars: 2 }, { label: "4 bars", bars: 4 }].map(opt => (
                       <button key={opt.bars}
                         className={`sel-btn${countInBars === opt.bars ? " active" : ""}`}
-                        onClick={() => { setCountInBars(opt.bars); setCountIn(true); }}
+                        onClick={() => setCountInBars(opt.bars)}
                         disabled={running}>
                         {opt.label}
                       </button>
@@ -1482,7 +1474,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.3.0 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.3.1 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
