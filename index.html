@@ -29,9 +29,7 @@
       color: #e8e8e8;
       font-family: 'Barlow', sans-serif;
       min-height: 100%;
-      overflow: hidden;
-      user-select: none;
-      -webkit-user-select: none;
+      overflow-x: hidden;
     }
 
     .app {
@@ -48,6 +46,8 @@
       padding-bottom: max(1rem, env(safe-area-inset-bottom));
       gap: 0.75rem;
       position: relative;
+      user-select: none;
+      -webkit-user-select: none;
     }
 
     @media (max-width: 767px) {
@@ -518,6 +518,7 @@
       align-items: center;
       justify-content: center;
       padding: 2rem 1.5rem;
+      touch-action: none;
     }
 
     .help-content {
@@ -1242,7 +1243,7 @@
       const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "click only";
 
       return (
-        <div className="app">
+        <div className="app" onTouchMove={e => e.preventDefault()}
 
           <div className="rotate-overlay">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f5c842" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -1535,7 +1536,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.10 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.12 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
