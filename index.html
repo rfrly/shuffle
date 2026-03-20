@@ -313,7 +313,7 @@
       background: #1a1a1a; border: 1px solid #333; color: #ccc;
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      user-select: none; transition: background 0.1s, color 0.1s;
+      user-select: none; -webkit-user-select: none; transition: background 0.1s, color 0.1s;
       flex-shrink: 0; font-family: 'Share Tech Mono', monospace;
     }
     .bpm-btn:active { background: #2a2a2a; color: #fff; }
@@ -327,7 +327,7 @@
       color: #f5c842; font-family: 'Share Tech Mono', monospace;
       font-size: 1rem; text-align: center; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      user-select: none; transition: background 0.08s; min-width: 60px;
+      user-select: none; -webkit-user-select: none; transition: background 0.08s; min-width: 60px;
     }
     .bpm-tap:active { background: #252525; }
     .bpm-tap.tapped { background: #222; }
@@ -339,7 +339,7 @@
       background: #1a1a1a; border: 1px solid #333; color: #ccc;
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      user-select: none; transition: background 0.1s; flex-shrink: 0;
+      user-select: none; -webkit-user-select: none; transition: background 0.1s; flex-shrink: 0;
       font-family: 'Share Tech Mono', monospace;
     }
     .stepper-btn:active { background: #2a2a2a; color: #fff; }
@@ -381,6 +381,7 @@
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px;
       display: flex; align-items: center;
+      user-select: none; -webkit-user-select: none;
     }
     .sel-btn:active { background: #252525; }
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
@@ -423,6 +424,7 @@
       cursor: pointer; transition: background 0.1s; flex-shrink: 0;
       font-family: 'Share Tech Mono', monospace;
       font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+      user-select: none; -webkit-user-select: none;
     }
     .vol-label-btn:active { background: #2a2a2a; color: #fff; }
     .vol-label-btn.active { border-color: #f5c842; color: #f5c842; }
@@ -455,6 +457,7 @@
       cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
       border: 1px solid #f5c842; border-radius: 8px;
       background: #f5c842; color: #0f0f0f;
+      user-select: none; -webkit-user-select: none;
     }
     .action-btn:active { background: #d4aa30; border-color: #d4aa30; }
     .action-btn.secondary { background: #1e1e1e; border-color: #444; color: #bbb; }
@@ -586,6 +589,7 @@
       padding: 0.6rem 1.5rem;
       cursor: pointer;
       border-radius: 4px;
+      user-select: none; -webkit-user-select: none;
     }
     .help-close:active { color: #aaa; border-color: #555; }
 
@@ -599,6 +603,7 @@
       padding: 0.2rem 0.5rem;
       letter-spacing: 0.1em;
       border-radius: 4px;
+      user-select: none; -webkit-user-select: none;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
@@ -1256,7 +1261,11 @@
 
           {showHelp && (
             <div className="help-overlay" onClick={() => setShowHelp(false)}>
-              <div className="help-content" onClick={e => e.stopPropagation()}>
+              {/* NOTE: Tapping anywhere (including this card) closes the overlay.
+                   If you add a link inside here (e.g. Buy Me a Coffee), add
+                   onClick={e => e.stopPropagation()} to the <a> tag so tapping
+                   it doesn't also dismiss the overlay. */}
+              <div className="help-content">
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
                   <p>Shuffle randomises your practice exercises and keeps you in time.</p>
@@ -1523,7 +1532,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.6 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.7 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
