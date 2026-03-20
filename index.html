@@ -1397,11 +1397,11 @@
                 </div>
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY ? " secondary dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " secondary dimmed" : ""}`}>
                 <label>Rounds</label>
                 <div className="stepper">
                   <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
-                  <div className="stepper-val" style={mode === MODE_CLICKONLY ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
                   <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
                 </div>
               </div>
@@ -1523,7 +1523,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.3 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.4 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
