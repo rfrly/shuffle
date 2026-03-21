@@ -258,8 +258,6 @@
     .beat-dot.active { background: #ff4500; }
     .beat-dot.beat1.active { background: #fff; }
 
-    /* Bar progress — blocks (up to 16 rounds) */
-    /* Bar progress — blocks (1–16 rounds) */
     .bar-progress {
       display: flex;
       gap: 4px;
@@ -278,7 +276,6 @@
     .bar-block.countin-done { background: #7a2200; }
     .bar-block.countin-current { background: #ff4500; }
 
-    /* Bar progress — continuous bar (17+ rounds) */
     .bar-progress-continuous {
       display: flex;
       align-items: center;
@@ -756,7 +753,7 @@
       filter.frequency.value = isDownbeat ? 2000 : 1400;
       filter.Q.value = 4;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime((isDownbeat ? 1.4 : 1.0) * vol, time);
+      gain.gain.setValueAtTime((isDownbeat ? 2.0 : 1.4) * vol, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
       src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
       src.start(time); src.stop(time + 0.06);
@@ -1191,30 +1188,70 @@
       return n <= 12 ? 4 : 3;
     }
 
-    function BarProgress({ barsPerExercise, currentRound, looping, phase, countInBars, countInBeat, beatsPerBar }) {
-      if (phase === "playing") {
+    // Amber brightness levels for bar-within-phrase: index = bar position (0-based)
+    const BAR_PHRASE_COLOURS = {
+      1: ["#f5c842"],
+      2: ["#7a6421", "#f5c842"],
+      4: ["#3d3210", "#7a6421", "#b89631", "#f5c842"],
+    };
+
+    function barPhraseColour(exerciseLength, currentBar, looping) {
+      if (looping) return "#f5c842";
+      const colours = BAR_PHRASE_COLOURS[exerciseLength] || ["#f5c842"];
+      const barWithinPhrase = currentBar % exerciseLength;
+      return colours[barWithinPhrase] || "#f5c842";
+    }
+
+    function BarProgress({ barsPerExercise, currentRound, currentBar, exerciseLength, looping, phase, countInBars, countInBeat, beatsPerBar, barFlash }) {
+      if (phase === "idle" || (phase === "countin" && countInBars < 2)) {
         if (barsPerExercise <= BAR_BLOCKS_MAX) {
-          // Single row of blocks, sized by count
+          const bw = blockWidth(barsPerExercise);
+          const bg = blockGap(barsPerExercise);
+          return (
+            <div className="bar-progress" style={{ gap: `${bg}px` }}>
+              {Array.from({ length: barsPerExercise }).map((_, i) => (
+                <div key={i} className="bar-block" style={{ width: `${bw}px` }} />
+              ))}
+            </div>
+          );
+        } else {
+          return (
+            <div className="bar-progress-continuous">
+              <div className="bar-progress-track">
+                <div className="bar-progress-fill" style={{ width: "0%", background: "#f5c842" }} />
+              </div>
+            </div>
+          );
+        }
+      }
+
+      if (phase === "playing") {
+        const activeColour = barPhraseColour(exerciseLength, currentBar, looping);
+
+        if (barsPerExercise <= BAR_BLOCKS_MAX) {
           const bw = blockWidth(barsPerExercise);
           const bg = blockGap(barsPerExercise);
           return (
             <div className="bar-progress" style={{ gap: `${bg}px` }}>
               {Array.from({ length: barsPerExercise }).map((_, i) => (
                 <div key={i}
-                  className={`bar-block${i < currentRound - 1 ? " done" : i === currentRound - 1 ? (looping ? " loop-current" : " current") : ""}`}
-                  style={{ width: `${bw}px` }}
+                  className={`bar-block${i < currentRound - 1 ? " done" : ""}`}
+                  style={{
+                    width: `${bw}px`,
+                    background: i < currentRound - 1 ? undefined : i === currentRound - 1 ? activeColour : undefined,
+                  }}
                 />
               ))}
             </div>
           );
         } else {
-          // Progress bar with round counter for 17+ rounds
           const pct = looping ? 50 : Math.min(100, Math.round((currentRound / barsPerExercise) * 100));
           const nearEnd = !looping && currentRound >= barsPerExercise - 1;
+          const fillOpacity = looping ? 0.5 : barFlash ? 1 : 0.6;
           return (
             <div className="bar-progress-continuous">
               <div className="bar-progress-track">
-                <div className={`bar-progress-fill${looping ? " loop" : ""}`} style={{ width: `${pct}%` }} />
+                <div className="bar-progress-fill" style={{ width: `${pct}%`, background: "#f5c842", opacity: fillOpacity, transition: barFlash ? "none" : "width 0.15s, opacity 0.25s" }} />
               </div>
               <span className={`bar-progress-counter${nearEnd ? " near-end" : ""}`}>
                 {looping ? "–" : `${currentRound}/${barsPerExercise}`}
@@ -1267,6 +1304,7 @@
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
       const [setComplete,     setSetComplete]     = useState(false);
+      const [barFlash,        setBarFlash]        = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -1379,8 +1417,8 @@
       }, [running]);
 
       const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
-      const incBpm  = useCallback(() => { if (!running) setBpm(b => clampBpm(b + 1)); }, [running]);
-      const decBpm  = useCallback(() => { if (!running) setBpm(b => clampBpm(b - 1)); }, [running]);
+      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);
+      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);
       const incBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
       const decBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
 
@@ -1389,6 +1427,13 @@
       const barsIncHandlers = useLongPress(incBars);
       const barsDecHandlers = useLongPress(decBars);
 
+      useEffect(() => {
+        if (phase === "playing" && currentBeat === 0 && !paused) {
+          setBarFlash(true);
+          const t = setTimeout(() => setBarFlash(false), 120);
+          return () => clearTimeout(t);
+        }
+      }, [currentBar, currentBeat, phase, paused]);
       const validRange   = mode === MODE_CLICKONLY ? true : minEx <= maxEx;
       const totalBars    = barsPerExercise * exerciseLength;
       const currentRound = Math.floor(currentBar / exerciseLength) + 1;
@@ -1497,7 +1542,7 @@
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · click only`
-                    : `${bpm} bpm · ${minEx}–${maxEx} · ${modeSummary} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}${exerciseLength > 1 ? ` · ${exerciseLength} bars` : ""}`}
+                    : `${minEx}–${maxEx} · ${exerciseLength > 1 ? `${exerciseLength}-bar exercise · ` : ""}${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -1532,11 +1577,14 @@
               <BarProgress
                 barsPerExercise={barsPerExercise}
                 currentRound={currentRound}
+                currentBar={currentBar}
+                exerciseLength={exerciseLength}
                 looping={looping}
                 phase={phase}
                 countInBars={countInBars}
                 countInBeat={countInBeat}
                 beatsPerBar={timeSig.beats}
+                barFlash={barFlash}
               />
             )}
             {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
@@ -1569,7 +1617,7 @@
               <div className="control-group">
                 <label>BPM</label>
                 <div className="bpm-widget">
-                  <button className="bpm-btn left" disabled={running} {...bpmDecHandlers}>−</button>
+                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
                   <div className={`bpm-tap${tapped ? " tapped" : ""}`} onClick={handleTap}
                     style={running ? { opacity: 0.6, cursor: "default" } : {}}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
@@ -1577,7 +1625,7 @@
                       {!running && <span style={{ fontSize: "0.5rem", color: "#555", letterSpacing: "0.08em" }}>tap to set</span>}
                     </div>
                   </div>
-                  <button className="bpm-btn right" disabled={running} {...bpmIncHandlers}>+</button>
+                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                 </div>
               </div>
 
@@ -1710,7 +1758,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.26 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.0 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
