@@ -1594,7 +1594,7 @@
 
             <div className="section-grid">
 
-              <div className="control-group full-width">
+              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
                 <label>Mode</label>
                 <div className="selector-row">
                   {[
@@ -1638,7 +1638,7 @@
                 </div>
               </div>
 
-              <div className="control-group full-width">
+              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
                 <label>Count in</label>
                 <div className="countin-row">
                   <div className="selector-row">
@@ -1666,7 +1666,7 @@
 
             <div className="section-grid">
 
-              <div className={`control-group secondary${mode === MODE_CLICKONLY ? " dimmed" : ""}`}>
+              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="number" value={minEx} min={1}
@@ -1681,7 +1681,7 @@
                 </div>
               </div>
 
-              <div className={`control-group secondary${mode === MODE_CLICKONLY ? " dimmed" : ""}`}>
+              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercise length</label>
                 <div className="selector-row">
                   {[1, 2, 4].map(n => (
@@ -1694,7 +1694,7 @@
                 </div>
               </div>
 
-              <div className="control-group secondary full-width">
+              <div className={`control-group secondary full-width${running ? " dimmed" : ""}`}>
                 <label>Time signature</label>
                 <div className="selector-row">
                   {TIME_SIGS.map(ts => (
@@ -1758,7 +1758,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.3 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.4 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
