@@ -28,8 +28,8 @@
       background: #0f0f0f;
       color: #e8e8e8;
       font-family: 'Barlow', sans-serif;
-      min-height: 100%;
-      overflow-x: hidden;
+      height: 100%;
+      overflow: hidden;
     }
 
     .app {
@@ -49,12 +49,11 @@
       user-select: none;
       -webkit-user-select: none;
       overflow: hidden;
+      box-sizing: border-box;
     }
 
-    @media (max-width: 767px) {
-      @supports (-webkit-touch-callout: default) {
-        .app { padding-bottom: max(6rem, env(safe-area-inset-bottom)) !important; }
-      }
+    @supports (height: 100svh) {
+      .app { height: 100svh; }
     }
 
     @media (max-width: 390px) {
@@ -1528,7 +1527,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.15 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.16 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
