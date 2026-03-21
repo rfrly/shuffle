@@ -258,15 +258,16 @@
     .beat-dot.active { background: #ff4500; }
     .beat-dot.beat1.active { background: #fff; }
 
+    /* Bar progress — blocks (up to 16 rounds) */
+    /* Bar progress — blocks (1–16 rounds) */
     .bar-progress {
       display: flex;
       gap: 4px;
       margin-top: 0.3rem;
-      min-height: 5px;
     }
 
     .bar-block {
-      height: 5px; width: 20px;
+      height: 5px;
       background: #222;
       border-radius: 2px;
       transition: background 0.1s;
@@ -276,6 +277,42 @@
     .bar-block.loop-current { background: #f5c842; opacity: 0.5; }
     .bar-block.countin-done { background: #7a2200; }
     .bar-block.countin-current { background: #ff4500; }
+
+    /* Bar progress — continuous bar (17+ rounds) */
+    .bar-progress-continuous {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 0.3rem;
+    }
+
+    .bar-progress-track {
+      width: 192px;
+      height: 5px;
+      background: #222;
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .bar-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #f5c842;
+      transition: width 0.15s;
+    }
+
+    .bar-progress-fill.loop { opacity: 0.5; }
+
+    .bar-progress-counter {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .bar-progress-counter.near-end { color: #f5c842; }
 
     .controls {
       display: flex;
@@ -597,13 +634,8 @@
       letter-spacing: 0.03em;
     }
 
-    .help-section li {
-      margin-bottom: 0.4rem;
-    }
-
-    .help-section li:last-child {
-      margin-bottom: 0;
-    }
+    .help-section li { margin-bottom: 0.4rem; }
+    .help-section li:last-child { margin-bottom: 0; }
 
     .help-close {
       align-self: center;
@@ -645,6 +677,8 @@
       .idle-summary { font-size: 0.8rem; }
       .check-row span { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
+      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
+      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
 
   </style>
@@ -672,18 +706,19 @@
 
     // ── Constants ─────────────────────────────────────────────────────────────
 
-    const SCHEDULER_INTERVAL_MS   = 25;    // scheduler polling interval
-    const LOOKAHEAD_TIME          = 0.2;   // audio lookahead window (seconds)
-    const START_DELAY             = 0.1;   // delay before first beat (seconds)
-    const FLASH_DURATION_MS       = 200;   // exercise number flash duration
-    const SET_COMPLETE_DISPLAY_MS = 2000;  // "done" display duration
-    const RESUME_SETUP_DELAY_MS   = 50;    // delay before restarting scheduler on resume
+    const SCHEDULER_INTERVAL_MS   = 25;
+    const LOOKAHEAD_TIME          = 0.2;
+    const START_DELAY             = 0.1;
+    const FLASH_DURATION_MS       = 200;
+    const SET_COMPLETE_DISPLAY_MS = 2000;
+    const RESUME_SETUP_DELAY_MS   = 50;
     const BPM_MIN                 = 30;
     const BPM_MAX                 = 300;
     const BARS_MIN                = 1;
     const BARS_MAX                = 32;
-    const TAP_MAX_HISTORY         = 8;     // max tap tempo samples retained
-    const TAP_RESET_MS            = 2000;  // discard tap history after this gap
+    const TAP_MAX_HISTORY         = 8;
+    const TAP_RESET_MS            = 2000;
+    const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
 
     function loadSettings() {
       try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; }
@@ -695,8 +730,6 @@
 
     // ── Audio ──────────────────────────────────────────────────────────────────
 
-    // ── Shared compressor ─────────────────────────────────────────────────────
-    // One compressor per AudioContext, created lazily and cached on the context.
     function getCompressor(ctx) {
       if (ctx._compressor) return ctx._compressor;
       const comp = ctx.createDynamicsCompressor();
@@ -974,7 +1007,6 @@
           while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
             const bc = beatCount.current;
 
-            // ── Count-in (initial start or resume) ──
             if (bc < countInBeats) {
               const beatInCI = bc % bpb2;
               scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
@@ -994,7 +1026,6 @@
                 }, Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
               }
 
-            // ── Playing / inter-exercise count-in ──
             } else {
               const inInterCountIn = countInProgress.current;
 
@@ -1147,6 +1178,68 @@
     }
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
+
+    // ── Bar progress display ───────────────────────────────────────────────────
+
+    function blockWidth(n) {
+      if (n <= 8)  return 20;
+      if (n <= 12) return 16;
+      return 12;
+    }
+
+    function blockGap(n) {
+      return n <= 12 ? 4 : 3;
+    }
+
+    function BarProgress({ barsPerExercise, currentRound, looping, phase, countInBars, countInBeat, beatsPerBar }) {
+      if (phase === "playing") {
+        if (barsPerExercise <= BAR_BLOCKS_MAX) {
+          // Single row of blocks, sized by count
+          const bw = blockWidth(barsPerExercise);
+          const bg = blockGap(barsPerExercise);
+          return (
+            <div className="bar-progress" style={{ gap: `${bg}px` }}>
+              {Array.from({ length: barsPerExercise }).map((_, i) => (
+                <div key={i}
+                  className={`bar-block${i < currentRound - 1 ? " done" : i === currentRound - 1 ? (looping ? " loop-current" : " current") : ""}`}
+                  style={{ width: `${bw}px` }}
+                />
+              ))}
+            </div>
+          );
+        } else {
+          // Progress bar with round counter for 17+ rounds
+          const pct = looping ? 50 : Math.min(100, Math.round((currentRound / barsPerExercise) * 100));
+          const nearEnd = !looping && currentRound >= barsPerExercise - 1;
+          return (
+            <div className="bar-progress-continuous">
+              <div className="bar-progress-track">
+                <div className={`bar-progress-fill${looping ? " loop" : ""}`} style={{ width: `${pct}%` }} />
+              </div>
+              <span className={`bar-progress-counter${nearEnd ? " near-end" : ""}`}>
+                {looping ? "–" : `${currentRound}/${barsPerExercise}`}
+              </span>
+            </div>
+          );
+        }
+      }
+
+      if (phase === "countin" && countInBars >= 2) {
+        const countInBar = countInBeat > 0 ? Math.floor((countInBeat - 1) / beatsPerBar) : 0;
+        return (
+          <div className="bar-progress">
+            {Array.from({ length: countInBars }).map((_, i) => (
+              <div key={i}
+                className={`bar-block${i < countInBar ? " countin-done" : i === countInBar ? " countin-current" : ""}`}
+                style={{ width: "20px" }}
+              />
+            ))}
+          </div>
+        );
+      }
+
+      return <div style={{ height: "5px" }} />;
+    }
 
     // ── App ────────────────────────────────────────────────────────────────────
 
@@ -1435,19 +1528,19 @@
               </div>
             )}
 
-            <div className="bar-progress">
-              {mode !== MODE_CLICKONLY && phase === "playing" && Array.from({ length: barsPerExercise }).map((_, i) => (
-                <div key={i} className={`bar-block${i < currentRound - 1 ? " done" : i === currentRound - 1 ? (looping ? " loop-current" : " current") : ""}`} />
-              ))}
-              {mode !== MODE_CLICKONLY && phase === "countin" && countInBars >= 2 && (() => {
-                const countInBar = countInBeat > 0 ? Math.floor((countInBeat - 1) / timeSig.beats) : 0;
-                return Array.from({ length: countInBars }).map((_, i) => (
-                  <div key={i} className={`bar-block${i < countInBar ? " countin-done" : i === countInBar ? " countin-current" : ""}`} />
-                ));
-              })()}
-              {(mode === MODE_CLICKONLY || (phase !== "playing" && phase !== "countin")) && <div style={{ height: "5px" }} />}
-              {phase === "countin" && countInBars < 2 && <div style={{ height: "5px" }} />}
-            </div>
+            {!setComplete && mode !== MODE_CLICKONLY && (
+              <BarProgress
+                barsPerExercise={barsPerExercise}
+                currentRound={currentRound}
+                looping={looping}
+                phase={phase}
+                countInBars={countInBars}
+                countInBeat={countInBeat}
+                beatsPerBar={timeSig.beats}
+              />
+            )}
+            {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
+
           </div>
 
           <div className="controls">
@@ -1617,7 +1710,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.25 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.26 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
