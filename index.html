@@ -153,7 +153,7 @@
       width: 100%;
       max-width: 440px;
       flex: 1 1 0;
-      min-height: 0;
+      min-height: 180px;
       background: #1a1a1a;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
@@ -751,6 +751,7 @@
       const playBeatCount     = useRef(0);
       const schedulerFn       = useRef(null);
       const setEndPending     = useRef(false);
+      const stoppedRef        = useRef(false);
 
       const [currentBeat,  setCurrentBeat]  = useState(0);
       const [currentBar,   setCurrentBar]   = useState(0);
@@ -850,6 +851,7 @@
       // ── Reset on stop ──
       useEffect(() => {
         if (!running) {
+          stoppedRef.current = true;
           clearInterval(schedulerRef.current);
           if (silentLoop.current) { try { silentLoop.current.stop(); } catch {} silentLoop.current = null; }
           // Delay closing audio context only when set completes naturally (to allow end bell to play)
@@ -886,7 +888,7 @@
         beatCount.current = 0; playBeatCount.current = 0;
         nextBeatTime.current = ctx.currentTime + 0.1;
         countInProgress.current = false; countInBeatPos.current = 0;
-        resumingRef.current = false;
+        resumingRef.current = false; stoppedRef.current = false;
 
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
@@ -935,12 +937,13 @@
               const beatInCI = bc % bpb2;
               scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
               const t = nextBeatTime.current;
-              setTimeout(() => { setCountInBeat(bc + 1); setPhase("countin"); },
+              setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(bc + 1); setPhase("countin"); },
                 Math.max(0, (t - ctx.currentTime) * 1000));
               if (bc === countInBeats - 1) {
                 const cur = lastExercise.current;
                 const nxt = setEndPending.current ? -1 : nextExercise.current;
                 setTimeout(() => {
+                  if (stoppedRef.current) return;
                   onChange(cur);
                   onNext(nxt);
                   setPhase("playing");
@@ -957,14 +960,14 @@
                 const interPos = countInBeatPos.current;
                 scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
                 const t = nextBeatTime.current;
-                setTimeout(() => { setCountInBeat(interPos + 1); setPhase("countin"); },
+                setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
                   Math.max(0, (t - ctx.currentTime) * 1000));
                 countInBeatPos.current++;
                 if (countInBeatPos.current >= interCountInBeats) {
                   countInProgress.current = false; countInBeatPos.current = 0;
                   const upcoming = nextExercise.current;
                   const t2 = nextBeatTime.current;
-                  setTimeout(() => { onNext(upcoming); setPhase("playing"); },
+                  setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
                     Math.max(0, (t2 - ctx.currentTime) * 1000 + beatLen * 1000));
                 }
 
@@ -981,6 +984,7 @@
                 }
                 const t = nextBeatTime.current;
                 setTimeout(() => {
+                  if (stoppedRef.current) return;
                   setCurrentBeat(beatInBar);
                   setCurrentBar(barInExercise);
                   if (isDownbeat && barInExercise === 0 && playBeat > 0) {
@@ -994,25 +998,25 @@
                   if (isDownbeat && playBeat > 0) {
                     const newBarCount = lastExercise.current + 1;
                     lastExercise.current = newBarCount;
-                    setTimeout(() => { onChange(newBarCount); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                    setTimeout(() => { if (stoppedRef.current) return; onChange(newBarCount); }, Math.max(0, (t - ctx.currentTime) * 1000));
                   }
                   playBeatCount.current++;
                 } else if (isNewExercise) {
                   if (setEndPending.current) {
                     if (loopingRef.current) {
                       const current = lastExercise.current;
-                      setTimeout(() => { onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                      setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                       playBeatCount.current = 1;
                     } else {
                       clearInterval(schedulerRef.current);
                       scheduleEndBell(ctx, nextBeatTime.current, vol);
                       const t2 = t;
-                      setTimeout(() => onDone(), Math.max(0, (t2 - ctx.currentTime) * 1000));
+                      setTimeout(() => { if (stoppedRef.current) return; onDone(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
                       setEndPending.current = false;
                     }
                   } else if (loopingRef.current) {
                     const current = lastExercise.current;
-                    setTimeout(() => { onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                    setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                     playBeatCount.current = 1;
                   } else {
                     const setDone = (currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL)
@@ -1024,6 +1028,7 @@
                       setEndPending.current = true;
                       const t2 = t;
                       setTimeout(() => {
+                        if (stoppedRef.current) return;
                         onChange(incoming);
                         onNext(-1);
                       }, Math.max(0, (t2 - ctx.currentTime) * 1000));
@@ -1036,7 +1041,7 @@
                       nextExercise.current = upcoming;
 
                       if (interCountInBeats > 0) {
-                        setTimeout(() => { onChange(incoming); onNext(incoming); setPhase("countin"); setCountInBeat(1); },
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(incoming); setPhase("countin"); setCountInBeat(1); },
                           Math.max(0, (t - ctx.currentTime) * 1000));
                         countInProgress.current = true;
                         countInBeatPos.current = 1;
@@ -1044,12 +1049,12 @@
                         scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
                         if (countInBeatPos.current >= interCountInBeats) {
                           countInProgress.current = false; countInBeatPos.current = 0;
-                          setTimeout(() => { onNext(upcoming); setPhase("playing"); },
+                          setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
                             Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
                         }
                       } else {
                         playBeatCount.current = 1;
-                        setTimeout(() => { onChange(incoming); onNext(upcoming); },
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(upcoming); },
                           Math.max(0, (t - ctx.currentTime) * 1000));
                       }
                     }
@@ -1573,7 +1578,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.21 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.22 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
