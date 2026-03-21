@@ -61,13 +61,21 @@
     }
 
     @media (max-height: 840px) and (max-width: 767px) {
-      .app { gap: 0.4rem; padding-top: 0.5rem; }
+      .app { gap: 0.4rem; padding-top: max(0.5rem, env(safe-area-inset-top)); }
       .app-header { margin-bottom: 0; }
       .display { padding: 0.6rem 1rem 0.5rem; }
       .section-grid { gap: 0.4rem 1.5rem; }
       .controls { gap: 0.4rem; }
       .btn-row { margin-top: 0.25rem; }
       .version-footer { margin-top: 0.1rem; }
+    }
+
+    @media (max-height: 750px) and (max-width: 767px) {
+      .app { gap: 0.25rem; }
+      .display { min-height: 0; padding: 0.4rem 1rem; }
+      .section-grid { gap: 0.3rem 1.5rem; }
+      .controls { gap: 0.25rem; }
+      .section-divider { margin: 0.1rem 0; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
@@ -154,6 +162,7 @@
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
+      flex-shrink: 1;
     }
 
     .exercise-label {
@@ -1527,7 +1536,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.16 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.17 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
