@@ -190,6 +190,13 @@
 
     .exercise-number.idle { color: #444; text-shadow: none; }
     .exercise-number.looping { color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
+    .exercise-number.done {
+      color: #4caf7d;
+      text-shadow: 0 0 30px rgba(76,175,125,0.3);
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      letter-spacing: 0.1em;
+      text-transform: lowercase;
+    }
 
     .next-exercise {
       font-family: 'Share Tech Mono', monospace;
@@ -224,16 +231,6 @@
       font-size: 0.65rem;
       letter-spacing: 0.1em;
       color: #777;
-      text-align: center;
-      padding: 0.4rem 0 0.2rem;
-      min-height: 1.2em;
-    }
-
-    .set-complete-summary {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.1em;
-      color: #4caf7d;
       text-align: center;
       padding: 0.4rem 0 0.2rem;
       min-height: 1.2em;
@@ -657,6 +654,21 @@
 
     const STORAGE_KEY = "shuffle_settings_v7";
 
+    // ── Constants ─────────────────────────────────────────────────────────────
+
+    const SCHEDULER_INTERVAL_MS   = 25;    // scheduler polling interval
+    const LOOKAHEAD_TIME          = 0.2;   // audio lookahead window (seconds)
+    const START_DELAY             = 0.1;   // delay before first beat (seconds)
+    const FLASH_DURATION_MS       = 200;   // exercise number flash duration
+    const SET_COMPLETE_DISPLAY_MS = 2000;  // "done" display duration
+    const RESUME_SETUP_DELAY_MS   = 50;    // delay before restarting scheduler on resume
+    const BPM_MIN                 = 30;
+    const BPM_MAX                 = 300;
+    const BARS_MIN                = 1;
+    const BARS_MAX                = 32;
+    const TAP_MAX_HISTORY         = 8;     // max tap tempo samples retained
+    const TAP_RESET_MS            = 2000;  // discard tap history after this gap
+
     function loadSettings() {
       try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; }
       catch { return null; }
@@ -687,7 +699,6 @@
     }
 
     function scheduleEndBell(ctx, time, vol) {
-      // Single prominent woodblock at higher pitch to signal set completion
       const bufSize = Math.floor(ctx.sampleRate * 0.06);
       const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
       const data = buf.getChannelData(0);
@@ -838,12 +849,12 @@
           const { onNextExercise: onNext } = stateRef.current;
           onNext(lastExercise.current);
           setTimeout(() => {
-            nextBeatTime.current = ctx.currentTime + 0.1;
+            nextBeatTime.current = ctx.currentTime + START_DELAY;
             clearInterval(schedulerRef.current);
             if (schedulerFn.current) {
-              schedulerRef.current = setInterval(schedulerFn.current, 25);
+              schedulerRef.current = setInterval(schedulerFn.current, SCHEDULER_INTERVAL_MS);
             }
-          }, 50);
+          }, RESUME_SETUP_DELAY_MS);
         } else {
           ctx.resume().catch(() => {});
         }
@@ -855,8 +866,6 @@
           if (wasRunningRef.current) stoppedRef.current = true;
           clearInterval(schedulerRef.current);
           if (silentLoop.current) { try { silentLoop.current.stop(); } catch {} silentLoop.current = null; }
-          // Delay closing audio context only when set completes naturally (to allow end bell to play)
-          // Close immediately on manual stop to prevent extra clicks
           if (setComplete) {
             setTimeout(() => {
               if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
@@ -888,7 +897,7 @@
                 onNewExercise: cb, onNextExercise: cbNext, mode: m } = stateRef.current;
 
         beatCount.current = 0; playBeatCount.current = 0;
-        nextBeatTime.current = ctx.currentTime + 0.1;
+        nextBeatTime.current = ctx.currentTime + START_DELAY;
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false; stoppedRef.current = false;
         wasRunningRef.current = true;
@@ -896,9 +905,8 @@
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
         setPhase("countin");
-        
+
         if (m === MODE_CLICKONLY) {
-          // Click only mode: start bar counter at 1
           lastExercise.current = 1;
           nextExercise.current = null;
           cb(1);
@@ -932,7 +940,7 @@
           const interCountInBeats = cier ? bpb2 * cib2 : 0;
           const totalInSet        = max - min + 1;
 
-          while (nextBeatTime.current < ctx.currentTime + 0.2) {
+          while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
             const bc = beatCount.current;
 
             // ── Count-in (initial start or resume) ──
@@ -981,7 +989,6 @@
                 const isNewExercise = playBeat > 0 && beatInBar === 0 && barInExercise === 0;
                 const isDownbeat    = beatInBar === 0;
 
-                // Don't schedule click if set is ending (will play end bell instead)
                 if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
                   scheduleMetronomeClick(ctx, nextBeatTime.current, isDownbeat, vol);
                 }
@@ -992,12 +999,11 @@
                   setCurrentBar(barInExercise);
                   if (isDownbeat && barInExercise === 0 && playBeat > 0) {
                     setFlashOn(true);
-                    setTimeout(() => setFlashOn(false), 200);
+                    setTimeout(() => setFlashOn(false), FLASH_DURATION_MS);
                   }
                 }, Math.max(0, (t - ctx.currentTime) * 1000));
 
                 if (currentMode === MODE_CLICKONLY) {
-                  // Click only mode: increment bar counter on each new bar
                   if (isDownbeat && playBeat > 0) {
                     const newBarCount = lastExercise.current + 1;
                     lastExercise.current = newBarCount;
@@ -1074,7 +1080,7 @@
         };
 
         schedulerFn.current = scheduler;
-        schedulerRef.current = setInterval(scheduler, 25);
+        schedulerRef.current = setInterval(scheduler, SCHEDULER_INTERVAL_MS);
         return () => clearInterval(schedulerRef.current);
       }, [running, getCtx, pickNext]);
 
@@ -1163,7 +1169,7 @@
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
         setExercise(null); setNextEx(null); setExerciseKey(0);
         setSetComplete(true);
-        setTimeout(() => setSetComplete(false), 2000);
+        setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
 
       const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
@@ -1235,25 +1241,24 @@
         if (running) return;
         const now = performance.now();
         const times = tapTimes.current;
-        // Discard taps older than 2 seconds
-        while (times.length > 0 && now - times[times.length - 1] > 2000) { times.length = 0; }
+        while (times.length > 0 && now - times[times.length - 1] > TAP_RESET_MS) { times.length = 0; }
         times.push(now);
-        if (times.length > 8) times.shift();
+        if (times.length > TAP_MAX_HISTORY) times.shift();
         if (times.length >= 2) {
           const intervals = [];
           for (let i = 1; i < times.length; i++) intervals.push(times[i] - times[i - 1]);
           const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-          setBpm(Math.min(300, Math.max(30, Math.round(60000 / avg))));
+          setBpm(Math.min(BPM_MAX, Math.max(BPM_MIN, Math.round(60000 / avg))));
         }
         setTapped(true);
         setTimeout(() => setTapped(false), 100);
       }, [running]);
 
-      const clampBpm = (v) => Math.min(300, Math.max(30, v));
+      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
       const incBpm  = useCallback(() => { if (!running) setBpm(b => clampBpm(b + 1)); }, [running]);
       const decBpm  = useCallback(() => { if (!running) setBpm(b => clampBpm(b - 1)); }, [running]);
-      const incBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(32, b + 1)); }, [running]);
-      const decBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(1, b - 1)); }, [running]);
+      const incBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
+      const decBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
 
       const bpmIncHandlers  = useLongPress(incBpm);
       const bpmDecHandlers  = useLongPress(decBpm);
@@ -1352,7 +1357,7 @@
                 {countInBeat > 0 ? fmt(((countInBeat - 1) % timeSig.beats) + 1) : "--"}
               </div>
             ) : setComplete ? (
-              <div className="exercise-number" style={{ color: "#4caf7d", textShadow: "0 0 30px rgba(76,175,125,0.3)", fontSize: "clamp(1.5rem, 5vw, 2.2rem)", letterSpacing: "0.1em", textTransform: "lowercase" }}>
+              <div className="exercise-number done">
                 done
               </div>
             ) : (
@@ -1581,7 +1586,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.23 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.24 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
