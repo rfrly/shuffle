@@ -436,8 +436,15 @@
     .vol-slider-row {
       display: flex; align-items: center; gap: 0.6rem;
       width: 100%; max-width: 440px;
-      padding-top: 0.5rem;
-      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.4rem;
+      z-index: 10;
     }
     .vol-slider-row span {
       font-family: 'Share Tech Mono', monospace;
@@ -449,6 +456,7 @@
       display: flex; gap: 0.5rem;
       width: 100%; max-width: 440px;
       margin-top: 0.5rem;
+      position: relative;
     }
 
     .btn-group { display: flex; gap: 0.5rem; flex: 1; }
@@ -1098,22 +1106,22 @@
     // ── App ────────────────────────────────────────────────────────────────────
 
     function App() {
-      const saved = loadSettings();
+      const [saved] = useState(() => loadSettings());
 
       const [running,         setRunning]         = useState(false);
       const [paused,          setPaused]          = useState(false);
       const [resuming,        setResuming]        = useState(false);
       const [looping,         setLooping]         = useState(false);
-      const [bpm,             setBpm]             = useState(saved?.bpm ?? 80);
-      const [timeSig,         setTimeSig]         = useState(TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
-      const [barsPerExercise, setBarsPerExercise] = useState(saved?.barsPerExercise ?? 8);
-      const [exerciseLength,  setExerciseLength]  = useState(saved?.exerciseLength ?? 1);
-      const [minEx,           setMinEx]           = useState(saved?.minEx ?? 1);
-      const [maxEx,           setMaxEx]           = useState(saved?.maxEx ?? 16);
-      const [countInBars,     setCountInBars]     = useState(saved?.countInBars ?? 1);
-      const [countInEvery,    setCountInEvery]    = useState(saved?.countInEvery ?? false);
-      const [mode,            setMode]            = useState(saved?.mode ?? MODE_FULLSET);
-      const [volume,          setVolume]          = useState(saved?.volume ?? 1.0);
+      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 80);
+      const [timeSig,         setTimeSig]         = useState(() => TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
+      const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 8);
+      const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
+      const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
+      const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 16);
+      const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
+      const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? false);
+      const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
+      const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
       const [exerciseKey,     setExerciseKey]     = useState(0);
@@ -1191,21 +1199,36 @@
         if (!isResuming && resuming) setResuming(false);
       }, [isResuming, resuming]);
 
+      const runningRef = useRef(false);
+      const pausedRef = useRef(false);
+      useEffect(() => { runningRef.current = running; }, [running]);
+      useEffect(() => { pausedRef.current = paused; }, [paused]);
+
       useEffect(() => {
         const onKey = (e) => {
           if (e.code === "Space" && e.target.tagName !== "INPUT") {
             e.preventDefault();
-            if (!running) handleStart(); else handlePause();
+            if (!runningRef.current) {
+              handleStart();
+            } else if (pausedRef.current) {
+              setResuming(true);
+              setPaused(false);
+            } else {
+              setResuming(false);
+              setPaused(true);
+            }
           }
         };
         window.addEventListener("keydown", onKey);
         return () => window.removeEventListener("keydown", onKey);
-      }, [running, paused]);
+      }, []);
 
       const handleTap = useCallback(() => {
         if (running) return;
         const now = performance.now();
         const times = tapTimes.current;
+        // Discard taps older than 2 seconds
+        while (times.length > 0 && now - times[times.length - 1] > 2000) { times.length = 0; }
         times.push(now);
         if (times.length > 8) times.shift();
         if (times.length >= 2) {
@@ -1462,10 +1485,14 @@
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="number" value={minEx} min={1}
-                    onChange={e => setMinEx(Number(e.target.value))} disabled={running || mode === MODE_CLICKONLY} />
+                    onChange={e => setMinEx(Number(e.target.value))}
+                    onBlur={e => { const v = parseInt(e.target.value); setMinEx(isNaN(v) || v < 1 ? 1 : v); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
                   <span>to</span>
                   <input type="number" value={maxEx} min={1}
-                    onChange={e => setMaxEx(Number(e.target.value))} disabled={running || mode === MODE_CLICKONLY} />
+                    onChange={e => setMaxEx(Number(e.target.value))}
+                    onBlur={e => { const v = parseInt(e.target.value); setMaxEx(isNaN(v) || v < 1 ? 1 : v); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
                 </div>
               </div>
 
@@ -1535,19 +1562,18 @@
                 </div>
               </>
             )}
+            {showVolume && (
+              <div className="vol-slider-row">
+                <span>Volume</span>
+                <input type="range" min={0} max={1} step={0.05}
+                  value={volume} onChange={e => setVolume(Number(e.target.value))} />
+              </div>
+            )}
           </div>
-
-          {showVolume && (
-            <div className="vol-slider-row">
-              <span>Volume</span>
-              <input type="range" min={0} max={1} step={0.05}
-                value={volume} onChange={e => setVolume(Number(e.target.value))} />
-            </div>
-          )}
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.20 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.21 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
