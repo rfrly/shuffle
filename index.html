@@ -77,7 +77,7 @@
       .app { background: #0f0f0f !important; }
       .app-header { max-width: 700px !important; }
       .app-title { font-size: 1.8rem; }
-      .app-subtitle { font-size: 0.75rem; }
+      .app-subtitle { font-size: 0.85rem; }
       .display { max-width: 700px !important; }
       .controls { max-width: 700px !important; }
       .btn-row { max-width: 700px !important; }
@@ -93,8 +93,11 @@
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
       .vol-label-btn { padding: 1.1rem 0.9rem; }
       .check-row { font-size: 0.85rem; }
+      .check-row span { font-size: 0.85rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
-      .control-group label { font-size: 0.72rem; }
+      .control-group label { font-size: 0.82rem; }
+      .idle-summary { font-size: 0.85rem; }
+      .version-footer { font-size: 0.6rem; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
@@ -631,6 +634,19 @@
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
+    @media (hover: hover) and (min-width: 1024px) {
+      .app-header { max-width: 560px; }
+      .app-subtitle { font-size: 0.7rem; }
+      .display { max-width: 560px; }
+      .controls { max-width: 560px; }
+      .btn-row { max-width: 560px; }
+      .vol-slider-row { max-width: 560px; }
+      .control-group label { font-size: 0.72rem; }
+      .idle-summary { font-size: 0.8rem; }
+      .check-row span { font-size: 0.85rem; }
+      .version-footer { font-size: 0.6rem; }
+    }
+
   </style>
 </head>
 <body>
@@ -679,6 +695,21 @@
 
     // ── Audio ──────────────────────────────────────────────────────────────────
 
+    // ── Shared compressor ─────────────────────────────────────────────────────
+    // One compressor per AudioContext, created lazily and cached on the context.
+    function getCompressor(ctx) {
+      if (ctx._compressor) return ctx._compressor;
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -12;
+      comp.knee.value       =   6;
+      comp.ratio.value      =   4;
+      comp.attack.value     = 0.003;
+      comp.release.value    = 0.15;
+      comp.connect(ctx.destination);
+      ctx._compressor = comp;
+      return comp;
+    }
+
     function scheduleWoodblock(ctx, time, isDownbeat, vol) {
       const bufSize = Math.floor(ctx.sampleRate * 0.05);
       const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
@@ -692,9 +723,9 @@
       filter.frequency.value = isDownbeat ? 2000 : 1400;
       filter.Q.value = 4;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime((isDownbeat ? 0.7 : 0.5) * vol, time);
+      gain.gain.setValueAtTime((isDownbeat ? 1.4 : 1.0) * vol, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-      src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
       src.start(time); src.stop(time + 0.06);
     }
 
@@ -711,18 +742,18 @@
       filter.frequency.value = 2800;
       filter.Q.value = 5;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime(vol, time);
+      gain.gain.setValueAtTime(vol * 1.4, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
-      src.connect(filter); filter.connect(gain); gain.connect(ctx.destination);
+      src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
       src.start(time); src.stop(time + 0.09);
     }
 
     function scheduleMetronomeClick(ctx, time, isDownbeat, vol) {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
-      osc.connect(gain); gain.connect(ctx.destination);
+      osc.connect(gain); gain.connect(getCompressor(ctx));
       osc.frequency.value = isDownbeat ? 1000 : 700;
-      gain.gain.setValueAtTime((isDownbeat ? 0.4 : 0.2) * vol, time);
+      gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.5) * vol, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
       osc.start(time); osc.stop(time + 0.09);
     }
@@ -733,7 +764,7 @@
       src.buffer = buf; src.loop = true;
       const gain = ctx.createGain();
       gain.gain.value = 0.001;
-      src.connect(gain); gain.connect(ctx.destination);
+      src.connect(gain); gain.connect(getCompressor(ctx));
       src.start();
       return src;
     }
@@ -1586,7 +1617,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.24 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.25 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
