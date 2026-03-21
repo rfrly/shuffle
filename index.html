@@ -752,6 +752,7 @@
       const schedulerFn       = useRef(null);
       const setEndPending     = useRef(false);
       const stoppedRef        = useRef(false);
+      const wasRunningRef     = useRef(false);
 
       const [currentBeat,  setCurrentBeat]  = useState(0);
       const [currentBar,   setCurrentBar]   = useState(0);
@@ -851,7 +852,7 @@
       // ── Reset on stop ──
       useEffect(() => {
         if (!running) {
-          stoppedRef.current = true;
+          if (wasRunningRef.current) stoppedRef.current = true;
           clearInterval(schedulerRef.current);
           if (silentLoop.current) { try { silentLoop.current.stop(); } catch {} silentLoop.current = null; }
           // Delay closing audio context only when set completes naturally (to allow end bell to play)
@@ -871,6 +872,7 @@
           countInProgress.current = false; countInBeatPos.current = 0;
           resumingRef.current = false; schedulerFn.current = null; setEndPending.current = false;
           nextBeatTime.current = 0;
+          wasRunningRef.current = false;
         }
       }, [running, setComplete]);
 
@@ -889,6 +891,7 @@
         nextBeatTime.current = ctx.currentTime + 0.1;
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false; stoppedRef.current = false;
+        wasRunningRef.current = true;
 
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
@@ -1578,7 +1581,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.22 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.23 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
