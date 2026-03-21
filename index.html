@@ -1400,8 +1400,7 @@
       }, []);
 
       const handleTap = useCallback(() => {
-        if (running) return;
-        const now = performance.now();
+        if (running) return;        const now = performance.now();
         const times = tapTimes.current;
         while (times.length > 0 && now - times[times.length - 1] > TAP_RESET_MS) { times.length = 0; }
         times.push(now);
@@ -1618,8 +1617,9 @@
                 <label>BPM</label>
                 <div className="bpm-widget">
                   <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                  <div className={`bpm-tap${tapped ? " tapped" : ""}`} onClick={handleTap}
-                    style={running ? { opacity: 0.6, cursor: "default" } : {}}>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!running ? handleTap : undefined}
+                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                       <span>{bpm}</span>
                       {!running && <span style={{ fontSize: "0.5rem", color: "#555", letterSpacing: "0.08em" }}>tap to set</span>}
@@ -1758,7 +1758,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.0 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.1 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
