@@ -528,7 +528,23 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
+      position: relative;
     }
+
+    .help-close-x {
+      position: absolute;
+      top: -0.2rem;
+      right: -0.2rem;
+      background: none;
+      border: none;
+      color: #555;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 0.3rem 0.5rem;
+      line-height: 1;
+    }
+    .help-close-x:active { color: #aaa; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
       .help-content { max-width: 640px !important; gap: 1.25rem !important; }
@@ -1265,6 +1281,7 @@
           {showHelp && (
             <div className="help-overlay" onClick={() => setShowHelp(false)}>
               <div className="help-content" onClick={e => e.stopPropagation()}>
+                <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
                   <p>Shuffle randomises your practice exercises and keeps you in time.</p>
@@ -1531,7 +1548,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.4.18 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.4.19 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
