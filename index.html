@@ -34,7 +34,7 @@
 
     .app {
       height: 100vh;
-      height: 100dvh;
+      height: 100svh;
       background: #0f0f0f;
       color: #e8e8e8;
       display: flex;
@@ -49,13 +49,6 @@
       user-select: none;
       -webkit-user-select: none;
       overflow: hidden;
-    }
-
-    @supports (-webkit-touch-callout: none) {
-      .app {
-        padding-top: max(2rem, env(safe-area-inset-top));
-        padding-bottom: max(2rem, env(safe-area-inset-bottom));
-      }
     }
 
     @media (max-width: 390px) {
@@ -1836,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.15 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.16 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
