@@ -787,7 +787,7 @@
       filter.frequency.value = isDownbeat ? 2000 : 1400;
       filter.Q.value = 4;
       const gain = ctx.createGain();
-      gain.gain.setValueAtTime((isDownbeat ? 2.0 : 1.4) * vol, time);
+      gain.gain.setValueAtTime((isDownbeat ? 2.8 : 2.0) * vol, time);
       gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
       src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
       src.start(time); src.stop(time + 0.06);
@@ -1829,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.12 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.13 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
