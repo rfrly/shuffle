@@ -573,6 +573,18 @@
       position: relative;
     }
 
+    .help-scroll-fade {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.92));
+      pointer-events: none;
+      z-index: 101;
+      transition: opacity 0.3s;
+    }
+
     .help-close-x {
       position: absolute;
       top: -0.2rem;
@@ -1303,6 +1315,8 @@
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
+      const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
+      const helpOverlayRef = useRef(null);
       const [setComplete,     setSetComplete]     = useState(false);
       const [barFlash,        setBarFlash]        = useState(false);
       const tapTimes = useRef([]);
@@ -1480,12 +1494,20 @@
               <div className="app-title">Shuffle</div>
               <div className="app-subtitle">practice randomiser and metronome for musicians</div>
             </div>
-            <button className="help-btn app-header-spacer" onClick={() => setShowHelp(true)}>?</button>
+            <button className="help-btn app-header-spacer" onClick={() => { setShowHelp(true); setHelpScrolledToEnd(false); }}>?</button>
           </div>
 
           {showHelp && (
-            <div className="help-overlay" onClick={() => setShowHelp(false)}>
-              <div className="help-content" onClick={e => e.stopPropagation()}>
+            <>
+              <div className="help-scroll-fade" style={{ opacity: helpScrolledToEnd ? 0 : 1 }} />
+              <div className="help-overlay" ref={helpOverlayRef}
+                onClick={() => setShowHelp(false)}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+                  setHelpScrolledToEnd(atEnd);
+                }}>
+                <div className="help-content" onClick={e => e.stopPropagation()}>
                 <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
@@ -1517,7 +1539,8 @@
                   <p>If you can't hear anything, check your device isn't in silent mode. Keep the app on screen while practising, as audio may stop if you switch away or lock your device.</p>
                 </div>
               </div>
-            </div>
+              </div>
+            </>
           )}
 
           <div className="display">
@@ -1763,7 +1786,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.7 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
