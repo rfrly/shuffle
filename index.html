@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Shuffle" />
@@ -28,14 +28,13 @@
       background: #0f0f0f;
       color: #e8e8e8;
       font-family: 'Barlow', sans-serif;
-      height: 100vh;
-      height: 100svh;
+      height: 100%;
       overflow: hidden;
     }
 
     .app {
       height: 100vh;
-      height: 100svh;
+      height: 100dvh;
       background: #0f0f0f;
       color: #e8e8e8;
       display: flex;
@@ -43,8 +42,8 @@
       align-items: center;
       justify-content: center;
       padding: 1rem 1.5rem;
-      padding-top: max(1.5rem, env(safe-area-inset-top));
-      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      padding-top: max(1rem, env(safe-area-inset-top));
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
       gap: 0.75rem;
       position: relative;
       user-select: none;
@@ -1830,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.20 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.21 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
