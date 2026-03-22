@@ -1207,8 +1207,7 @@
       4: ["#3d3210", "#7a6421", "#b89631", "#f5c842"],
     };
 
-    function barPhraseColour(exerciseLength, currentBar, looping) {
-      if (looping) return "#f5c842";
+    function barPhraseColour(exerciseLength, currentBar) {
       const colours = BAR_PHRASE_COLOURS[exerciseLength] || ["#f5c842"];
       const barWithinPhrase = currentBar % exerciseLength;
       return colours[barWithinPhrase] || "#f5c842";
@@ -1238,7 +1237,7 @@
       }
 
       if (phase === "playing") {
-        const activeColour = barPhraseColour(exerciseLength, currentBar, looping);
+        const activeColour = barPhraseColour(exerciseLength, currentBar);
 
         if (barsPerExercise <= BAR_BLOCKS_MAX) {
           const bw = blockWidth(barsPerExercise);
@@ -1257,16 +1256,16 @@
             </div>
           );
         } else {
-          const pct = looping ? 50 : Math.min(100, Math.round((currentRound / barsPerExercise) * 100));
+          const pct = Math.min(100, Math.round((currentRound / barsPerExercise) * 100));
           const nearEnd = !looping && currentRound >= barsPerExercise - 1;
-          const fillOpacity = looping ? 0.5 : barFlash ? 1 : 0.6;
+          const fillOpacity = barFlash ? 1 : 0.6;
           return (
             <div className="bar-progress-continuous">
               <div className="bar-progress-track">
                 <div className="bar-progress-fill" style={{ width: `${pct}%`, background: "#f5c842", opacity: fillOpacity, transition: barFlash ? "none" : "width 0.15s, opacity 0.25s" }} />
               </div>
               <span className={`bar-progress-counter${nearEnd ? " near-end" : ""}`}>
-                {looping ? "–" : `${currentRound}/${barsPerExercise}`}
+                {`${currentRound}/${barsPerExercise}`}
               </span>
             </div>
           );
@@ -1579,16 +1578,18 @@
                   : "\u00A0"}
               </div>
             ) : (
-              <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : nextOpacity }}>
+              <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
                 {paused
                   ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
                   : isResuming
                     ? <><span className="next-label">resuming</span>{fmt(nextEx ?? exercise)}</>
-                    : nextEx === -1
-                      ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
-                      : nextEx !== null && !looping && (phase === "playing" || phase === "countin")
-                        ? <><span className="next-label">up next</span>{fmt(nextEx)}</>
-                        : "\u00A0"}
+                    : looping
+                      ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                      : nextEx === -1
+                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
+                        : nextEx !== null && (phase === "playing" || phase === "countin")
+                          ? <><span className="next-label">up next</span>{fmt(nextEx)}</>
+                          : "\u00A0"}
               </div>
             )}
 
@@ -1786,7 +1787,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.8 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
