@@ -1128,13 +1128,29 @@
                       const incoming = nextExercise.current;
                       lastExercise.current = incoming;
                       setEndPending.current = true;
-                      const t2 = t;
-                      setTimeout(() => {
-                        if (stoppedRef.current) return;
-                        onChange(incoming);
-                        onNext(-1);
-                      }, Math.max(0, (t2 - ctx.currentTime) * 1000));
-                      playBeatCount.current = 1;
+
+                      if (interCountInBeats > 0) {
+                        nextExercise.current = -1;
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(-1); setPhase("countin"); setCountInBeat(1); },
+                          Math.max(0, (t - ctx.currentTime) * 1000));
+                        countInProgress.current = true;
+                        countInBeatPos.current = 1;
+                        playBeatCount.current = 0;
+                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                        if (countInBeatPos.current >= interCountInBeats) {
+                          countInProgress.current = false; countInBeatPos.current = 0;
+                          setTimeout(() => { if (stoppedRef.current) return; setPhase("playing"); },
+                            Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
+                        }
+                      } else {
+                        const t2 = t;
+                        setTimeout(() => {
+                          if (stoppedRef.current) return;
+                          onChange(incoming);
+                          onNext(-1);
+                        }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+                        playBeatCount.current = 1;
+                      }
                     } else {
                       exercisesPlayed.current++;
                       const incoming = nextExercise.current;
@@ -1813,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.11 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
