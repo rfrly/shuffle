@@ -1492,7 +1492,7 @@
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Set your exercise range, BPM, mode and rounds before you start. Choose your count in length — enable "count in every round" to count in before every repeat.</p>
+                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. Enable "count in every exercise" for a count-in before each exercise, not just the first.</p>
                 </div>
                 <div className="help-section">
                   <h3>Modes</h3>
@@ -1504,12 +1504,15 @@
                   </ul>
                 </div>
                 <div className="help-section">
-                  <h3>Loop/Pause/Stop</h3>
-                  <p>Loop — tap while playing to stay on the current exercise. Tap again to exit at the end of the current round. Pause — stops the metronome and resumes from the beginning of the current exercise. Stop — ends the session and resets everything.</p>
+                  <h3>Loop / Pause / Stop</h3>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                    <li>Loop — stay on the current exercise. Tap again to exit at the end of the current round.</li>
+                    <li>Pause — stops the metronome and resumes from the start of the current exercise with a count-in.</li>
+                    <li>Stop — ends the session and resets everything.</li>
+                  </ul>
                 </div>
                 <div className="help-section">
-                  <h3>Background audio</h3>
-                  <p>Audio may stop if the app leaves the screen.</p>
+                  <p style={{ fontStyle: 'italic', fontSize: '0.8rem' }}>Keep the app on screen while practising. Audio may stop if you switch away or lock your device.</p>
                 </div>
               </div>
             </div>
@@ -1655,7 +1658,7 @@
                     <input type="checkbox" checked={countInEvery}
                       onChange={e => setCountInEvery(e.target.checked)} disabled={running || mode === MODE_CLICKONLY}
                       style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                    <span>Count in every round</span>
+                    <span>Count in every exercise</span>
                   </div>
                 </div>
               </div>
@@ -1758,7 +1761,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.5 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.6 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
