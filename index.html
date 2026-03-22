@@ -526,6 +526,7 @@
       color: #444;
       letter-spacing: 0.15em;
       margin-top: 0.25rem;
+      margin-bottom: 0.5rem;
     }
 
     .rotate-overlay {
@@ -570,7 +571,7 @@
       display: flex;
       flex-direction: column;
       gap: 1rem;
-      position: relative;
+      padding-top: 3rem;
     }
 
     .help-scroll-fade {
@@ -586,19 +587,21 @@
     }
 
     .help-close-x {
-      position: absolute;
-      top: -0.2rem;
-      right: -0.2rem;
-      background: none;
-      border: none;
-      color: #555;
+      position: fixed;
+      top: max(1.2rem, env(safe-area-inset-top));
+      right: 1.2rem;
+      background: rgba(15,15,15,0.85);
+      border: 1px solid #333;
+      border-radius: 4px;
+      color: #666;
       font-family: 'Share Tech Mono', monospace;
-      font-size: 1.2rem;
+      font-size: 1rem;
       cursor: pointer;
-      padding: 0.3rem 0.5rem;
+      padding: 0.3rem 0.6rem;
       line-height: 1;
+      z-index: 102;
     }
-    .help-close-x:active { color: #aaa; }
+    .help-close-x:active { color: #aaa; border-color: #555; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
       .help-content { max-width: 640px !important; gap: 1.25rem !important; }
@@ -1535,7 +1538,10 @@
                 </div>
                 <div className="help-section">
                   <h3>Audio</h3>
-                  <p>If you can't hear anything, check your device isn't in silent mode. Keep the app on screen while practising, as audio may stop if you switch away or lock your device.</p>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                    <li>If you can't hear anything, check your device isn't in silent mode.</li>
+                    <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
+                  </ul>
                 </div>
               </div>
               </div>
@@ -1787,7 +1793,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.9 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
