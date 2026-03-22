@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Shuffle" />
@@ -49,10 +49,6 @@
       user-select: none;
       -webkit-user-select: none;
       overflow: hidden;
-    }
-
-    @media (display-mode: browser) {
-      .app { padding-top: max(2rem, env(safe-area-inset-top)); }
     }
 
     @media (max-width: 390px) {
@@ -1833,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.22 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.23 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
