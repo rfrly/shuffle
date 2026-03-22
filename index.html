@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Shuffle" />
@@ -42,16 +42,8 @@
       align-items: center;
       justify-content: center;
       padding: 1rem 1.5rem;
-      padding-top: max(3rem, env(safe-area-inset-top));
-      padding-bottom: max(3rem, env(safe-area-inset-bottom));
-    }
-
-    @media (display-mode: standalone) {
-      .app {
-        padding-top: max(1rem, env(safe-area-inset-top));
-        padding-bottom: max(1rem, env(safe-area-inset-bottom));
-      }
-    }
+      padding-top: max(1rem, env(safe-area-inset-top));
+      padding-bottom: max(1rem, env(safe-area-inset-bottom));
       gap: 0.75rem;
       position: relative;
       user-select: none;
@@ -64,7 +56,7 @@
     }
 
     @media (max-height: 840px) and (max-width: 767px) {
-      .app { gap: 0.4rem; padding-top: max(2.5rem, env(safe-area-inset-top)); }
+      .app { gap: 0.4rem; padding-top: max(0.5rem, env(safe-area-inset-top)); }
       .app-header { margin-bottom: 0; }
       .display { padding: 0.6rem 1rem 0.5rem; }
       .section-grid { gap: 0.4rem 1.5rem; }
@@ -1837,7 +1829,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.18 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.19 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
