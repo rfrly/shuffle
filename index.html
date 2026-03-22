@@ -1433,6 +1433,7 @@
           return () => clearTimeout(t);
         }
       }, [currentBar, currentBeat, phase, paused]);
+
       const validRange   = mode === MODE_CLICKONLY ? true : minEx <= maxEx;
       const totalBars    = barsPerExercise * exerciseLength;
       const currentRound = Math.floor(currentBar / exerciseLength) + 1;
@@ -1512,7 +1513,8 @@
                   </ul>
                 </div>
                 <div className="help-section">
-                  <p style={{ fontStyle: 'italic', fontSize: '0.8rem' }}>Keep the app on screen while practising. Audio may stop if you switch away or lock your device.</p>
+                  <h3>Audio</h3>
+                  <p>If you can't hear anything, check your device isn't in silent mode. Keep the app on screen while practising, as audio may stop if you switch away or lock your device.</p>
                 </div>
               </div>
             </div>
@@ -1544,7 +1546,7 @@
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · click only`
-                    : `${minEx}–${maxEx} · ${exerciseLength > 1 ? `${exerciseLength}-bar exercise · ` : ""}${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                    : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -1761,7 +1763,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.6 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
