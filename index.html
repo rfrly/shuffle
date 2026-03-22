@@ -6,9 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="Shuffle" />
-  <meta name="description" content="Shuffle — exercise randomiser and metronome for structured music practice." />
+  <meta name="description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
   <meta property="og:title" content="Shuffle" />
-  <meta property="og:description" content="Exercise randomiser and metronome for musicians." />
+  <meta property="og:description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
   <meta property="og:type" content="website" />
   <meta property="og:url" content="https://shuffleclick.com" />
   <meta property="og:image" content="https://shuffleclick.com/shuffle-icon.png" />
@@ -1488,7 +1488,7 @@
                 <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
-                  <p>Shuffle randomises your practice exercises and keeps you in time.</p>
+                  <p>Shuffle randomises your exercises to help you practise more effectively.</p>
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
@@ -1758,7 +1758,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.4 · by Ross Farley · rossfarley.uk</div>
+          <div className="version-footer">v1.5.5 · by Ross Farley · rossfarley.uk</div>
 
         </div>
       );
@@ -1767,5 +1767,7 @@
     const root = ReactDOM.createRoot(document.getElementById("root"));
     root.render(<App />);
   </script>
+  <p style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively. Set a range of exercises, choose a BPM, and let Shuffle run your session.</p>
+  <script data-goatcounter="https://shuffle.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
