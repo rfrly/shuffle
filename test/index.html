@@ -1,9 +1,1849 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Test version</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Shuffle" />
+  <meta name="description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
+  <meta property="og:title" content="Shuffle" />
+  <meta property="og:description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shuffleclick.com" />
+  <meta property="og:image" content="https://shuffleclick.com/shuffle-icon.png" />
+  <title>Shuffle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="apple-touch-icon" href="shuffle-icon.png?v=3" />
+  <link rel="icon" href="shuffle-icon.png?v=3" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body, html {
+      background: #0f0f0f;
+      color: #e8e8e8;
+      font-family: 'Barlow', sans-serif;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .app {
+  position: fixed;
+  inset: 0;
+
+  background: #0f0f0f;
+  color: #e8e8e8;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  padding: 1rem 1.5rem;
+  padding-top: max(1rem, env(safe-area-inset-top));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+
+  gap: 0.75rem;
+
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+}
+
+    @media (max-width: 390px) {
+      .selector-row { flex-wrap: wrap; }
+    }
+
+    @media (max-height: 840px) and (max-width: 767px) {
+      .app { gap: 0.4rem; padding-top: max(0.5rem, env(safe-area-inset-top)); }
+      .app-header { margin-bottom: 0; }
+      .display { padding: 0.6rem 1rem 0.5rem; }
+      .section-grid { gap: 0.4rem 1.5rem; }
+      .controls { gap: 0.4rem; }
+      .btn-row { margin-top: 0.25rem; }
+      .version-footer { margin-top: 0.1rem; }
+    }
+
+    @media (max-height: 750px) and (max-width: 767px) {
+      .app { gap: 0.25rem; }
+      .display { padding: 0.4rem 1rem; }
+      .section-grid { gap: 0.3rem 1.5rem; }
+      .controls { gap: 0.25rem; }
+      .section-divider { margin: 0.1rem 0; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
+      .app { background: #0f0f0f !important; }
+      .app-header { max-width: 700px !important; }
+      .app-title { font-size: 1.8rem; }
+      .app-subtitle { font-size: 0.85rem; }
+      .display { max-width: 700px !important; }
+      .controls { max-width: 700px !important; }
+      .btn-row { max-width: 700px !important; }
+      .vol-slider-row { max-width: 700px !important; }
+      .sel-btn { height: 52px; font-size: 0.9rem; }
+      .bpm-widget { height: 52px; }
+      .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
+      .bpm-tap { height: 52px; font-size: 1.1rem; }
+      .stepper { height: 52px; }
+      .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
+      .stepper-val { height: 52px; font-size: 1.3rem; }
+      .range-row input[type="number"] { height: 52px; font-size: 1.1rem; }
+      .action-btn { padding: 1.1rem; font-size: 0.95rem; }
+      .check-row { font-size: 0.85rem; }
+      .check-row span { font-size: 0.85rem; }
+      .check-row input { width: 20px !important; height: 20px !important; }
+      .control-group label { font-size: 0.82rem; }
+      .idle-summary { font-size: 0.85rem; }
+      .version-footer { font-size: 0.6rem; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
+      .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
+      .display { min-height: 18dvh; }
+      .controls { gap: 0.9rem; }
+      .section-grid { gap: 0.7rem 1.5rem; }
+      .idle-summary { font-size: 0.85rem; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+      .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 0.5dvh; }
+      .display { height: 22dvh !important; flex: none !important; }
+      .app-title { font-size: 2rem !important; }
+      .controls { gap: 0.8dvh; }
+      .section-grid { gap: 0.6dvh 1.5rem; }
+      .section-divider { margin: 0.3dvh 0; }
+      .btn-row { margin-top: 0.5dvh; }
+    }
+
+    .app-header {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 0.1rem;
+    }
+
+    .app-header-text { flex: 1; text-align: center; }
+    .app-header-spacer { width: 28px; flex-shrink: 0; }
+
+    .app-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 1.1rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #f5c842;
+      text-align: center;
+    }
+
+    .app-subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.55rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: #888;
+      text-align: center;
+    }
+
+    .display {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0.1rem;
+      width: 100%;
+      max-width: 440px;
+      flex: 1 1 0;
+      min-height: 100px; /* changed from 180px maybe make smaller */
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 4px;
+      padding: 1rem 1rem 0.75rem;
+      
+    }
+
+    .exercise-label {
+      font-size: 0.6rem;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #aaa;
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 1em;
+    }
+
+    .exercise-number {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(5rem, 18vw, 8rem);
+      line-height: 1;
+      color: #f5c842;
+      font-weight: 700;
+      text-shadow: 0 0 30px rgba(245,200,66,0.3);
+      transition: color 0.15s, text-shadow 0.15s, transform 0.15s;
+      min-width: 3ch;
+      text-align: center;
+      transform: scale(1);
+    }
+
+    .exercise-number.flash {
+      color: #ccc;
+      text-shadow: 0 0 40px rgba(200,200,200,0.4);
+      transform: scale(1.06);
+    }
+
+    .exercise-number.idle { color: #444; text-shadow: none; }
+    .exercise-number.looping { color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
+    .exercise-number.done {
+      color: #4caf7d;
+      text-shadow: 0 0 30px rgba(76,175,125,0.3);
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      letter-spacing: 0.1em;
+      text-transform: lowercase;
+    }
+
+    .next-exercise {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      color: #ccc;
+      letter-spacing: 0.05em;
+      min-height: 1.2em;
+      text-align: center;
+      transition: opacity 0.6s ease;
+    }
+
+    .next-exercise .next-label {
+      font-size: 0.6em;
+      color: #888;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-right: 0.3em;
+    }
+
+    .countdown-display {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(5rem, 18vw, 8rem);
+      line-height: 1;
+      color: #ff4500;
+      text-shadow: 0 0 40px rgba(255,69,0,0.3);
+      min-width: 3ch;
+      text-align: center;
+    }
+
+    .idle-summary {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.1em;
+      color: #777;
+      text-align: center;
+      padding: 0.4rem 0 0.2rem;
+      min-height: 1.2em;
+    }
+
+    .beat-dots {
+      display: flex;
+      gap: 0.6rem;
+      margin-top: 0.3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      max-width: 320px;
+    }
+
+    .beat-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: #555;
+      transition: background 0.05s;
+    }
+    .beat-dot.inactive { background: #555; }
+    .beat-dot.active { background: #ff4500; }
+    .beat-dot.beat1.active { background: #fff; }
+
+    .bar-progress {
+      display: flex;
+      gap: 4px;
+      margin-top: 0.3rem;
+    }
+
+    .bar-block {
+      height: 5px;
+      background: #555;
+      border-radius: 2px;
+      transition: background 0.1s;
+    }
+    .bar-block.done { background: #888; }
+    .bar-block.current { background: #f5c842; }
+    .bar-block.loop-current { background: #f5c842; opacity: 0.5; }
+    .bar-block.countin-done { background: #7a2200; }
+    .bar-block.countin-current { background: #ff4500; }
+
+    .bar-progress-continuous {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 0.3rem;
+    }
+
+    .bar-progress-track {
+      width: 192px;
+      height: 5px;
+      background: #555;
+      border-radius: 2px;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .bar-progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: #f5c842;
+      transition: width 0.15s;
+    }
+
+    .bar-progress-fill.loop { opacity: 0.5; }
+
+    .bar-progress-counter {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.6rem;
+      letter-spacing: 0.08em;
+      color: #555;
+      white-space: nowrap;
+    }
+
+    .bar-progress-counter.near-end { color: #f5c842; }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      width: 100%;
+      max-width: 440px;
+    }
+
+    .section-divider {
+      width: 100%;
+      height: 1px;
+      background: #1e1e1e;
+      margin: 0.25rem 0;
+    }
+
+    .section-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.6rem 1.5rem;
+    }
+
+    .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .control-group.full-width { grid-column: 1 / -1; }
+
+    .control-group label {
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #888;
+      font-family: 'Share Tech Mono', monospace;
+    }
+
+    .control-group.secondary label { color: #888; }
+    .control-group.dimmed label { opacity: 0.5; }
+
+    .bpm-widget { display: flex; align-items: center; height: 44px; }
+
+    .bpm-btn {
+      width: 44px; height: 44px;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-size: 1.2rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.1s, color 0.1s;
+      flex-shrink: 0; font-family: 'Share Tech Mono', monospace;
+    }
+    .bpm-btn:active { background: #2a2a2a; color: #fff; }
+    .bpm-btn:disabled { opacity: 0.25; cursor: default; }
+    .bpm-btn.left { border-right: none; }
+    .bpm-btn.right { border-left: none; }
+
+    .bpm-tap {
+      flex: 1; height: 44px;
+      background: #1a1a1a; border: 1px solid #333;
+      color: #f5c842; font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem; text-align: center; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.08s; min-width: 60px;
+    }
+    .bpm-tap:active { background: #252525; }
+    .bpm-tap.tapped { background: #222; }
+
+    .stepper { display: flex; align-items: center; height: 44px; }
+
+    .stepper-btn {
+      width: 44px; height: 44px;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-size: 1.2rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.1s; flex-shrink: 0;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .stepper-btn:active { background: #2a2a2a; color: #fff; }
+    .stepper-btn:disabled { opacity: 0.25; cursor: default; }
+    .stepper-btn.left { border-right: none; }
+    .stepper-btn.right { border-left: none; }
+
+    .stepper-val {
+      flex: 1; height: 44px;
+      background: #1a1a1a; border: 1px solid #333;
+      border-left: none; border-right: none;
+      color: #e8e8e8; font-family: 'Share Tech Mono', monospace;
+      font-size: 1rem; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+      min-width: 40px;
+    }
+
+    .range-row { display: flex; align-items: center; gap: 0.5rem; }
+
+    .range-row input[type="number"] {
+      width: 58px; height: 44px;
+      background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
+      font-family: 'Share Tech Mono', monospace; font-size: 1rem;
+      padding: 0.4rem 0.5rem; text-align: center;
+      appearance: textfield; -moz-appearance: textfield;
+    }
+
+    input[type=number]::-webkit-inner-spin-button,
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+    .range-row input[type="number"]:focus { outline: none; border-color: #ff4500; }
+    .range-row input[type="number"]:disabled { opacity: 0.25; }
+    .range-row span { font-size: 0.7rem; color: #777; }
+
+    .selector-row { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
+
+    .sel-btn {
+      background: #1a1a1a; border: 1px solid #333; color: #bbb;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
+      letter-spacing: 0.05em; height: 44px;
+      display: flex; align-items: center;
+    }
+    .sel-btn:active { background: #252525; }
+    .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
+    .sel-btn:disabled { opacity: 0.25; cursor: default; }
+
+    .check-row { display: flex; align-items: center; gap: 0.5rem; }
+    .check-row span {
+      font-size: 0.75rem; color: #aaa;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .check-row.disabled { opacity: 0.25; }
+
+    .countin-row {
+      display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
+      min-height: 44px;
+    }
+
+    input[type="range"] {
+      flex: 1;
+      -webkit-appearance: none; appearance: none;
+      height: 6px; background: #333; border-radius: 3px; outline: none;
+      padding: 8px 0;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #f5c842; cursor: pointer;
+    }
+    input[type="range"]::-moz-range-thumb {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: #f5c842; cursor: pointer; border: none;
+    }
+
+    .vol-wrap { display: flex; align-self: stretch; }
+
+    .vol-label-btn {
+      display: flex; align-items: center; gap: 0.4rem;
+      background: #1e1e1e; border: 1px solid #444; color: #bbb;
+      padding: 0 0.75rem; border-radius: 8px;
+      cursor: pointer; transition: background 0.1s; flex-shrink: 0;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
+      width: 100%;
+    }
+    .vol-label-btn:active { background: #2a2a2a; color: #fff; }
+    .vol-label-btn.active { border-color: #f5c842; color: #f5c842; }
+
+    .vol-slider-row {
+      display: flex; align-items: center; gap: 0.6rem;
+      width: 100%; max-width: 440px;
+      position: absolute;
+      bottom: 100%;
+      left: 0;
+      background: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      margin-bottom: 0.4rem;
+      z-index: 10;
+    }
+    .vol-slider-row span {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; color: #777;
+      letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+    }
+
+    .btn-row {
+      display: flex; gap: 0.5rem;
+      width: 100%; max-width: 440px;
+      margin-top: 0.5rem;
+      position: relative;
+    }
+
+    .btn-group { display: flex; gap: 0.5rem; flex: 1; }
+    .btn-group-stop { display: flex; }
+
+    .action-btn {
+      flex: 1; padding: 1rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
+      border: 1px solid #f5c842; border-radius: 8px;
+      background: #f5c842; color: #0f0f0f;
+    }
+    .action-btn:active { background: #d4aa30; border-color: #d4aa30; }
+    .action-btn.secondary { background: #1e1e1e; border-color: #444; color: #bbb; }
+    .action-btn.secondary:active { background: #2a2a2a; color: #fff; border-color: #666; }
+    .action-btn.pause-active { background: #1e1e1e; border-color: #ccc; color: #ccc; }
+    .action-btn.pause-active:active { background: #2a2a2a; border-color: #fff; color: #fff; }
+    .action-btn.stop { background: #1e1e1e; border-color: #7a2200; color: #c44; }
+    .action-btn.stop:active { background: #2a2a2a; color: #ff4500; border-color: #ff4500; }
+    .action-btn.loop-active { border-color: #f5c842; color: #0f0f0f; background: #f5c842; }
+    .action-btn.loop-active:active { background: #d4aa30; border-color: #d4aa30; }
+    .action-btn:disabled { opacity: 0.3; cursor: default; }
+
+    .error-msg {
+      font-size: 0.7rem; color: #ff4500;
+      font-family: 'Share Tech Mono', monospace; letter-spacing: 0.1em;
+    }
+
+    .version-footer {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.5rem;
+      color: #444;
+      letter-spacing: 0.15em;
+      margin-top: auto; /* changed */
+      margin-bottom: 0.5rem;
+    }
+
+    .rotate-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: #0f0f0f;
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .rotate-overlay p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      color: #666;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      text-align: center;
+    }
+    @media (max-height: 500px) and (max-width: 900px) {
+      .rotate-overlay { display: flex; }
+    }
+
+    .help-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.92);
+      z-index: 100;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2rem, env(safe-area-inset-bottom));
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .help-content {
+      max-width: 400px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .help-scroll-fade {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.92));
+      pointer-events: none;
+      z-index: 101;
+      transition: opacity 0.3s;
+    }
+
+    .help-close-x {
+      align-self: flex-end;
+      background: #1e1e1e;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #aaa;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      cursor: pointer;
+      padding: 0.4rem 0.7rem;
+      line-height: 1;
+    }
+    .help-close-x:active { color: #fff; border-color: #888; background: #2a2a2a; }
+
+    .help-close-bottom {
+      display: none;
+      align-self: center;
+      margin-top: 0.5rem;
+      background: #1e1e1e;
+      border: 1px solid #555;
+      border-radius: 4px;
+      color: #aaa;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 0.6rem 1.5rem;
+      position: relative;
+      z-index: 102;
+    }
+    .help-close-bottom:active { color: #fff; border-color: #888; background: #2a2a2a; }
+
+    @media (max-height: 700px), (max-width: 767px) {
+      .help-close-bottom { display: block; }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
+      .help-content { max-width: 640px !important; gap: 1.25rem !important; }
+      .help-title { font-size: 1rem !important; }
+      .help-section h3 { font-size: 0.9rem !important; }
+      .help-section p { font-size: 0.95rem !important; line-height: 1.7 !important; }
+      .help-close { font-size: 0.85rem !important; padding: 0.8rem 2rem !important; }
+    }
+
+    .help-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #f5c842;
+    }
+
+    .help-section { display: flex; flex-direction: column; gap: 0.3rem; }
+
+    .help-section h3 {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      color: #ff4500;
+      font-weight: 400;
+    }
+
+    .help-section p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      color: #888;
+      line-height: 1.6;
+      letter-spacing: 0.03em;
+    }
+
+    .help-section ul {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.9rem;
+      color: #888;
+      line-height: 1.6;
+      letter-spacing: 0.03em;
+    }
+
+    .help-section li { margin-bottom: 0.4rem; }
+    .help-section li:last-child { margin-bottom: 0; }
+
+    .help-close {
+      align-self: center;
+      margin-top: 0.5rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: #555;
+      background: none;
+      border: 1px solid #333;
+      padding: 0.6rem 1.5rem;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .help-close:active { color: #aaa; border-color: #555; }
+
+    .help-btn {
+      background: none;
+      border: 1px solid #444;
+      color: #666;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem;
+      cursor: pointer;
+      padding: 0.2rem 0.5rem;
+      letter-spacing: 0.1em;
+      border-radius: 4px;
+    }
+    .help-btn:active { color: #aaa; border-color: #666; }
+
+    @media (hover: hover) and (min-width: 1024px) {
+      .app-header { max-width: 560px; }
+      .app-subtitle { font-size: 0.7rem; }
+      .display { max-width: 560px; }
+      .controls { max-width: 560px; }
+      .btn-row { max-width: 560px; }
+      .vol-slider-row { max-width: 560px; }
+      .control-group label { font-size: 0.72rem; }
+      .idle-summary { font-size: 0.8rem; }
+      .check-row span { font-size: 0.85rem; }
+      .version-footer { font-size: 0.6rem; }
+      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
+      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
+    }
+
+  </style>
 </head>
 <body>
-  <h1>Test version working</h1>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+
+    const TIME_SIGS = [
+      { label: "2/4", beats: 2 },
+      { label: "3/4", beats: 3 },
+      { label: "4/4", beats: 4 },
+      { label: "5/4", beats: 5 },
+      { label: "6/4", beats: 6 },
+      { label: "7/4", beats: 7 },
+    ];
+
+    const MODE_FULLSET    = "fullset";
+    const MODE_RANDOM     = "random";
+    const MODE_SEQUENTIAL = "sequential";
+    const MODE_CLICKONLY  = "clickonly";
+
+    const STORAGE_KEY = "shuffle_settings_v7";
+
+    // ── Constants ─────────────────────────────────────────────────────────────
+
+    const SCHEDULER_INTERVAL_MS   = 25;
+    const LOOKAHEAD_TIME          = 0.2;
+    const START_DELAY             = 0.1;
+    const FLASH_DURATION_MS       = 200;
+    const SET_COMPLETE_DISPLAY_MS = 2000;
+    const RESUME_SETUP_DELAY_MS   = 50;
+    const BPM_MIN                 = 30;
+    const BPM_MAX                 = 300;
+    const BARS_MIN                = 1;
+    const BARS_MAX                = 32;
+    const TAP_MAX_HISTORY         = 8;
+    const TAP_RESET_MS            = 2000;
+    const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
+
+    function loadSettings() {
+      try { const s = localStorage.getItem(STORAGE_KEY); return s ? JSON.parse(s) : null; }
+      catch { return null; }
+    }
+    function saveSettings(s) {
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
+    }
+
+    // ── Audio ──────────────────────────────────────────────────────────────────
+
+    function getCompressor(ctx) {
+      if (ctx._compressor) return ctx._compressor;
+      const comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -12;
+      comp.knee.value       =   6;
+      comp.ratio.value      =   4;
+      comp.attack.value     = 0.003;
+      comp.release.value    = 0.15;
+      comp.connect(ctx.destination);
+      ctx._compressor = comp;
+      return comp;
+    }
+
+    function scheduleWoodblock(ctx, time, isDownbeat, vol) {
+      const bufSize = Math.floor(ctx.sampleRate * 0.05);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 10);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = isDownbeat ? 2000 : 1400;
+      filter.Q.value = 4;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime((isDownbeat ? 2.8 : 2.0) * vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
+      src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
+      src.start(time); src.stop(time + 0.06);
+    }
+
+    function scheduleEndBell(ctx, time, vol) {
+      const bufSize = Math.floor(ctx.sampleRate * 0.06);
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 8);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      const filter = ctx.createBiquadFilter();
+      filter.type = "bandpass";
+      filter.frequency.value = 2800;
+      filter.Q.value = 5;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(vol * 1.4, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+      src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
+      src.start(time); src.stop(time + 0.09);
+    }
+
+    function scheduleMetronomeClick(ctx, time, isDownbeat, vol) {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(getCompressor(ctx));
+      osc.frequency.value = isDownbeat ? 1000 : 700;
+      gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.5) * vol, time);
+      gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+      osc.start(time); osc.stop(time + 0.09);
+    }
+
+    function startSilentLoop(ctx) {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+      const src = ctx.createBufferSource();
+      src.buffer = buf; src.loop = true;
+      const gain = ctx.createGain();
+      gain.gain.value = 0.001;
+      src.connect(gain); gain.connect(getCompressor(ctx));
+      src.start();
+      return src;
+    }
+
+    // ── Timer hook ─────────────────────────────────────────────────────────────
+
+    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
+                            onNewExercise, onNextExercise, onSetComplete,
+                            running, paused, resuming,
+                            countInBars, countInEveryRound,
+                            mode, volume, looping, setComplete }) {
+
+      const audioCtx          = useRef(null);
+      const silentLoop        = useRef(null);
+      const nextBeatTime      = useRef(0);
+      const beatCount         = useRef(0);
+      const schedulerRef      = useRef(null);
+      const lastExercise      = useRef(null);
+      const nextExercise      = useRef(null);
+      const deckRef           = useRef([]);
+      const seqIndex          = useRef(0);
+      const exercisesPlayed   = useRef(0);
+      const loopingRef        = useRef(looping);
+      const countInProgress   = useRef(false);
+      const countInBeatPos    = useRef(0);
+      const playBeatCount     = useRef(0);
+      const schedulerFn       = useRef(null);
+      const setEndPending     = useRef(false);
+      const stoppedRef        = useRef(false);
+      const wasRunningRef     = useRef(false);
+
+      const [currentBeat,  setCurrentBeat]  = useState(0);
+      const [currentBar,   setCurrentBar]   = useState(0);
+      const [phase,        setPhase]        = useState("idle");
+      const [flashOn,      setFlashOn]      = useState(false);
+      const [countInBeat,  setCountInBeat]  = useState(0);
+      const [isResuming,   setIsResuming]   = useState(false);
+
+      const getCtx = useCallback(() => {
+        if (!audioCtx.current)
+          audioCtx.current = new (window.AudioContext || window.webkitAudioContext)();
+        return audioCtx.current;
+      }, []);
+
+      const buildDeck = useCallback((min, max, avoidFirst) => {
+        const arr = [];
+        for (let i = min; i <= max; i++) arr.push(i);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        if (avoidFirst != null && arr.length > 1 && arr[0] === avoidFirst) {
+          const swap = Math.floor(Math.random() * (arr.length - 1)) + 1;
+          [arr[0], arr[swap]] = [arr[swap], arr[0]];
+        }
+        return arr;
+      }, []);
+
+      const pickNext = useCallback((min, max, last, currentMode) => {
+        if (currentMode === MODE_FULLSET) {
+          if (deckRef.current.length === 0) deckRef.current = buildDeck(min, max, last);
+          return deckRef.current.shift();
+        } else if (currentMode === MODE_SEQUENTIAL) {
+          const total = max - min + 1;
+          const ex = min + (seqIndex.current % total);
+          seqIndex.current++;
+          return ex;
+        } else {
+          if (max <= min) return min;
+          let ex, attempts = 0;
+          do { ex = Math.floor(Math.random() * (max - min + 1)) + min; attempts++; }
+          while (ex === last && attempts < 20);
+          return ex;
+        }
+      }, [buildDeck]);
+
+      const stateRef = useRef({});
+      useEffect(() => {
+        stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
+                             onNewExercise, onNextExercise, onSetComplete,
+                             countInBars, countInEveryRound,
+                             mode, volume };
+      });
+
+      const resumingRef = useRef(false);
+
+      useEffect(() => {
+        loopingRef.current = looping;
+        if (!looping && lastExercise.current !== null) {
+          const { onNextExercise: onNext } = stateRef.current;
+          if (setEndPending.current) {
+            onNext(-1);
+          } else if (nextExercise.current !== null) {
+            onNext(nextExercise.current);
+          }
+        }
+      }, [looping]);
+
+      useEffect(() => {
+        if (!audioCtx.current) return;
+        const ctx = audioCtx.current;
+        if (paused) {
+          clearInterval(schedulerRef.current);
+        } else if (resuming) {
+          resumingRef.current = true;
+          beatCount.current = 0;
+          playBeatCount.current = 0;
+          countInProgress.current = false;
+          countInBeatPos.current = 0;
+          nextBeatTime.current = Infinity;
+          setIsResuming(true);
+          setPhase("countin");
+          const { onNextExercise: onNext } = stateRef.current;
+          onNext(lastExercise.current);
+          setTimeout(() => {
+            nextBeatTime.current = ctx.currentTime + START_DELAY;
+            clearInterval(schedulerRef.current);
+            if (schedulerFn.current) {
+              schedulerRef.current = setInterval(schedulerFn.current, SCHEDULER_INTERVAL_MS);
+            }
+          }, RESUME_SETUP_DELAY_MS);
+        } else {
+          ctx.resume().catch(() => {});
+        }
+      }, [paused, resuming]);
+
+      // ── Reset on stop ──
+      useEffect(() => {
+        if (!running) {
+          if (wasRunningRef.current) stoppedRef.current = true;
+          clearInterval(schedulerRef.current);
+          if (silentLoop.current) { try { silentLoop.current.stop(); } catch {} silentLoop.current = null; }
+          if (setComplete) {
+            setTimeout(() => {
+              if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
+            }, 150);
+          } else {
+            if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
+          }
+          setPhase("idle");
+          setCurrentBeat(0); setCurrentBar(0); setCountInBeat(0); setIsResuming(false);
+          beatCount.current = 0; playBeatCount.current = 0; exercisesPlayed.current = 0;
+          lastExercise.current = null; nextExercise.current = null;
+          deckRef.current = []; seqIndex.current = 0;
+          countInProgress.current = false; countInBeatPos.current = 0;
+          resumingRef.current = false; schedulerFn.current = null; setEndPending.current = false;
+          nextBeatTime.current = 0;
+          wasRunningRef.current = false;
+        }
+      }, [running, setComplete]);
+
+      // ── Fresh start only ──
+      useEffect(() => {
+        if (!running || paused || resuming || schedulerFn.current) return;
+
+        const ctx = getCtx();
+        if (ctx.state === "suspended") ctx.resume();
+        if (!silentLoop.current) silentLoop.current = startSilentLoop(ctx);
+
+        const { countInBars: cib, minEx: mn, maxEx: mx,
+                onNewExercise: cb, onNextExercise: cbNext, mode: m } = stateRef.current;
+
+        beatCount.current = 0; playBeatCount.current = 0;
+        nextBeatTime.current = ctx.currentTime + START_DELAY;
+        countInProgress.current = false; countInBeatPos.current = 0;
+        resumingRef.current = false; stoppedRef.current = false;
+        wasRunningRef.current = true;
+
+        exercisesPlayed.current = 1;
+        deckRef.current = []; seqIndex.current = 0;
+        setPhase("countin");
+
+        if (m === MODE_CLICKONLY) {
+          lastExercise.current = 1;
+          nextExercise.current = null;
+          cb(1);
+          cbNext(null);
+        } else {
+          const firstEx = pickNext(mn, mx, null, m);
+          lastExercise.current = firstEx;
+
+          const totalInSetAtStart = mx - mn + 1;
+          if ((m === MODE_FULLSET || m === MODE_SEQUENTIAL) && totalInSetAtStart === 1) {
+            nextExercise.current = firstEx;
+            setEndPending.current = true;
+            cbNext(firstEx);
+          } else {
+            const secondEx = pickNext(mn, mx, firstEx, m);
+            nextExercise.current = secondEx;
+            cbNext(firstEx);
+          }
+        }
+
+        const scheduler = () => {
+          const { bpm: b, beatsPerBar: bpb2, barsPerExercise: bpe,
+                  minEx: min, maxEx: max,
+                  onNewExercise: onChange, onNextExercise: onNext,
+                  onSetComplete: onDone,
+                  countInBars: cib2, countInEveryRound: cier,
+                  mode: currentMode, volume: vol } = stateRef.current;
+
+          const beatLen           = 60 / b;
+          const countInBeats      = bpb2 * cib2;
+          const interCountInBeats = cier ? bpb2 * cib2 : 0;
+          const totalInSet        = max - min + 1;
+
+          while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
+            const bc = beatCount.current;
+
+            if (bc < countInBeats) {
+              const beatInCI = bc % bpb2;
+              scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
+              const t = nextBeatTime.current;
+              setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(bc + 1); setPhase("countin"); },
+                Math.max(0, (t - ctx.currentTime) * 1000));
+              if (bc === countInBeats - 1) {
+                const cur = lastExercise.current;
+                const nxt = setEndPending.current ? -1 : nextExercise.current;
+                setTimeout(() => {
+                  if (stoppedRef.current) return;
+                  onChange(cur);
+                  onNext(nxt);
+                  setPhase("playing");
+                  setIsResuming(false);
+                  resumingRef.current = false;
+                }, Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
+              }
+
+            } else {
+              const inInterCountIn = countInProgress.current;
+
+              if (inInterCountIn) {
+                const interPos = countInBeatPos.current;
+                scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
+                const t = nextBeatTime.current;
+                setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
+                  Math.max(0, (t - ctx.currentTime) * 1000));
+                countInBeatPos.current++;
+                if (countInBeatPos.current >= interCountInBeats) {
+                  countInProgress.current = false; countInBeatPos.current = 0;
+                  const upcoming = nextExercise.current;
+                  const t2 = nextBeatTime.current;
+                  setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
+                    Math.max(0, (t2 - ctx.currentTime) * 1000 + beatLen * 1000));
+                }
+
+              } else {
+                const playBeat      = playBeatCount.current;
+                const beatInBar     = playBeat % bpb2;
+                const barInExercise = Math.floor(playBeat / bpb2) % bpe;
+                const isNewExercise = playBeat > 0 && beatInBar === 0 && barInExercise === 0;
+                const isDownbeat    = beatInBar === 0;
+
+                if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
+                  scheduleMetronomeClick(ctx, nextBeatTime.current, isDownbeat, vol);
+                }
+                const t = nextBeatTime.current;
+                setTimeout(() => {
+                  if (stoppedRef.current) return;
+                  setCurrentBeat(beatInBar);
+                  setCurrentBar(barInExercise);
+                  if (isDownbeat && barInExercise === 0 && playBeat > 0) {
+                    setFlashOn(true);
+                    setTimeout(() => setFlashOn(false), FLASH_DURATION_MS);
+                  }
+                }, Math.max(0, (t - ctx.currentTime) * 1000));
+
+                if (currentMode === MODE_CLICKONLY) {
+                  if (isDownbeat && playBeat > 0) {
+                    const newBarCount = lastExercise.current + 1;
+                    lastExercise.current = newBarCount;
+                    setTimeout(() => { if (stoppedRef.current) return; onChange(newBarCount); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                  }
+                  playBeatCount.current++;
+                } else if (isNewExercise) {
+                  if (setEndPending.current) {
+                    if (loopingRef.current) {
+                      const current = lastExercise.current;
+                      setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                      playBeatCount.current = 1;
+                    } else {
+                      clearInterval(schedulerRef.current);
+                      scheduleEndBell(ctx, nextBeatTime.current, vol);
+                      const t2 = t;
+                      setTimeout(() => { if (stoppedRef.current) return; onDone(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+                      setEndPending.current = false;
+                    }
+                  } else if (loopingRef.current) {
+                    const current = lastExercise.current;
+                    setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
+                    playBeatCount.current = 1;
+                  } else {
+                    const setDone = (currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL)
+                      && exercisesPlayed.current >= totalInSet - 1;
+
+                    if (setDone) {
+                      const incoming = nextExercise.current;
+                      lastExercise.current = incoming;
+                      setEndPending.current = true;
+
+                      if (interCountInBeats > 0) {
+                        nextExercise.current = -1;
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(-1); setPhase("countin"); setCountInBeat(1); },
+                          Math.max(0, (t - ctx.currentTime) * 1000));
+                        countInProgress.current = true;
+                        countInBeatPos.current = 1;
+                        playBeatCount.current = 0;
+                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                        if (countInBeatPos.current >= interCountInBeats) {
+                          countInProgress.current = false; countInBeatPos.current = 0;
+                          setTimeout(() => { if (stoppedRef.current) return; setPhase("playing"); },
+                            Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
+                        }
+                      } else {
+                        const t2 = t;
+                        setTimeout(() => {
+                          if (stoppedRef.current) return;
+                          onChange(incoming);
+                          onNext(-1);
+                        }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+                        playBeatCount.current = 1;
+                      }
+                    } else {
+                      exercisesPlayed.current++;
+                      const incoming = nextExercise.current;
+                      lastExercise.current = incoming;
+                      const upcoming = pickNext(min, max, incoming, currentMode);
+                      nextExercise.current = upcoming;
+
+                      if (interCountInBeats > 0) {
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(incoming); setPhase("countin"); setCountInBeat(1); },
+                          Math.max(0, (t - ctx.currentTime) * 1000));
+                        countInProgress.current = true;
+                        countInBeatPos.current = 1;
+                        playBeatCount.current = 0;
+                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                        if (countInBeatPos.current >= interCountInBeats) {
+                          countInProgress.current = false; countInBeatPos.current = 0;
+                          setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
+                            Math.max(0, (t - ctx.currentTime) * 1000 + beatLen * 1000));
+                        }
+                      } else {
+                        playBeatCount.current = 1;
+                        setTimeout(() => { if (stoppedRef.current) return; onChange(incoming); onNext(upcoming); },
+                          Math.max(0, (t - ctx.currentTime) * 1000));
+                      }
+                    }
+                  }
+                } else {
+                  playBeatCount.current++;
+                }
+              }
+            }
+
+            beatCount.current++;
+            nextBeatTime.current += beatLen;
+          }
+        };
+
+        schedulerFn.current = scheduler;
+        schedulerRef.current = setInterval(scheduler, SCHEDULER_INTERVAL_MS);
+        return () => clearInterval(schedulerRef.current);
+      }, [running, getCtx, pickNext]);
+
+      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };
+    }
+
+    // ── Long press ─────────────────────────────────────────────────────────────
+
+    function useLongPress(callback, { delay = 400, interval = 80 } = {}) {
+      const timeoutRef   = useRef(null);
+      const intervalRef  = useRef(null);
+
+      const start = useCallback(() => {
+        callback();
+        timeoutRef.current = setTimeout(() => {
+          intervalRef.current = setInterval(callback, interval);
+        }, delay);
+      }, [callback, delay, interval]);
+
+      const stop = useCallback(() => {
+        clearTimeout(timeoutRef.current);
+        clearInterval(intervalRef.current);
+      }, []);
+
+      return {
+        onMouseDown: start,
+        onMouseUp: stop,
+        onMouseLeave: stop,
+        onTouchStart: (e) => { e.preventDefault(); start(); },
+        onTouchEnd: (e) => { e.preventDefault(); stop(); },
+        onTouchCancel: stop,
+      };
+    }
+
+    function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
+
+    // ── Bar progress display ───────────────────────────────────────────────────
+
+    function blockWidth(n) {
+      if (n <= 8)  return 20;
+      if (n <= 12) return 16;
+      return 12;
+    }
+
+    function blockGap(n) {
+      return n <= 12 ? 4 : 3;
+    }
+
+    // Amber brightness levels for bar-within-phrase: index = bar position (0-based)
+    const BAR_PHRASE_COLOURS = {
+      1: ["#f5c842"],
+      2: ["#7a6421", "#f5c842"],
+      4: ["#3d3210", "#7a6421", "#b89631", "#f5c842"],
+    };
+
+    function barPhraseColour(exerciseLength, currentBar) {
+      const colours = BAR_PHRASE_COLOURS[exerciseLength] || ["#f5c842"];
+      const barWithinPhrase = currentBar % exerciseLength;
+      return colours[barWithinPhrase] || "#f5c842";
+    }
+
+    function BarProgress({ barsPerExercise, currentRound, currentBar, exerciseLength, looping, phase, countInBars, countInBeat, beatsPerBar, barFlash }) {
+      if (phase === "idle" || (phase === "countin" && countInBars < 2)) {
+        if (barsPerExercise <= BAR_BLOCKS_MAX) {
+          const bw = blockWidth(barsPerExercise);
+          const bg = blockGap(barsPerExercise);
+          return (
+            <div className="bar-progress" style={{ gap: `${bg}px` }}>
+              {Array.from({ length: barsPerExercise }).map((_, i) => (
+                <div key={i} className="bar-block" style={{ width: `${bw}px` }} />
+              ))}
+            </div>
+          );
+        } else {
+          return (
+            <div className="bar-progress-continuous">
+              <div className="bar-progress-track">
+                <div className="bar-progress-fill" style={{ width: "0%", background: "#f5c842" }} />
+              </div>
+            </div>
+          );
+        }
+      }
+
+      if (phase === "playing") {
+        const activeColour = barPhraseColour(exerciseLength, currentBar);
+
+        if (barsPerExercise <= BAR_BLOCKS_MAX) {
+          const bw = blockWidth(barsPerExercise);
+          const bg = blockGap(barsPerExercise);
+          return (
+            <div className="bar-progress" style={{ gap: `${bg}px` }}>
+              {Array.from({ length: barsPerExercise }).map((_, i) => (
+                <div key={i}
+                  className={`bar-block${i < currentRound - 1 ? " done" : ""}`}
+                  style={{
+                    width: `${bw}px`,
+                    background: i < currentRound - 1 ? undefined : i === currentRound - 1 ? activeColour : undefined,
+                  }}
+                />
+              ))}
+            </div>
+          );
+        } else {
+          const pct = Math.min(100, Math.round((currentRound / barsPerExercise) * 100));
+          const nearEnd = !looping && currentRound >= barsPerExercise - 1;
+          const fillOpacity = barFlash ? 1 : 0.6;
+          return (
+            <div className="bar-progress-continuous">
+              <div className="bar-progress-track">
+                <div className="bar-progress-fill" style={{ width: `${pct}%`, background: "#f5c842", opacity: fillOpacity, transition: barFlash ? "none" : "width 0.15s, opacity 0.25s" }} />
+              </div>
+              <span className={`bar-progress-counter${nearEnd ? " near-end" : ""}`}>
+                {`${currentRound}/${barsPerExercise}`}
+              </span>
+            </div>
+          );
+        }
+      }
+
+      if (phase === "countin" && countInBars >= 2) {
+        const countInBar = countInBeat > 0 ? Math.floor((countInBeat - 1) / beatsPerBar) : 0;
+        return (
+          <div className="bar-progress">
+            {Array.from({ length: countInBars }).map((_, i) => (
+              <div key={i}
+                className={`bar-block${i < countInBar ? " countin-done" : i === countInBar ? " countin-current" : ""}`}
+                style={{ width: "20px" }}
+              />
+            ))}
+          </div>
+        );
+      }
+
+      return <div style={{ height: "5px" }} />;
+    }
+
+    // ── App ────────────────────────────────────────────────────────────────────
+
+    function App() {
+      const [saved] = useState(() => loadSettings());
+
+      const [running,         setRunning]         = useState(false);
+      const [paused,          setPaused]          = useState(false);
+      const [resuming,        setResuming]        = useState(false);
+      const [looping,         setLooping]         = useState(false);
+      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 80);
+      const [timeSig,         setTimeSig]         = useState(() => TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
+      const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 8);
+      const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
+      const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
+      const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
+      const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
+      const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? false);
+      const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
+      const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
+      const [exercise,        setExercise]        = useState(null);
+      const [nextEx,          setNextEx]          = useState(null);
+      const [exerciseKey,     setExerciseKey]     = useState(0);
+      const [tapped,          setTapped]          = useState(false);
+      const [showVolume,      setShowVolume]      = useState(false);
+      const [showHelp,        setShowHelp]        = useState(false);
+      const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
+      const helpOverlayRef = useRef(null);
+      const [setComplete,     setSetComplete]     = useState(false);
+      const [barFlash,        setBarFlash]        = useState(false);
+      const tapTimes = useRef([]);
+      const wakeLock = useRef(null);
+
+      useEffect(() => {
+        saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+                       minEx, maxEx, countInBars, countInEvery, mode, volume });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume]);
+
+      useEffect(() => {
+        const req = async () => {
+          if ("wakeLock" in navigator)
+            try { wakeLock.current = await navigator.wakeLock.request("screen"); } catch {}
+        };
+        const rel = async () => {
+          if (wakeLock.current) { try { await wakeLock.current.release(); } catch {} wakeLock.current = null; }
+        };
+        if (running && !paused) req(); else rel();
+        return () => rel();
+      }, [running, paused]);
+
+      const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
+      const handleNextExercise = useCallback((n) => { setNextEx(n); setExerciseKey(k => k + 1); }, []);
+      const handleSetComplete  = useCallback(() => {
+        setRunning(false); setPaused(false); setLooping(false); setResuming(false);
+        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setSetComplete(true);
+        setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
+      }, []);
+
+      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
+        bpm,
+        beatsPerBar: timeSig.beats,
+        barsPerExercise: barsPerExercise * exerciseLength,
+        minEx, maxEx,
+        onNewExercise: handleNewExercise,
+        onNextExercise: handleNextExercise,
+        onSetComplete: handleSetComplete,
+        running, paused, resuming,
+        countInBars,
+        countInEveryRound: countInEvery,
+        mode, volume, looping, setComplete,
+      });
+
+      const handleStart = () => {
+        setSetComplete(false);
+        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setPaused(false); setLooping(false); setResuming(false); setRunning(true);
+      };
+
+      const handleStop = () => {
+        setRunning(false); setPaused(false); setLooping(false); setResuming(false);
+        setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false);
+      };
+
+      const handlePause = () => {
+        if (paused) {
+          setResuming(true);
+          setPaused(false);
+        } else {
+          setResuming(false);
+          setPaused(true);
+        }
+      };
+
+      const handleLoop = () => setLooping(l => !l);
+
+      useEffect(() => {
+        if (!isResuming && resuming) setResuming(false);
+      }, [isResuming, resuming]);
+
+      const runningRef = useRef(false);
+      const pausedRef = useRef(false);
+      useEffect(() => { runningRef.current = running; }, [running]);
+      useEffect(() => { pausedRef.current = paused; }, [paused]);
+
+      useEffect(() => {
+        const onKey = (e) => {
+          if (e.code === "Space" && e.target.tagName !== "INPUT") {
+            e.preventDefault();
+            if (!runningRef.current) {
+              handleStart();
+            } else if (pausedRef.current) {
+              setResuming(true);
+              setPaused(false);
+            } else {
+              setResuming(false);
+              setPaused(true);
+            }
+          }
+        };
+        window.addEventListener("keydown", onKey);
+        return () => window.removeEventListener("keydown", onKey);
+      }, []);
+
+      const handleTap = useCallback(() => {
+        if (running) return;        const now = performance.now();
+        const times = tapTimes.current;
+        while (times.length > 0 && now - times[times.length - 1] > TAP_RESET_MS) { times.length = 0; }
+        times.push(now);
+        if (times.length > TAP_MAX_HISTORY) times.shift();
+        if (times.length >= 2) {
+          const intervals = [];
+          for (let i = 1; i < times.length; i++) intervals.push(times[i] - times[i - 1]);
+          const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+          setBpm(Math.min(BPM_MAX, Math.max(BPM_MIN, Math.round(60000 / avg))));
+        }
+        setTapped(true);
+        setTimeout(() => setTapped(false), 100);
+      }, [running]);
+
+      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
+      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);
+      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);
+      const incBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
+      const decBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
+
+      const bpmIncHandlers  = useLongPress(incBpm);
+      const bpmDecHandlers  = useLongPress(decBpm);
+      const barsIncHandlers = useLongPress(incBars);
+      const barsDecHandlers = useLongPress(decBars);
+
+      useEffect(() => {
+        if (phase === "playing" && currentBeat === 0 && !paused) {
+          setBarFlash(true);
+          const t = setTimeout(() => setBarFlash(false), 120);
+          return () => clearTimeout(t);
+        }
+      }, [currentBar, currentBeat, phase, paused]);
+
+      const validRange   = mode === MODE_CLICKONLY ? true : minEx <= maxEx;
+      const totalBars    = barsPerExercise * exerciseLength;
+      const currentRound = Math.floor(currentBar / exerciseLength) + 1;
+      const progress     = totalBars > 1 ? currentBar / (totalBars - 1) : 1;
+
+      const nextOpacity = nextEx !== null && !looping && (phase === "playing" || phase === "countin")
+        ? phase === "countin"
+          ? 1
+          : countInEvery
+            ? barsPerExercise <= 1 ? 1
+              : currentRound >= barsPerExercise - 1
+                ? currentRound === barsPerExercise - 1 ? 0.25 : 1
+                : 0
+            : totalBars === 1 ? 1
+            : Math.pow(progress, 2)
+        : 0;
+
+      const volIcon = (
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+          <rect x="1" y="5" width="3" height="6" fill="currentColor"/>
+          <polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/>
+          <path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+          <path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/>
+        </svg>
+      );
+
+      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "click only";
+
+      return (
+        <div className="app">
+
+          <div className="rotate-overlay">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#f5c842" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="2" width="16" height="20" rx="2" />
+              <path d="M9 21h6" />
+              <path d="M17 8 L21 4 M21 4 L17 0 M21 4 H13" />
+            </svg>
+            <p>Please rotate your device</p>
+          </div>
+
+          <div className="app-header">
+            <div className="app-header-spacer" />
+            <div className="app-header-text">
+              <div className="app-title">Shuffle</div>
+              <div className="app-subtitle">practice randomiser and metronome for musicians</div>
+            </div>
+            <button className="help-btn app-header-spacer" onClick={() => { setShowHelp(true); setHelpScrolledToEnd(false); }}>?</button>
+          </div>
+
+          {showHelp && (
+            <>
+              <div className="help-scroll-fade" style={{ opacity: helpScrolledToEnd ? 0 : 1 }} />
+              <div className="help-overlay" ref={helpOverlayRef}
+                onClick={() => setShowHelp(false)}
+                onScroll={(e) => {
+                  const el = e.currentTarget;
+                  const atEnd = el.scrollTop + el.clientHeight >= el.scrollHeight - 8;
+                  setHelpScrolledToEnd(atEnd);
+                }}>
+                <div className="help-content" onClick={e => e.stopPropagation()}>
+                <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
+                <div className="help-title">How to use Shuffle</div>
+                <div className="help-section">
+                  <p>Shuffle randomises your exercises to help you practise more effectively.</p>
+                </div>
+                <div className="help-section">
+                  <h3>Set up</h3>
+                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. Enable "count in every exercise" for a count-in before each exercise, not just the first.</p>
+                </div>
+                <div className="help-section">
+                  <h3>Modes</h3>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                    <li>Shuffle — plays every exercise in random order, then stops.</li>
+                    <li>Sequential — plays exercises in order, then stops.</li>
+                    <li>Random — picks randomly and runs until you stop it.</li>
+                    <li>Click Only — metronome with bar counter, runs until you stop it.</li>
+                  </ul>
+                </div>
+                <div className="help-section">
+                  <h3>Loop / Pause / Stop</h3>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                    <li>Loop — stay on the current exercise. Tap again to exit at the end of the current round.</li>
+                    <li>Pause — stops the metronome and resumes from the start of the current exercise with a count-in.</li>
+                    <li>Stop — ends the session and resets everything.</li>
+                  </ul>
+                </div>
+                <div className="help-section">
+                  <h3>Audio</h3>
+                  <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                    <li>If you can't hear anything, check your device isn't in silent mode.</li>
+                    <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
+                  </ul>
+                </div>
+                <button className="help-close-bottom" onClick={() => setShowHelp(false)}>Close</button>
+              </div>
+              </div>
+            </>
+          )}
+
+          <div className="display">
+            <div className="exercise-label">
+              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? "bar" : "exercise"}
+            </div>
+
+            {phase === "countin" ? (
+              <div className="countdown-display">
+                {countInBeat > 0 ? fmt(((countInBeat - 1) % timeSig.beats) + 1) : "--"}
+              </div>
+            ) : setComplete ? (
+              <div className="exercise-number done">
+                done
+              </div>
+            ) : (
+              <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
+                {exercise !== null ? fmt(exercise) : "--"}
+              </div>
+            )}
+
+            {phase === "idle" ? (
+              setComplete ? (
+                <div className="idle-summary">&nbsp;</div>
+              ) : (
+                <div className="idle-summary">
+                  {mode === MODE_CLICKONLY
+                    ? `${bpm} bpm · ${timeSig.label} · click only`
+                    : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                </div>
+              )
+            ) : mode === MODE_CLICKONLY ? (
+              <div className="next-exercise">
+                {paused
+                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                  : "\u00A0"}
+              </div>
+            ) : (
+              <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
+                {paused
+                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                  : isResuming
+                    ? <><span className="next-label">resuming</span>{fmt(nextEx ?? exercise)}</>
+                    : looping
+                      ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                      : nextEx === -1
+                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
+                        : nextEx !== null && (phase === "playing" || phase === "countin")
+                          ? <><span className="next-label">up next</span>{fmt(nextEx)}</>
+                          : "\u00A0"}
+              </div>
+            )}
+
+            {!setComplete && (
+              <div className="beat-dots">
+                {Array.from({ length: timeSig.beats }).map((_, i) => (
+                  <div key={i} className={`beat-dot${phase === "idle" ? " inactive" : ""}${i === 0 ? " beat1" : ""}${phase === "playing" && !paused && currentBeat === i ? " active" : ""}`} />
+                ))}
+              </div>
+            )}
+
+            {!setComplete && mode !== MODE_CLICKONLY && (
+              <BarProgress
+                barsPerExercise={barsPerExercise}
+                currentRound={currentRound}
+                currentBar={currentBar}
+                exerciseLength={exerciseLength}
+                looping={looping}
+                phase={phase}
+                countInBars={countInBars}
+                countInBeat={countInBeat}
+                beatsPerBar={timeSig.beats}
+                barFlash={barFlash}
+              />
+            )}
+            {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
+
+          </div>
+
+          <div className="controls">
+
+            <div className="section-grid">
+
+              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
+                <label>Mode</label>
+                <div className="selector-row">
+                  {[
+                    { label: "Shuffle",    value: MODE_FULLSET },
+                    { label: "Sequential", value: MODE_SEQUENTIAL },
+                    { label: "Random",     value: MODE_RANDOM },
+                    { label: "Click Only", value: MODE_CLICKONLY },
+                  ].map(m => (
+                    <button key={m.value}
+                      className={`sel-btn${mode === m.value ? " active" : ""}`}
+                      onClick={() => setMode(m.value)} disabled={running}
+                      style={m.value === MODE_CLICKONLY ? { marginLeft: "1rem" } : {}}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="control-group">
+                <label>BPM</label>
+                <div className="bpm-widget">
+                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!running ? handleTap : undefined}
+                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                      <span>{bpm}</span>
+                      {!running && <span style={{ fontSize: "0.5rem", color: "#555", letterSpacing: "0.08em" }}>tap to set</span>}
+                    </div>
+                  </div>
+                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+                </div>
+              </div>
+
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " secondary dimmed" : ""}`}>
+                <label>Rounds</label>
+                <div className="stepper">
+                  <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
+                </div>
+              </div>
+
+              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
+                <label>Count in</label>
+                <div className="countin-row">
+                  <div className="selector-row">
+                    {[{ label: "1 bar", bars: 1 }, { label: "2 bars", bars: 2 }, { label: "4 bars", bars: 4 }].map(opt => (
+                      <button key={opt.bars}
+                        className={`sel-btn${countInBars === opt.bars ? " active" : ""}`}
+                        onClick={() => setCountInBars(opt.bars)}
+                        disabled={running}>
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                  <div className={`check-row${running || mode === MODE_CLICKONLY ? " disabled" : ""}`}>
+                    <input type="checkbox" checked={countInEvery}
+                      onChange={e => setCountInEvery(e.target.checked)} disabled={running || mode === MODE_CLICKONLY}
+                      style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
+                    <span>Count in every exercise</span>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="section-divider" />
+
+            <div className="section-grid">
+
+              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercises</label>
+                <div className="range-row">
+                  <input type="number" value={minEx} min={1}
+                    onChange={e => setMinEx(Number(e.target.value))}
+                    onBlur={e => { const v = parseInt(e.target.value); setMinEx(isNaN(v) || v < 1 ? 1 : v); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
+                  <span>to</span>
+                  <input type="number" value={maxEx} min={1}
+                    onChange={e => setMaxEx(Number(e.target.value))}
+                    onBlur={e => { const v = parseInt(e.target.value); setMaxEx(isNaN(v) || v < 1 ? 1 : v); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
+                </div>
+              </div>
+
+              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercise length</label>
+                <div className="selector-row">
+                  {[1, 2, 4].map(n => (
+                    <button key={n}
+                      className={`sel-btn${exerciseLength === n ? " active" : ""}`}
+                      onClick={() => setExerciseLength(n)} disabled={running || mode === MODE_CLICKONLY}>
+                      {n} {n === 1 ? "bar" : "bars"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={`control-group secondary full-width${running ? " dimmed" : ""}`}>
+                <label>Time signature</label>
+                <div className="selector-row">
+                  {TIME_SIGS.map(ts => (
+                    <button key={ts.label}
+                      className={`sel-btn${timeSig.label === ts.label ? " active" : ""}`}
+                      onClick={() => setTimeSig(ts)} disabled={running}>
+                      {ts.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+          <div className="btn-row">
+            {!running ? (
+              <>
+                <button className="action-btn" onClick={handleStart} disabled={!validRange}>
+                  Start
+                </button>
+                <div className="vol-wrap">
+                  <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+                    {volIcon}&nbsp;vol
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="btn-group">
+                  <button className={`action-btn${paused ? " pause-active" : " secondary"}`} onClick={handlePause}>
+                    {paused ? "Resume" : "Pause"}
+                  </button>
+                  {mode !== MODE_CLICKONLY && (
+                    <button className={`action-btn${looping ? " loop-active" : " secondary"}`} onClick={handleLoop}>
+                      Loop
+                    </button>
+                  )}
+                </div>
+                <div className="btn-group-stop">
+                  <button className="action-btn stop" onClick={handleStop}>
+                    Stop
+                  </button>
+                </div>
+                <div className="vol-wrap">
+                  <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+                    {volIcon}&nbsp;vol
+                  </button>
+                </div>
+              </>
+            )}
+            {showVolume && (
+              <div className="vol-slider-row">
+                <span>Volume</span>
+                <input type="range" min={0} max={1} step={0.05}
+                  value={volume} onChange={e => setVolume(Number(e.target.value))} />
+              </div>
+            )}
+          </div>
+
+          {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
+
+          <div className="version-footer">v1.5.27.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+
+        </div>
+      );
+    }
+
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+  <p style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively. Set a range of exercises, choose a BPM, and let Shuffle run your session.</p>
+  <script data-goatcounter="https://shuffle.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
 </body>
 </html>
