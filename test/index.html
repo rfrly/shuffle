@@ -719,8 +719,8 @@
     /* Tighten the bottom gap ONLY for the installed PWA */
 @media (display-mode: standalone) {
   .app {
-    /* Adjusts spacing relative to the iPhone swipe bar */
-    padding-bottom: max(0.2rem, env(safe-area-inset-bottom) - 12px);
+    /* !important ensures this overrides the other mobile media queries */
+    padding-bottom: max(0.2rem, env(safe-area-inset-bottom) - 15px) !important;
   }
   
   .version-footer {
@@ -1855,7 +1855,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.31.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.31.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
