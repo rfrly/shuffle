@@ -716,18 +716,19 @@
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
 
-    /* Tighten the bottom gap ONLY for the installed PWA */
+/* Tighten the bottom gap ONLY for the installed PWA */
 @media (display-mode: standalone) {
   .app {
-    /* !important ensures this overrides the other mobile media queries */
-    padding-bottom: max(0.2rem, env(safe-area-inset-bottom) - 15px) !important;
+    /* Added calc() to ensure Safari evaluates the math properly */
+    padding-bottom: max(0.2rem, calc(env(safe-area-inset-bottom) - 15px)) !important;
   }
   
   .version-footer {
     /* Removes the margin that creates the extra 'white space' at the bottom */
-    margin-bottom: 0;
+    margin-bottom: 0 !important; 
   }
 }
+
 
   </style>
 </head>
@@ -1855,7 +1856,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.31.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.31.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
