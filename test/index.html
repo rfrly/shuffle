@@ -32,7 +32,7 @@
       overflow: hidden;
     }
 
-    .app {
+  .app {
   position: fixed;
   inset: 0;
 
@@ -44,8 +44,15 @@
   align-items: center;
   justify-content: flex-start;
 
-  padding: 0.4rem 1.5rem;
+  /* Side padding remains 1.5rem */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+
+  /* Keep the top safe for the notch */
   padding-top: max(1rem, env(safe-area-inset-top));
+
+  /* Use 0.4rem, but expand if the iPhone swipe bar (inset-bottom) is taller */
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
 
   gap: 0.75rem;
 
@@ -716,18 +723,7 @@
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
 
-/* Tighten the bottom gap ONLY for the installed PWA */
-@media (display-mode: standalone) {
-  .app {
-    /* Added calc() to ensure Safari evaluates the math properly */
-    padding-bottom: max(0.2rem, calc(env(safe-area-inset-bottom) - 15px)) !important;
-  }
-  
-  .version-footer {
-    /* Removes the margin that creates the extra 'white space' at the bottom */
-    margin-bottom: 0 !important; 
-  }
-}
+
 
 
   </style>
@@ -1856,7 +1852,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.31.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.31.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
