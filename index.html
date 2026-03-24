@@ -32,7 +32,7 @@
       overflow: hidden;
     }
 
-    .app {
+.app {
   position: fixed;
   inset: 0;
 
@@ -44,9 +44,18 @@
   align-items: center;
   justify-content: flex-start;
 
-  padding: 1rem 1.5rem;
+  /* Side padding remains 1.5rem */
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+
+  /* Top stays safe for notch */
   padding-top: max(1rem, env(safe-area-inset-top));
-  /* padding-bottom: max(0.6rem, env(safe-area-inset-bottom)); */
+
+  /* THE FINAL FIX: 
+     On Desktop/Android: uses 0.4rem.
+     On iPhone: Subtracts 28px from the safe area to pull the footer 
+     down as close to the home bar as possible without touching it. */
+  padding-bottom: max(0.4rem, calc(env(safe-area-inset-bottom) - 28px));
 
   gap: 0.75rem;
 
@@ -530,8 +539,8 @@
       font-size: 0.5rem;
       color: #444;
       letter-spacing: 0.15em;
-      margin-top: auto; /* changed */
-      margin-bottom: 0.2rem; /* originally .5 */
+      margin-top: auto; 
+      margin-bottom: 0.rem; 
     }
 
     .rotate-overlay {
@@ -716,6 +725,9 @@
       .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
+
+
+
 
   </style>
 </head>
@@ -1843,7 +1855,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.30 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.31 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
