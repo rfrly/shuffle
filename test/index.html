@@ -1343,7 +1343,7 @@
       const [looping,         setLooping]         = useState(false);
       const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 100);
       const [timeSig,         setTimeSig]         = useState(() => TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
-      const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 8);
+      const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 4);
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
@@ -1843,7 +1843,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.29.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.29.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
