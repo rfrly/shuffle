@@ -46,7 +46,6 @@
 
   padding: 1rem 1.5rem;
   padding-top: max(1rem, env(safe-area-inset-top));
-  /* padding-bottom: max(0.6rem, env(safe-area-inset-bottom)); */
 
   gap: 0.75rem;
 
@@ -716,6 +715,19 @@
       .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
+
+    /* Tighten the bottom gap ONLY for the installed PWA */
+@media (display-mode: standalone) {
+  .app {
+    /* Adjusts spacing relative to the iPhone swipe bar */
+    padding-bottom: max(0.2rem, env(safe-area-inset-bottom) - 12px);
+  }
+  
+  .version-footer {
+    /* Removes the margin that creates the extra 'white space' at the bottom */
+    margin-bottom: 0;
+  }
+}
 
   </style>
 </head>
@@ -1843,7 +1855,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.30.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.31.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
