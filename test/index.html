@@ -1641,7 +1641,7 @@
                     ? <><span className="next-label">resuming</span>{fmt(nextEx ?? exercise)}</>
                     : looping
                       ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
-                      : nextEx === -1
+                      : isLastExercise && phase === "playing"
                         ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
                         : nextEx !== null && (phase === "playing" || phase === "countin")
                           ? <><span className="next-label">up next</span>{fmt(nextEx)}</>
@@ -1843,7 +1843,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.29.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.30.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
