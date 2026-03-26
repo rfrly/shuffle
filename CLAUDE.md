@@ -14,8 +14,9 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 
 - All development happens directly in the repo — no file uploads needed
 - Before making any changes, confirm the current version number in index.html
-- To preview changes locally, open index.html directly in a browser (no build step needed — just open the file)
-- Test in the browser before committing
+- All new changes go into test/index.html first — never edit the live index.html directly until changes are confirmed working
+- To preview changes locally, open test/index.html in a browser (no build step needed — just open the file)
+- When changes are confirmed working, copy test/index.html to index.html, update the version number in index.html (removing the beta suffix), and commit
 - When changes are ready, commit and push to GitHub via Claude Code or the terminal
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
@@ -75,11 +76,12 @@ Version numbering:
 - Bug fixes, refinements, UI polish: increment patch version (1.4.0 → 1.4.1)
 
 Test builds (test/index.html):
+- All new development happens in test/index.html, not the live index.html
 - Use the current live version with a beta suffix: if live is v1.5.33, test builds are v1.5.33.beta.1, v1.5.33.beta.2, etc.
 - Never change the version number in the live index.html until changes are confirmed working and ready to ship
-- When copying index.html to test/, always update the version to the next beta number
+- When starting a new batch of changes, copy index.html to test/ and update the version to the next beta number
 - When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
-- When copying index.html to test/, also update the apple-touch-icon and icon hrefs to shuffle-icon-beta.png?v=1
+- test/index.html always uses shuffle-icon-beta.png — keep the apple-touch-icon and icon hrefs pointing to shuffle-icon-beta.png?v=N, incrementing N when the beta icon changes
 
 Commit message format:
 vX.X.X - Brief summary of main change
