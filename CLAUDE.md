@@ -74,6 +74,11 @@ Version numbering:
 - Major feature additions (new modes, significant functionality): increment minor version (1.3.x → 1.4.0)
 - Bug fixes, refinements, UI polish: increment patch version (1.4.0 → 1.4.1)
 
+Test builds (test/index.html):
+- Use the next patch version with a beta suffix: if live is v1.5.33, test builds are v1.5.34.beta.1, v1.5.34.beta.2, etc.
+- Never change the version number in the live index.html until changes are confirmed working and ready to ship
+- When copying index.html to test/, always update the version to the next beta number
+
 Commit message format:
 vX.X.X - Brief summary of main change
 
