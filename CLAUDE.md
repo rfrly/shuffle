@@ -77,7 +77,7 @@ Version numbering:
 
 Test builds (test/index.html):
 - All new development happens in test/index.html, not the live index.html
-- Use the current live version with a beta suffix: if live is v1.5.33, test builds are v1.5.33.beta.1, v1.5.33.beta.2, etc.
+- Use the next target version with a beta suffix: if live is v1.5.33 and the next version will be v1.5.34, test builds are v1.5.34.beta.1, v1.5.34.beta.2, etc.
 - Never change the version number in the live index.html until changes are confirmed working and ready to ship
 - When starting a new batch of changes, copy index.html to test/ and update the version to the next beta number
 - When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
