@@ -1764,13 +1764,13 @@
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="text" inputMode="numeric" value={minExStr}
-                    onFocus={e => e.target.select()}
+                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
                     onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
                     onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
                   <span>to</span>
                   <input type="text" inputMode="numeric" value={maxExStr}
-                    onFocus={e => e.target.select()}
+                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
                     onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
                     onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
@@ -1854,7 +1854,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.32.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.32.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
