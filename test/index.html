@@ -102,7 +102,6 @@
       .stepper { height: 52px; }
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.3rem; }
-      .range-row input[type="number"] { height: 52px; font-size: 1.1rem; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
       .check-row { font-size: 0.85rem; }
       .check-row span { font-size: 0.85rem; }
@@ -411,19 +410,14 @@
     }
 
     .range-row { display: flex; align-items: center; gap: 0.5rem; }
-
-    .range-row input[type="number"] {
+    .range-row input {
       width: 58px; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
       font-family: 'Share Tech Mono', monospace; font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center;
-      appearance: textfield; -moz-appearance: textfield;
     }
-
-    input[type=number]::-webkit-inner-spin-button,
-    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-    .range-row input[type="number"]:focus { outline: none; border-color: #ff4500; }
-    .range-row input[type="number"]:disabled { opacity: 0.25; }
+    .range-row input:focus { outline: none; border-color: #ff4500; }
+    .range-row input:disabled { opacity: 0.25; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
     .selector-row { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
@@ -764,6 +758,8 @@
     const BPM_MAX                 = 300;
     const BARS_MIN                = 1;
     const BARS_MAX                = 32;
+    const EX_MIN                  = 1;
+    const EX_MAX                  = 99;
     const TAP_MAX_HISTORY         = 8;
     const TAP_RESET_MS            = 2000;
     const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
@@ -1359,6 +1355,8 @@
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
+      const [minExStr,        setMinExStr]        = useState(() => String(saved?.minEx ?? 1));
+      const [maxExStr,        setMaxExStr]        = useState(() => String(saved?.maxEx ?? 4));
       const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
@@ -1486,9 +1484,8 @@
       const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
       const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);
       const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);
-      const incBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
-      const decBars = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
-
+      const incBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
+      const decBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
       const bpmIncHandlers  = useLongPress(incBpm);
       const bpmDecHandlers  = useLongPress(decBpm);
       const barsIncHandlers = useLongPress(incBars);
@@ -1766,14 +1763,14 @@
               <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercises</label>
                 <div className="range-row">
-                  <input type="number" value={minEx} min={1}
-                    onChange={e => setMinEx(Number(e.target.value))}
-                    onBlur={e => { const v = parseInt(e.target.value); setMinEx(isNaN(v) || v < 1 ? 1 : v); }}
+                  <input type="text" inputMode="numeric" value={minExStr}
+                    onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
                   <span>to</span>
-                  <input type="number" value={maxEx} min={1}
-                    onChange={e => setMaxEx(Number(e.target.value))}
-                    onBlur={e => { const v = parseInt(e.target.value); setMaxEx(isNaN(v) || v < 1 ? 1 : v); }}
+                  <input type="text" inputMode="numeric" value={maxExStr}
+                    onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
                 </div>
               </div>
@@ -1855,7 +1852,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.31.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.32.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
