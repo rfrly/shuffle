@@ -75,9 +75,10 @@ Version numbering:
 - Bug fixes, refinements, UI polish: increment patch version (1.4.0 → 1.4.1)
 
 Test builds (test/index.html):
-- Use the next patch version with a beta suffix: if live is v1.5.33, test builds are v1.5.34.beta.1, v1.5.34.beta.2, etc.
+- Use the current live version with a beta suffix: if live is v1.5.33, test builds are v1.5.33.beta.1, v1.5.33.beta.2, etc.
 - Never change the version number in the live index.html until changes are confirmed working and ready to ship
 - When copying index.html to test/, always update the version to the next beta number
+- When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
 - When copying index.html to test/, also update the apple-touch-icon and icon hrefs to shuffle-icon-beta.png?v=1
 
 Commit message format:
