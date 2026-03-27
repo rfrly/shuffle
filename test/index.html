@@ -66,8 +66,10 @@
   overflow: hidden;
 }
 
-    .browser-mode .app {
-      padding-bottom: max(4rem, env(safe-area-inset-bottom));
+    @media (hover: none) and (pointer: coarse) {
+      .browser-mode .app {
+        padding-bottom: max(5rem, env(safe-area-inset-bottom));
+      }
     }
 
     @media (max-width: 390px) {
@@ -1891,7 +1893,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.35.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.35.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
