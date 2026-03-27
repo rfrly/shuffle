@@ -68,8 +68,15 @@
 
     @media (hover: none) and (pointer: coarse) {
       .browser-mode .app {
-        padding-bottom: max(5rem, env(safe-area-inset-bottom));
+        padding-bottom: max(3.5rem, env(safe-area-inset-bottom));
       }
+    }
+
+    @media (hover: none) and (pointer: coarse) and (max-width: 767px) {
+      .browser-mode .app { gap: 0.4rem; }
+      .browser-mode .controls { gap: 0.3rem; }
+      .browser-mode .controls-grid { row-gap: 0.6rem; }
+      .browser-mode .display { padding: 0.3rem 1rem; }
     }
 
     @media (max-width: 390px) {
@@ -1693,7 +1700,7 @@
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. Enable "count in every exercise" for a count-in before each exercise, not just the first.</p>
+                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. To get a count-in before every exercise (not just the first), tap the Count in selector and enable "count in every exercise".</p>
                 </div>
                 <div className="help-section">
                   <h3>Modes</h3>
@@ -1855,30 +1862,18 @@
                 </div>
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Rounds</label>
-                <div className="stepper">
-                  <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
-                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
-                  <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
-                </div>
-              </div>
-
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Exercises</label>
-                <div className="range-row">
-                  <input type="text" inputMode="numeric" value={minExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                  <span>to</span>
-                  <input type="text" inputMode="numeric" value={maxExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                </div>
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Time signature</label>
+                <CompactSelector
+                  id="timeSig"
+                  value={timeSig}
+                  options={TIME_SIGS}
+                  onChange={setTimeSig}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={ts => ts.label}
+                />
               </div>
 
               <div className={`control-group${running ? " dimmed" : ""}`}>
@@ -1905,6 +1900,32 @@
               </div>
 
               <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Rounds</label>
+                <div className="stepper">
+                  <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
+                </div>
+              </div>
+
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercises</label>
+                <div className="range-row">
+                  <input type="text" inputMode="numeric" value={minExStr}
+                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
+                    onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
+                  <span>to</span>
+                  <input type="text" inputMode="numeric" value={maxExStr}
+                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
+                    onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
+                    onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
+                    disabled={running || mode === MODE_CLICKONLY} />
+                </div>
+              </div>
+
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercise length</label>
                 <CompactSelector
                   id="exLength"
@@ -1915,20 +1936,6 @@
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
                   getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                />
-              </div>
-
-              <div className={`control-group${running ? " dimmed" : ""}`}>
-                <label>Time signature</label>
-                <CompactSelector
-                  id="timeSig"
-                  value={timeSig}
-                  options={TIME_SIGS}
-                  onChange={setTimeSig}
-                  disabled={running}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={ts => ts.label}
                 />
               </div>
 
@@ -1983,7 +1990,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.18 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
