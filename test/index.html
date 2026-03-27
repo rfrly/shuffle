@@ -366,17 +366,7 @@
       .controls-grid {
         grid-template-columns: repeat(2, 1fr);
       }
-      .controls-grid .exercises-group {
-        grid-column: 1 / -1;
-      }
     }
-
-    .compact-sel-row {
-      grid-column: 1 / -1;
-      display: flex;
-      gap: 0.75rem;
-    }
-    .compact-sel-row .control-group { flex: 1; }
 
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
     .control-group.full-width { grid-column: 1 / -1; }
@@ -765,7 +755,7 @@
 
     /* ── CompactSelector ──────────────────────────────────────────────────── */
     .compact-sel-btn {
-      background: #1a1a1a; border: 1px solid #ff4500; color: #ccc;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
@@ -1438,7 +1428,8 @@
                   const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
                   return (
                     <button key={i} className={`sel-btn${isActive ? " active" : ""}`}
-                      onPointerDown={(e) => { e.stopPropagation(); select(opt); }}>
+                      onPointerDown={(e) => e.stopPropagation()}
+                      onClick={() => select(opt)}>
                       {optLabel}
                     </button>
                   );
@@ -1873,7 +1864,7 @@
                 </div>
               </div>
 
-              <div className={`control-group exercises-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="text" inputMode="numeric" value={minExStr}
@@ -1890,59 +1881,55 @@
                 </div>
               </div>
 
-              <div className="compact-sel-row">
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Count in</label>
+                <CompactSelector
+                  id="countIn"
+                  value={countInBars}
+                  options={[1, 2, 4]}
+                  onChange={setCountInBars}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                  buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
+                  footer={
+                    <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
+                      <input type="checkbox" checked={countInEvery}
+                        onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
+                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
+                      <span>Count in every exercise</span>
+                    </div>
+                  }
+                />
+              </div>
 
-                <div className={`control-group${running ? " dimmed" : ""}`}>
-                  <label>Count in</label>
-                  <CompactSelector
-                    id="countIn"
-                    value={countInBars}
-                    options={[1, 2, 4]}
-                    onChange={setCountInBars}
-                    disabled={running}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                    buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
-                    footer={
-                      <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
-                        <input type="checkbox" checked={countInEvery}
-                          onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
-                          style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                        <span>Count in every exercise</span>
-                      </div>
-                    }
-                  />
-                </div>
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercise length</label>
+                <CompactSelector
+                  id="exLength"
+                  value={exerciseLength}
+                  options={[1, 2, 4]}
+                  onChange={setExerciseLength}
+                  disabled={running || mode === MODE_CLICKONLY}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                />
+              </div>
 
-                <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                  <label>Exercise length</label>
-                  <CompactSelector
-                    id="exLength"
-                    value={exerciseLength}
-                    options={[1, 2, 4]}
-                    onChange={setExerciseLength}
-                    disabled={running || mode === MODE_CLICKONLY}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  />
-                </div>
-
-                <div className={`control-group${running ? " dimmed" : ""}`}>
-                  <label>Time signature</label>
-                  <CompactSelector
-                    id="timeSig"
-                    value={timeSig}
-                    options={TIME_SIGS}
-                    onChange={setTimeSig}
-                    disabled={running}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={ts => ts.label}
-                  />
-                </div>
-
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Time signature</label>
+                <CompactSelector
+                  id="timeSig"
+                  value={timeSig}
+                  options={TIME_SIGS}
+                  onChange={setTimeSig}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={ts => ts.label}
+                />
               </div>
 
             </div>
@@ -1996,7 +1983,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
