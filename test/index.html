@@ -338,7 +338,7 @@
     .controls {
       display: flex;
       flex-direction: column;
-      gap: 0.6rem;
+      gap: 0.4rem;
       width: 100%;
       max-width: 440px;
     }
@@ -347,13 +347,13 @@
       width: 100%;
       height: 1px;
       background: #1e1e1e;
-      margin: 0.25rem 0;
+      margin: 0.15rem 0;
     }
 
     .section-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 0.6rem 1.5rem;
+      gap: 0.4rem 1.5rem;
     }
 
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
@@ -391,7 +391,7 @@
       color: #f5c842; font-family: 'Share Tech Mono', monospace;
       font-size: 1rem; text-align: center; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-      user-select: none; transition: background 0.08s; min-width: 60px;
+      user-select: none; transition: background 0.08s; min-width: 40px;
     }
     .bpm-tap:active { background: #252525; }
     .bpm-tap.tapped { background: #222; }
@@ -453,8 +453,7 @@
     .check-row.disabled { opacity: 0.25; }
 
     .countin-row {
-      display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap;
-      min-height: 44px;
+      display: flex; flex-direction: column; gap: 0.3rem;
     }
 
     input[type="range"] {
@@ -741,6 +740,26 @@
 
 
 
+
+    /* ── CompactSelector ──────────────────────────────────────────────────── */
+    .compact-sel-btn {
+      background: #1a1a1a; border: 1px solid #ff4500; color: #ccc;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
+      letter-spacing: 0.05em; height: 44px; border-radius: 4px;
+      display: flex; align-items: center; white-space: nowrap;
+      min-width: 80px; justify-content: center;
+    }
+    .compact-sel-btn:active { background: #252525; }
+    .compact-sel-btn.open { border-color: #f5c842; color: #f5c842; }
+    .compact-sel-btn:disabled { opacity: 0.25; cursor: default; }
+    .compact-popup {
+      position: fixed; background: #1c1c1c; border: 1px solid #383838;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+      padding: 0.5rem; z-index: 50; border-radius: 4px;
+    }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; }
 
   </style>
   <script>if (!navigator.standalone) document.documentElement.classList.add('browser-mode');</script>
@@ -1362,6 +1381,60 @@
 
     // ── App ────────────────────────────────────────────────────────────────────
 
+    function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, buttonLabel, footer }) {
+      const btnRef = useRef(null);
+      const isOpen = openSelector === id;
+      const [popupStyle, setPopupStyle] = useState({});
+
+      useEffect(() => {
+        if (isOpen && btnRef.current) {
+          const rect = btnRef.current.getBoundingClientRect();
+          setPopupStyle({
+            left: rect.left,
+            bottom: window.innerHeight - rect.top + 6,
+            minWidth: rect.width,
+          });
+        }
+      }, [isOpen]);
+
+      const displayLabel = buttonLabel !== undefined ? buttonLabel : (getLabel ? getLabel(value) : String(value));
+
+      const open = () => { if (!disabled) setOpenSelector(isOpen ? null : id); };
+      const select = (opt) => { onChange(opt); setOpenSelector(null); };
+
+      return (
+        <>
+          <button ref={btnRef} className={`compact-sel-btn${isOpen ? " open" : ""}`} onClick={open} disabled={disabled}>
+            {displayLabel}
+          </button>
+          {isOpen && ReactDOM.createPortal(
+            <>
+              <div className="compact-popup-backdrop" onPointerDown={() => setOpenSelector(null)} />
+              <div className="compact-popup" style={popupStyle}>
+                {options.map((opt, i) => {
+                  const optLabel = getLabel ? getLabel(opt) : String(opt);
+                  const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
+                  return (
+                    <button key={i} className={`sel-btn${isActive ? " active" : ""}`}
+                      onPointerDown={(e) => { e.stopPropagation(); select(opt); }}>
+                      {optLabel}
+                    </button>
+                  );
+                })}
+                {footer && (
+                  <>
+                    <div style={{ width: '100%', height: 1, background: '#333', margin: '0.2rem 0' }} />
+                    {footer}
+                  </>
+                )}
+              </div>
+            </>,
+            document.body
+          )}
+        </>
+      );
+    }
+
     function App() {
       const [saved] = useState(() => loadSettings());
 
@@ -1387,6 +1460,7 @@
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
+      const [openSelector,    setOpenSelector]    = useState(null);
       const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
       const helpOverlayRef = useRef(null);
       const [helpPulse,       setHelpPulse]       = useState(() => {
@@ -1768,7 +1842,7 @@
                 </div>
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " secondary dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Rounds</label>
                 <div className="stepper">
                   <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
@@ -1777,35 +1851,11 @@
                 </div>
               </div>
 
-              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
-                <label>Count in</label>
-                <div className="countin-row">
-                  <div className="selector-row">
-                    {[{ label: "1 bar", bars: 1 }, { label: "2 bars", bars: 2 }, { label: "4 bars", bars: 4 }].map(opt => (
-                      <button key={opt.bars}
-                        className={`sel-btn${countInBars === opt.bars ? " active" : ""}`}
-                        onClick={() => setCountInBars(opt.bars)}
-                        disabled={running}>
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                  <div className={`check-row${running || mode === MODE_CLICKONLY ? " disabled" : ""}`}>
-                    <input type="checkbox" checked={countInEvery}
-                      onChange={e => setCountInEvery(e.target.checked)} disabled={running || mode === MODE_CLICKONLY}
-                      style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                    <span>Count in every exercise</span>
-                  </div>
-                </div>
-              </div>
-
             </div>
 
-            <div className="section-divider" />
+            <div className="section-grid" style={{ gridTemplateColumns: 'repeat(3, 1fr)', columnGap: '0.75rem', marginTop: '0.4rem' }}>
 
-            <div className="section-grid">
-
-              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+              <div className={`control-group full-width${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="text" inputMode="numeric" value={minExStr}
@@ -1822,30 +1872,55 @@
                 </div>
               </div>
 
-              <div className={`control-group secondary${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Exercise length</label>
-                <div className="selector-row">
-                  {[1, 2, 4].map(n => (
-                    <button key={n}
-                      className={`sel-btn${exerciseLength === n ? " active" : ""}`}
-                      onClick={() => setExerciseLength(n)} disabled={running || mode === MODE_CLICKONLY}>
-                      {n} {n === 1 ? "bar" : "bars"}
-                    </button>
-                  ))}
-                </div>
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Count in</label>
+                <CompactSelector
+                  id="countIn"
+                  value={countInBars}
+                  options={[1, 2, 4]}
+                  onChange={setCountInBars}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                  buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
+                  footer={
+                    <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
+                      <input type="checkbox" checked={countInEvery}
+                        onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
+                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
+                      <span>Count in every exercise</span>
+                    </div>
+                  }
+                />
               </div>
 
-              <div className={`control-group secondary full-width${running ? " dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercise length</label>
+                <CompactSelector
+                  id="exLength"
+                  value={exerciseLength}
+                  options={[1, 2, 4]}
+                  onChange={setExerciseLength}
+                  disabled={running || mode === MODE_CLICKONLY}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                />
+              </div>
+
+              <div className={`control-group${running ? " dimmed" : ""}`}>
                 <label>Time signature</label>
-                <div className="selector-row">
-                  {TIME_SIGS.map(ts => (
-                    <button key={ts.label}
-                      className={`sel-btn${timeSig.label === ts.label ? " active" : ""}`}
-                      onClick={() => setTimeSig(ts)} disabled={running}>
-                      {ts.label}
-                    </button>
-                  ))}
-                </div>
+                <CompactSelector
+                  id="timeSig"
+                  value={timeSig}
+                  options={TIME_SIGS}
+                  onChange={setTimeSig}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={ts => ts.label}
+                />
               </div>
 
             </div>
@@ -1899,7 +1974,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.35.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
