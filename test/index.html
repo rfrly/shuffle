@@ -1914,15 +1914,6 @@
               </div>
 
               <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Rounds</label>
-                <div className="stepper">
-                  <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
-                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
-                  <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
-                </div>
-              </div>
-
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Exercises</label>
                 <div className="range-row">
                   <input type="text" inputMode="numeric" value={minExStr}
@@ -1936,6 +1927,15 @@
                     onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
                     onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
+                </div>
+              </div>
+
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Rounds</label>
+                <div className="stepper">
+                  <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
                 </div>
               </div>
 
@@ -1990,7 +1990,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.21 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.22 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
