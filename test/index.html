@@ -57,7 +57,7 @@
      On Desktop/Android: uses 0.4rem.
      On iPhone: Subtracts 28px from the safe area to pull the footer 
      down as close to the home bar as possible without touching it. */
-  padding-bottom: max(0.4rem, calc(env(safe-area-inset-bottom) - 28px));
+  padding-bottom: max(0.4rem, env(safe-area-inset-bottom));
 
   gap: 0.75rem;
 
@@ -1886,7 +1886,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.34.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.35.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
