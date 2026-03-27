@@ -440,9 +440,9 @@
       min-width: 40px;
     }
 
-    .range-row { display: flex; align-items: center; gap: 0.5rem; }
+    .range-row { display: flex; align-items: center; gap: 0.5rem; width: 100%; }
     .range-row input {
-      width: 58px; height: 44px;
+      flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
       font-family: 'Share Tech Mono', monospace; font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center;
@@ -1900,6 +1900,20 @@
               </div>
 
               <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+                <label>Exercise length</label>
+                <CompactSelector
+                  id="exLength"
+                  value={exerciseLength}
+                  options={[1, 2, 4]}
+                  onChange={setExerciseLength}
+                  disabled={running || mode === MODE_CLICKONLY}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                />
+              </div>
+
+              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Rounds</label>
                 <div className="stepper">
                   <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
@@ -1923,20 +1937,6 @@
                     onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
                     disabled={running || mode === MODE_CLICKONLY} />
                 </div>
-              </div>
-
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Exercise length</label>
-                <CompactSelector
-                  id="exLength"
-                  value={exerciseLength}
-                  options={[1, 2, 4]}
-                  onChange={setExerciseLength}
-                  disabled={running || mode === MODE_CLICKONLY}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                />
               </div>
 
             </div>
@@ -1990,7 +1990,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.18 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.20 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
