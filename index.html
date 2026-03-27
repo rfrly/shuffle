@@ -105,11 +105,11 @@
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.3rem; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
-      .check-row { font-size: 0.85rem; }
-      .check-row span { font-size: 0.85rem; }
+      .check-row { font-size: 0.95rem; }
+      .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
-      .control-group label { font-size: 0.82rem; }
-      .idle-summary { font-size: 0.85rem; }
+      .control-group label { font-size: 0.9rem; }
+      .idle-summary { font-size: 0.95rem; }
       .version-footer { font-size: 0.6rem; }
     }
 
@@ -129,6 +129,10 @@
       .section-grid { gap: 0.6dvh 1.5rem; }
       .section-divider { margin: 0.3dvh 0; }
       .btn-row { margin-top: 0.5dvh; }
+      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+      .control-group label { font-size: 0.85rem; }
+      .idle-summary { font-size: 1rem; }
+      .check-row span { font-size: 1rem; }
     }
 
     .app-header {
@@ -706,6 +710,12 @@
       border-radius: 4px;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
+
+    @keyframes pulse-amber {
+      0%, 100% { border-color: #444; color: #666; box-shadow: none; }
+      50% { border-color: #f5c842; color: #f5c842; box-shadow: 0 0 8px rgba(245,200,66,0.4); }
+    }
+    .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
     @media (hover: hover) and (min-width: 1024px) {
       .app-header { max-width: 560px; }
@@ -1371,6 +1381,10 @@
       const [showHelp,        setShowHelp]        = useState(false);
       const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
       const helpOverlayRef = useRef(null);
+      const [helpPulse,       setHelpPulse]       = useState(() => {
+        try { return !localStorage.getItem('shuffle_seen_help'); } catch { return false; }
+      });
+      const helpPulseTimer = useRef(null);
       const [setComplete,     setSetComplete]     = useState(false);
       const [barFlash,        setBarFlash]        = useState(false);
       const tapTimes = useRef([]);
@@ -1380,6 +1394,15 @@
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, volume });
       }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume]);
+
+      useEffect(() => {
+        if (!helpPulse) return;
+        helpPulseTimer.current = setTimeout(() => {
+          setHelpPulse(false);
+          try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
+        }, 10000);
+        return () => clearTimeout(helpPulseTimer.current);
+      }, []);
 
       useEffect(() => {
         const req = async () => {
@@ -1547,7 +1570,14 @@
               <div className="app-title">Shuffle</div>
               <div className="app-subtitle">practice randomiser and metronome for musicians</div>
             </div>
-            <button className="help-btn app-header-spacer" onClick={() => { setShowHelp(true); setHelpScrolledToEnd(false); }}>?</button>
+            <button className={`help-btn app-header-spacer${helpPulse ? ' help-btn-pulse' : ''}`} onClick={() => {
+              setShowHelp(true); setHelpScrolledToEnd(false);
+              if (helpPulse) {
+                setHelpPulse(false);
+                clearTimeout(helpPulseTimer.current);
+                try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
+              }
+            }}>?</button>
           </div>
 
           {showHelp && (
@@ -1856,7 +1886,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.33 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.34 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
