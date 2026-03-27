@@ -105,11 +105,11 @@
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.3rem; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
-      .check-row { font-size: 0.85rem; }
-      .check-row span { font-size: 0.85rem; }
+      .check-row { font-size: 0.95rem; }
+      .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
-      .control-group label { font-size: 0.82rem; }
-      .idle-summary { font-size: 0.85rem; }
+      .control-group label { font-size: 0.9rem; }
+      .idle-summary { font-size: 0.95rem; }
       .version-footer { font-size: 0.6rem; }
     }
 
@@ -221,7 +221,7 @@
 
     .next-exercise {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(1.6rem, 5vw, 2rem);
+      font-size: clamp(1.4rem, 5vw, 2rem);
       color: #ccc;
       letter-spacing: 0.05em;
       min-height: 1.2em;
@@ -715,26 +715,21 @@
       0%, 100% { border-color: #444; color: #666; box-shadow: none; }
       50% { border-color: #f5c842; color: #f5c842; box-shadow: 0 0 8px rgba(245,200,66,0.4); }
     }
-    .help-btn-pulse { animation: pulse-amber 1.5s ease-in-out infinite; }
+    .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
     @media (hover: hover) and (min-width: 1024px) {
-      .app-header { max-width: 640px; }
+      .app-header { max-width: 560px; }
       .app-subtitle { font-size: 0.7rem; }
-      .display { max-width: 640px; }
-      .controls { max-width: 640px; }
-      .btn-row { max-width: 640px; }
-      .vol-slider-row { max-width: 640px; }
-      .control-group label { font-size: 0.9rem; }
-      .idle-summary { font-size: 1rem; }
-      .check-row span { font-size: 1rem; }
-      .sel-btn { font-size: 0.9rem; }
-      .stepper-val { font-size: 1.15rem; }
-      .bpm-tap { font-size: 1.15rem; }
-      .action-btn { font-size: 1rem; }
-      .next-exercise { font-size: clamp(1.6rem, 4vw, 2.8rem); }
+      .display { max-width: 560px; }
+      .controls { max-width: 560px; }
+      .btn-row { max-width: 560px; }
+      .vol-slider-row { max-width: 560px; }
+      .control-group label { font-size: 0.72rem; }
+      .idle-summary { font-size: 0.8rem; }
+      .check-row span { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
-      .exercise-number { font-size: clamp(4rem, 10vw, 7rem); }
-      .countdown-display { font-size: clamp(4rem, 10vw, 7rem); }
+      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
+      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
 
 
@@ -1891,7 +1886,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.34.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.34.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
