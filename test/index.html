@@ -724,6 +724,7 @@
     .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
     @media (hover: hover) and (min-width: 1024px) {
+      .app { padding-bottom: 0.6rem; }
       .app-header { max-width: 560px; }
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 560px; }
@@ -1625,10 +1626,11 @@
                   </ul>
                 </div>
                 <div className="help-section">
-                  <h3>Audio</h3>
+                  <h3>Tips</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
+                    <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -1640,6 +1642,10 @@
     </a>
   </p>
 </div>
+                <div className="help-section">
+                  <h3>Feedback</h3>
+                  <p>Found a bug or have a suggestion? <a href="mailto:hello@shuffleclick.com">Get in touch →</a></p>
+                </div>
                 <button className="help-close-bottom" onClick={() => setShowHelp(false)}>Close</button>
               </div>
               </div>
@@ -1893,7 +1899,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.5.35.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.5.35.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
