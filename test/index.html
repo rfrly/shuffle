@@ -375,7 +375,7 @@
       }
     }
 
-    .control-group { display: flex; flex-direction: column; gap: 0.3rem; }
+    .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
     .control-group.full-width { grid-column: 1 / -1; }
 
     .control-group label {
@@ -767,7 +767,7 @@
       padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center; white-space: nowrap;
-      min-width: 80px; justify-content: center;
+      width: 100%; min-width: 0; justify-content: center;
     }
     .compact-sel-btn:active { background: #252525; }
     .compact-sel-btn.open { border-color: #f5c842; color: #f5c842; }
@@ -1990,7 +1990,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.20 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.21 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
