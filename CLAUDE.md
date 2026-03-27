@@ -54,13 +54,17 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 
 ## UI and behaviour
 
-- Settings split into variable (Mode, BPM, Rounds, Count in) and fixed (Exercises, Exercise length, Time signature) — fixed group slightly dimmed
+- Single unified controls grid — no section divider; 3-col on tablet/desktop, 2-col on mobile
+- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds
+- Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
+- Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
+- No dimming of fixed controls — all controls same visual weight
 - Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop
 - Start button amber filled, only visible when idle
 - ? help button top right of header, balanced with invisible spacer so title stays centred
 - Idle state shows a one-line summary of current settings
-- Terminology: "Rounds" not "repetitions", "Exercises" not "Range", "Stop" not "Reset"
-- Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every round" checkbox (disabled in Click Only mode)
+- Terminology: "Rounds" not "repetitions", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
+- Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (disabled in Metronome mode)
 - All controls 44px minimum height
 - Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries
 - Version number in footer, incremented with each meaningful update
