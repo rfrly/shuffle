@@ -1428,7 +1428,7 @@
           </button>
           {isOpen && ReactDOM.createPortal(
             <>
-              <div className="compact-popup-backdrop" onPointerDown={() => setOpenSelector(null)} />
+              <div className="compact-popup-backdrop" onClick={() => setOpenSelector(null)} />
               <div className="compact-popup" style={popupStyle}>
                 {options.map((opt, i) => {
                   const optLabel = getLabel ? getLabel(opt) : String(opt);
@@ -1990,7 +1990,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0.beta.22 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.0.beta.23 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
