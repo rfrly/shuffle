@@ -124,6 +124,7 @@
       .control-group label { font-size: 0.9rem; }
       .idle-summary { font-size: 0.95rem; }
       .version-footer { font-size: 0.6rem; }
+      .beat-dots { max-width: none; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
@@ -135,8 +136,8 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
-      .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 1dvh; }
-      .display { min-height: 26dvh; flex: 1 !important; }
+      .app { justify-content: flex-start; padding: 1.5dvh 2.5rem; gap: 1dvh; }
+      .display { min-height: 26dvh; flex: 1 !important; gap: 1rem; }
       .app-title { font-size: 2rem !important; }
       .controls { gap: 1dvh; }
       .section-grid { gap: 0.9dvh 1.5rem; }
@@ -1997,7 +1998,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
