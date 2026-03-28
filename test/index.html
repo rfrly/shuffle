@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="shuffle-icon-beta.png?v=4" />
-  <link rel="icon" href="shuffle-icon-beta.png?v=4" />
+  <link rel="apple-touch-icon" href="shuffle-icon-beta.png?v=5" />
+  <link rel="icon" href="shuffle-icon-beta.png?v=5" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -142,7 +142,7 @@
       .controls { gap: 1dvh; }
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
-      .btn-row { margin-top: 0.7dvh; }
+      .btn-row { margin-top: 1.2dvh; }
       .exercise-label { font-size: 0.8rem; }
       .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
       .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
@@ -397,7 +397,7 @@
 
     .control-group label {
       font-size: 0.6rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       color: #888;
       font-family: 'Share Tech Mono', monospace;
@@ -544,7 +544,7 @@
     .btn-row {
       display: flex; gap: 0.5rem;
       width: 100%; max-width: 440px;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
       position: relative;
     }
 
@@ -764,7 +764,7 @@
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 560px; }
       .controls { max-width: 560px; }
-      .btn-row { max-width: 560px; }
+      .btn-row { max-width: 560px; margin-top: 1.25rem; }
       .vol-slider-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
       .idle-summary { font-size: 0.8rem; }
@@ -2019,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
