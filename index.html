@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="shuffle-icon.png?v=3" />
-  <link rel="icon" href="shuffle-icon.png?v=3" />
+  <link rel="apple-touch-icon" href="shuffle-icon.png?v=4" />
+  <link rel="icon" href="shuffle-icon.png?v=4" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -68,7 +68,7 @@
 
     @media (hover: none) and (pointer: coarse) {
       .browser-mode .app {
-        padding-bottom: max(3.5rem, env(safe-area-inset-bottom));
+        padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
       }
     }
 
@@ -124,6 +124,7 @@
       .control-group label { font-size: 0.9rem; }
       .idle-summary { font-size: 0.95rem; }
       .version-footer { font-size: 0.6rem; }
+      .beat-dots { max-width: none; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
@@ -135,17 +136,33 @@
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
-      .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 0.5dvh; }
-      .display { height: 22dvh !important; flex: none !important; }
+      .app { justify-content: flex-start; padding: 1.5dvh 2.5rem; gap: 1dvh; }
+      .display { min-height: 26dvh; flex: 1 !important; gap: 1rem; }
       .app-title { font-size: 2rem !important; }
-      .controls { gap: 0.8dvh; }
-      .section-grid { gap: 0.6dvh 1.5rem; }
-      .section-divider { margin: 0.3dvh 0; }
-      .btn-row { margin-top: 0.5dvh; }
-      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+      .controls { gap: 1dvh; }
+      .section-grid { gap: 0.9dvh 1.5rem; }
+      .section-divider { margin: 0.5dvh 0; }
+      .btn-row { margin-top: 0.7dvh; }
+      .exercise-label { font-size: 0.8rem; }
+      .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
+      .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
+      .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
+      .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
+      .idle-summary { font-size: 1.15rem; }
+      .beat-dot { width: 11px; height: 11px; }
+      .bar-block { height: 7px; border-radius: 3px; }
+      .bar-progress-track { height: 7px; border-radius: 3px; }
+      .bar-progress-fill { height: 7px; }
+      .bar-progress-counter { font-size: clamp(0.75rem, 1.4dvh, 1.1rem); }
       .control-group label { font-size: 0.85rem; }
-      .idle-summary { font-size: 1rem; }
       .check-row span { font-size: 1rem; }
+      .sel-btn { height: 58px; }
+      .bpm-widget { height: 58px; }
+      .bpm-btn { width: 58px; height: 58px; }
+      .bpm-tap { height: 58px; }
+      .stepper { height: 58px; }
+      .stepper-btn { width: 58px; height: 58px; }
+      .stepper-val { height: 58px; }
     }
 
     .app-header {
@@ -401,8 +418,8 @@
     }
     .bpm-btn:active { background: #2a2a2a; color: #fff; }
     .bpm-btn:disabled { opacity: 0.25; cursor: default; }
-    .bpm-btn.left { border-right: none; }
-    .bpm-btn.right { border-left: none; }
+    .bpm-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .bpm-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
 
     .bpm-tap {
       flex: 1; height: 44px;
@@ -427,8 +444,8 @@
     }
     .stepper-btn:active { background: #2a2a2a; color: #fff; }
     .stepper-btn:disabled { opacity: 0.25; cursor: default; }
-    .stepper-btn.left { border-right: none; }
-    .stepper-btn.right { border-left: none; }
+    .stepper-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .stepper-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
 
     .stepper-val {
       flex: 1; height: 44px;
@@ -445,7 +462,7 @@
       flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
       font-family: 'Share Tech Mono', monospace; font-size: 1rem;
-      padding: 0.4rem 0.5rem; text-align: center;
+      padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
     .range-row input:disabled { opacity: 0.25; }
@@ -457,7 +474,7 @@
       background: #1a1a1a; border: 1px solid #333; color: #bbb;
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
-      letter-spacing: 0.05em; height: 44px;
+      letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center;
     }
     .sel-btn:active { background: #252525; }
@@ -755,6 +772,18 @@
       .version-footer { font-size: 0.6rem; }
       .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
+    }
+
+    @media (hover: hover) and (min-width: 1440px) {
+      .app-header { max-width: 700px; }
+      .display { max-width: 700px; }
+      .controls { max-width: 700px; }
+      .btn-row { max-width: 700px; }
+      .vol-slider-row { max-width: 700px; }
+      .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
+      .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
+      .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
+      .idle-summary { font-size: 0.9rem; }
     }
 
 
@@ -1990,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.0 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
