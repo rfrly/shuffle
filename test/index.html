@@ -1470,6 +1470,7 @@ c<!DOCTYPE html>
           startYRef.current = null;
           if (Math.abs(delta) > threshold) { if (delta > 0) onSwipeUp(); else onSwipeDown(); } else { onTap(); }
         },
+        onClick: () => { if (!disabled) onTap(); },
         style: { touchAction: 'none' },
       };
     }
@@ -2297,7 +2298,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
