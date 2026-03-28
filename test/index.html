@@ -475,7 +475,7 @@
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
-      display: flex; align-items: center;
+      display: flex; align-items: center; flex: 1;
     }
     .sel-btn:active { background: #252525; }
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
@@ -764,7 +764,7 @@
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 560px; }
       .controls { max-width: 560px; }
-      .btn-row { max-width: 560px; margin-top: 1.25rem; }
+      .btn-row { max-width: 560px; }
       .vol-slider-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
       .idle-summary { font-size: 0.8rem; }
@@ -2019,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
