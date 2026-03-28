@@ -6,7 +6,7 @@ Shuffle is a web app for musicians that randomises practice exercises and provid
 
 ## Tech stack
 
-Single-file React app (Babel transpiled, no build step) — one index.html file. Web Audio API for the metronome engine. No dependencies beyond React 18 and Babel via CDN. Deployed on GitHub Pages at shuffleclick.com. Repo is rfrly/shuffle on GitHub. File must be named index.html alongside shuffle-icon.png in the repo root.
+Single-file React app (Babel transpiled, no build step) — one index.html file. Web Audio API for the metronome engine. No dependencies beyond React 18 and Babel via CDN. Deployed on GitHub Pages at shuffleclick.com. Repo is rfrly/shuffle on GitHub. File must be named index.html alongside shuffle-icon.png in the repo root. Test builds live in test/index.html alongside test/shuffle-icon-beta.png.
 
 ---
 
@@ -68,6 +68,10 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - All controls 44px minimum height
 - Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries
 - Version number in footer, incremented with each meaningful update
+- Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
+- EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
+- Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
+- useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app
 
 ---
 
