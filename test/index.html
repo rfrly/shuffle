@@ -46,17 +46,9 @@
   align-items: center;
   justify-content: flex-start;
 
-  /* Side padding remains 1.5rem */
   padding-left: 1.5rem;
   padding-right: 1.5rem;
-
-  /* Top stays safe for notch */
   padding-top: max(1rem, env(safe-area-inset-top));
-
-  /* THE FINAL FIX: 
-     On Desktop/Android: uses 0.4rem.
-     On iPhone: Subtracts 28px from the safe area to pull the footer 
-     down as close to the home bar as possible without touching it. */
   padding-bottom: max(0.4rem, calc(env(safe-area-inset-bottom) - 28px));
 
   gap: 0.75rem;
@@ -137,7 +129,7 @@
       width: 100%;
       max-width: 440px;
       flex: 1 1 0;
-      min-height: 178px; /* changed from 180px maybe make smaller */
+      min-height: 178px;
       background: #1a1a1a;
       border: 1px solid #2a2a2a;
       border-radius: 4px;
@@ -515,8 +507,7 @@
       font-size: 0.5rem;
       color: #444;
       letter-spacing: 0.15em;
-      margin-top: auto; 
-      margin-bottom: 0.rem; 
+      margin-top: auto;
     }
 
     .rotate-overlay {
@@ -608,9 +599,6 @@
     }
     .help-close-bottom:active { color: #fff; border-color: #888; background: #2a2a2a; }
 
-    @media (max-height: 700px), (max-width: 767px) {
-      .help-close-bottom { display: block; }
-    }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
       .help-content { max-width: 640px !important; gap: 1.25rem !important; }
@@ -618,7 +606,7 @@
       .help-section h3 { font-size: 1rem !important; }
       .help-section p { font-size: 1.05rem !important; line-height: 1.7 !important; }
       .help-section ul { font-size: 1.05rem !important; line-height: 1.7 !important; }
-      .help-close { font-size: 0.85rem !important; padding: 0.8rem 2rem !important; }
+
     }
 
     .help-title {
@@ -658,22 +646,6 @@
 
     .help-section li { margin-bottom: 0.4rem; }
     .help-section li:last-child { margin-bottom: 0; }
-
-    .help-close {
-      align-self: center;
-      margin-top: 0.5rem;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 0.65rem;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      color: #555;
-      background: none;
-      border: 1px solid #333;
-      padding: 0.6rem 1.5rem;
-      cursor: pointer;
-      border-radius: 4px;
-    }
-    .help-close:active { color: #aaa; border-color: #555; }
 
     .help-btn {
       background: none;
@@ -1514,6 +1486,7 @@
       const [showHelp,        setShowHelp]        = useState(false);
       const [openSelector,    setOpenSelector]    = useState(null);
       const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
+      const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
       const helpOverlayRef = useRef(null);
       const [helpPulse,       setHelpPulse]       = useState(() => {
         try { return !localStorage.getItem('shuffle_seen_help'); } catch { return false; }
@@ -1537,6 +1510,14 @@
         }, 10000);
         return () => clearTimeout(helpPulseTimer.current);
       }, []);
+
+      useEffect(() => {
+        if (!showHelp) { setHelpNeedsScroll(false); return; }
+        requestAnimationFrame(() => {
+          const el = helpOverlayRef.current;
+          if (el) setHelpNeedsScroll(el.scrollHeight > el.clientHeight);
+        });
+      }, [showHelp]);
 
       useEffect(() => {
         const req = async () => {
@@ -1716,7 +1697,7 @@
 
           {showHelp && (
             <>
-              <div className="help-scroll-fade" style={{ opacity: helpScrolledToEnd ? 0 : 1 }} />
+              <div className="help-scroll-fade" style={{ opacity: (helpNeedsScroll && !helpScrolledToEnd) ? 1 : 0 }} />
               <div className="help-overlay" ref={helpOverlayRef}
                 onClick={() => setShowHelp(false)}
                 onScroll={(e) => {
@@ -1725,7 +1706,7 @@
                   setHelpScrolledToEnd(atEnd);
                 }}>
                 <div className="help-content" onClick={e => e.stopPropagation()}>
-                <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
+                {helpNeedsScroll && <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>}
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
                   <p>Shuffle randomises your exercises to help you practise more effectively.</p>
@@ -1760,19 +1741,14 @@
                   </ul>
                 </div>
                 <div className="help-section">
-  <h3>Support Shuffle</h3>
-  <p>
-    Enjoying Shuffle? Help keep it free and growing! ☕{" "}
-    <a href="https://www.buymeacoffee.com/rossfarley" target="_blank" rel="noopener noreferrer">
-      Support here →
-    </a>
-  </p>
-</div>
-                <div className="help-section">
                   <h3>Feedback</h3>
                   <p>Found a bug or have a suggestion? <a href="mailto:hello@shuffleclick.com">Get in touch →</a></p>
                 </div>
-                <button className="help-close-bottom" onClick={() => setShowHelp(false)}>Close</button>
+                <div className="help-section">
+                  <h3>Support Shuffle</h3>
+                  <p>Enjoying Shuffle? Help keep it free and growing! ☕{" "}<a href="https://www.buymeacoffee.com/rossfarley" target="_blank" rel="noopener noreferrer">Support here →</a></p>
+                </div>
+                <button className="help-close-bottom" style={{ display: (!helpNeedsScroll || helpScrolledToEnd) ? 'block' : 'none' }} onClick={() => setShowHelp(false)}>Close</button>
               </div>
               </div>
             </>
@@ -2022,7 +1998,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.3.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.3.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
