@@ -1461,17 +1461,15 @@ c<!DOCTYPE html>
     // ── Swipe input ────────────────────────────────────────────────────────────
 
     function useSwipeInput({ onSwipeUp, onSwipeDown, onTap, disabled, threshold = 15 }) {
-      const startYRef    = useRef(null);
-      const swipeFiredRef = useRef(false);
+      const startYRef = useRef(null);
       return {
-        onTouchStart: (e) => { if (disabled) return; startYRef.current = e.touches[0].clientY; swipeFiredRef.current = false; },
+        onTouchStart: (e) => { if (disabled) return; e.preventDefault(); startYRef.current = e.touches[0].clientY; },
         onTouchEnd: (e) => {
           if (startYRef.current === null) return;
           const delta = startYRef.current - e.changedTouches[0].clientY;
           startYRef.current = null;
-          if (Math.abs(delta) > threshold) { swipeFiredRef.current = true; if (delta > 0) onSwipeUp(); else onSwipeDown(); }
+          if (Math.abs(delta) > threshold) { if (delta > 0) onSwipeUp(); else onSwipeDown(); } else { onTap(); }
         },
-        onClick: () => { if (swipeFiredRef.current) { swipeFiredRef.current = false; return; } onTap(); },
         style: { touchAction: 'none' },
       };
     }
@@ -1527,7 +1525,7 @@ c<!DOCTYPE html>
         if (inputStr !== '') setInputStr(s => s.slice(0, -1));
         else setLocalPicked(prev => prev.slice(0, -1));
       };
-      const handleClear = () => setInputStr('');
+      const handleClear = () => { if (inputStr !== '') setInputStr(''); else setLocalPicked([]); };
       const handleAdd = () => {
         const v = parseInt(inputStr);
         if (isNaN(v)) return;
@@ -2067,7 +2065,7 @@ c<!DOCTYPE html>
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
                     : exMode === 'pick'
-                      ? `${pickedNums.length > 0 ? pickedNums.join(', ') : 'no bars'} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
                       : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
@@ -2299,7 +2297,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
