@@ -392,7 +392,9 @@ c<!DOCTYPE html>
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
-    .range-row input:disabled { opacity: 0.25; }
+    .range-row input[readonly] { cursor: pointer; }
+    .range-row input[readonly]:active { border-color: #f5c842; }
+    .range-row input:disabled { opacity: 0.25; cursor: default; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
     .selector-row { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
@@ -796,6 +798,118 @@ c<!DOCTYPE html>
       .compact-sel-btn { height: 58px; }
     }
 
+    /* ── Numpad popup ─────────────────────────────────────────────────────────── */
+    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; }
+    .numpad-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: 220px;
+    }
+    .numpad-header { font-family: 'Barlow', sans-serif; font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase; color: #666; text-align: center; }
+    .numpad-display {
+      font-family: 'Share Tech Mono', monospace; font-size: 2.2rem; color: #f5c842;
+      text-align: center; min-height: 3rem; background: #141414; border: 1px solid #2a2a2a;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      letter-spacing: 0.05em;
+    }
+    .numpad-display.empty { color: #444; }
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+    .numpad-key {
+      height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
+      font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; border-radius: 5px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      user-select: none; -webkit-user-select: none;
+    }
+    .numpad-key:active { background: #383838; color: #fff; border-color: #555; }
+    .numpad-key.fn { color: #777; font-size: 1rem; font-family: 'Barlow', sans-serif; }
+    .numpad-actions { display: flex; gap: 0.4rem; }
+    .numpad-cancel {
+      flex: 1; height: 46px; background: #1c1c1c; border: 1px solid #383838; color: #888;
+      font-family: 'Barlow', sans-serif; font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+    }
+    .numpad-cancel:active { background: #2a2a2a; color: #ccc; }
+    .numpad-ok {
+      flex: 2; height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
+      font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 600;
+      border-radius: 5px; cursor: pointer;
+    }
+    .numpad-ok:active { background: #d4ac38; }
+    .numpad-ok:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Bar Picker popup ─────────────────────────────────────────────────────── */
+    .picker-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: 220px; max-height: 90vh;
+      overflow-y: auto;
+    }
+    .picker-chips {
+      display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 2.2rem;
+      padding: 0.4rem; background: #141414; border: 1px solid #2a2a2a; border-radius: 6px;
+    }
+    .picker-chips-empty { color: #444; font-family: 'Barlow', sans-serif; font-size: 0.75rem;
+      display: flex; align-items: center; }
+    .picker-chip {
+      background: #2a2a2a; border: 1px solid #f5c842; color: #f5c842;
+      font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;
+      padding: 0.2rem 0.45rem; border-radius: 4px; cursor: pointer;
+      user-select: none; -webkit-user-select: none;
+    }
+    .picker-chip:active { background: #3a3210; border-color: #ff4500; color: #ff4500; }
+    .picker-divider { height: 1px; background: #2a2a2a; }
+    .picker-add-btn {
+      height: 46px; background: #252525; border: 1px solid #383838; color: #ccc;
+      font-family: 'Barlow', sans-serif; font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+    }
+    .picker-add-btn:active { background: #383838; color: #fff; }
+    .picker-add-btn:disabled { opacity: 0.25; cursor: default; }
+    .picker-done-btn {
+      height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
+      font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 600;
+      border-radius: 5px; cursor: pointer;
+    }
+    .picker-done-btn:active { background: #d4ac38; }
+
+    /* ── Ex mode toggle ───────────────────────────────────────────────────────── */
+    .ex-control-row { display: flex; gap: 0.5rem; align-items: stretch; width: 100%; }
+    .ex-control-row .range-row { flex: 1; width: auto; min-width: 0; margin: 0; }
+    .ex-control-row .pick-trigger-btn { flex: 1; }
+    .ex-mode-toggle { display: flex; flex-direction: column; flex-shrink: 0; width: 46px;
+      height: 44px; border-radius: 4px; overflow: hidden; border: 1px solid #2a2a2a; }
+    .ex-mode-btn {
+      flex: 1; background: #1c1c1c; border: none; color: #555;
+      font-family: 'Barlow', sans-serif; font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.04em; cursor: pointer; line-height: 1;
+    }
+    .ex-mode-btn + .ex-mode-btn { border-top: 1px solid #2a2a2a; }
+    .ex-mode-btn.active { background: #252525; color: #f5c842; }
+    .ex-mode-btn:disabled { opacity: 0.3; cursor: default; }
+    .pick-trigger-btn {
+      width: 100%; height: 44px; background: #1c1c1c; border: 1px solid #2a2a2a;
+      color: #ccc; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem;
+      border-radius: 5px; cursor: pointer; text-align: center; padding: 0 0.5rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .pick-trigger-btn:active { background: #252525; border-color: #f5c842; }
+    .pick-trigger-btn:disabled { opacity: 0.25; cursor: default; }
+    .pick-trigger-btn.empty { color: #555; }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
+      .numpad-key { height: 60px; font-size: 1.3rem; }
+      .numpad-ok, .numpad-cancel { height: 52px; }
+      .pick-trigger-btn { height: 52px; }
+      .ex-mode-toggle { height: 52px; width: 50px; }
+    }
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+      .numpad-key { height: 64px; }
+      .numpad-ok, .numpad-cancel { height: 56px; }
+      .pick-trigger-btn { height: 58px; }
+      .ex-mode-toggle { height: 58px; }
+    }
+
   </style>
   <script>if (!navigator.standalone) document.documentElement.classList.add('browser-mode');</script>
 </head>
@@ -833,7 +947,7 @@ c<!DOCTYPE html>
     const BARS_MIN                = 1;
     const BARS_MAX                = 32;
     const EX_MIN                  = 1;
-    const EX_MAX                  = 99;
+    const EX_MAX                  = 200;
     const TAP_MAX_HISTORY         = 8;
     const TAP_RESET_MS            = 2000;
     const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
@@ -926,7 +1040,8 @@ c<!DOCTYPE html>
                             onNewExercise, onNextExercise, onSetComplete,
                             running, paused, resuming,
                             countInBars, countInEveryRound,
-                            mode, volume, looping, setComplete }) {
+                            mode, volume, looping, setComplete,
+                            exMode, pickedNums }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -974,7 +1089,37 @@ c<!DOCTYPE html>
         return arr;
       }, []);
 
+      const buildDeckFromArray = useCallback((arr, avoidFirst) => {
+        const deck = [...arr];
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        if (avoidFirst != null && deck.length > 1 && deck[0] === avoidFirst) {
+          const swap = Math.floor(Math.random() * (deck.length - 1)) + 1;
+          [deck[0], deck[swap]] = [deck[swap], deck[0]];
+        }
+        return deck;
+      }, []);
+
       const pickNext = useCallback((min, max, last, currentMode) => {
+        const { exMode: em, pickedNums: pn } = stateRef.current;
+        if (em === 'pick' && pn && pn.length > 0) {
+          if (currentMode === MODE_FULLSET) {
+            if (deckRef.current.length === 0) deckRef.current = buildDeckFromArray(pn, last);
+            return deckRef.current.shift();
+          } else if (currentMode === MODE_SEQUENTIAL) {
+            const ex = pn[seqIndex.current % pn.length];
+            seqIndex.current++;
+            return ex;
+          } else {
+            if (pn.length === 1) return pn[0];
+            let ex, attempts = 0;
+            do { ex = pn[Math.floor(Math.random() * pn.length)]; attempts++; }
+            while (ex === last && attempts < 20);
+            return ex;
+          }
+        }
         if (currentMode === MODE_FULLSET) {
           if (deckRef.current.length === 0) deckRef.current = buildDeck(min, max, last);
           return deckRef.current.shift();
@@ -990,14 +1135,14 @@ c<!DOCTYPE html>
           while (ex === last && attempts < 20);
           return ex;
         }
-      }, [buildDeck]);
+      }, [buildDeck, buildDeckFromArray]);
 
       const stateRef = useRef({});
       useEffect(() => {
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete,
                              countInBars, countInEveryRound,
-                             mode, volume };
+                             mode, volume, exMode, pickedNums };
       });
 
       const resumingRef = useRef(false);
@@ -1097,7 +1242,8 @@ c<!DOCTYPE html>
           const firstEx = pickNext(mn, mx, null, m);
           lastExercise.current = firstEx;
 
-          const totalInSetAtStart = mx - mn + 1;
+          const { exMode: emStart, pickedNums: pnStart } = stateRef.current;
+          const totalInSetAtStart = (emStart === 'pick' && pnStart && pnStart.length > 0) ? pnStart.length : mx - mn + 1;
           if ((m === MODE_FULLSET || m === MODE_SEQUENTIAL) && totalInSetAtStart === 1) {
             nextExercise.current = firstEx;
             setEndPending.current = true;
@@ -1120,7 +1266,8 @@ c<!DOCTYPE html>
           const beatLen           = 60 / b;
           const countInBeats      = bpb2 * cib2;
           const interCountInBeats = cier ? bpb2 * cib2 : 0;
-          const totalInSet        = max - min + 1;
+          const { exMode: em, pickedNums: pn } = stateRef.current;
+          const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
           while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
             const bc = beatCount.current;
@@ -1309,6 +1456,113 @@ c<!DOCTYPE html>
         onTouchEnd: (e) => { e.preventDefault(); stop(); },
         onTouchCancel: stop,
       };
+    }
+
+    // ── Swipe input ────────────────────────────────────────────────────────────
+
+    function useSwipeInput({ onSwipeUp, onSwipeDown, onTap, disabled, threshold = 15 }) {
+      const startYRef    = useRef(null);
+      const swipeFiredRef = useRef(false);
+      return {
+        onTouchStart: (e) => { if (disabled) return; startYRef.current = e.touches[0].clientY; swipeFiredRef.current = false; },
+        onTouchEnd: (e) => {
+          if (startYRef.current === null) return;
+          const delta = startYRef.current - e.changedTouches[0].clientY;
+          startYRef.current = null;
+          if (Math.abs(delta) > threshold) { swipeFiredRef.current = true; if (delta > 0) onSwipeUp(); else onSwipeDown(); }
+        },
+        onClick: () => { if (swipeFiredRef.current) { swipeFiredRef.current = false; return; } onTap(); },
+        style: { touchAction: 'none' },
+      };
+    }
+
+    // ── Numpad components ──────────────────────────────────────────────────────
+
+    function NumpadGrid({ onDigit, onBackspace, onClear }) {
+      return (
+        <div className="numpad-grid">
+          {[7,8,9,4,5,6,1,2,3].map(d => (
+            <button key={d} className="numpad-key" onPointerDown={(e) => { e.preventDefault(); onDigit(String(d)); }}>{d}</button>
+          ))}
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onClear(); }}>✕</button>
+          <button className="numpad-key" onPointerDown={(e) => { e.preventDefault(); onDigit('0'); }}>0</button>
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onBackspace(); }}>⌫</button>
+        </div>
+      );
+    }
+
+    function NumpadPopup({ label, initialValue, onConfirm, onClose }) {
+      const [inputStr, setInputStr] = useState(String(initialValue));
+      const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleBackspace = () => setInputStr(s => s.slice(0, -1));
+      const handleClear = () => setInputStr('');
+      const handleOk = () => {
+        const v = parseInt(inputStr);
+        const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
+        onConfirm(c);
+      };
+      const isEmpty = inputStr === '';
+      return ReactDOM.createPortal(
+        <>
+          <div className="numpad-backdrop" onClick={onClose} />
+          <div className="numpad-popup">
+            <div className="numpad-header">{label}</div>
+            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            <div className="numpad-actions">
+              <button className="numpad-cancel" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>Cancel</button>
+              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk} disabled={isEmpty}>OK</button>
+            </div>
+          </div>
+        </>,
+        document.body
+      );
+    }
+
+    function BarPickerPopup({ pickedNums, onConfirm, onClose }) {
+      const [localPicked, setLocalPicked] = useState(() => [...pickedNums]);
+      const [inputStr, setInputStr] = useState('');
+      const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleBackspace = () => {
+        if (inputStr !== '') setInputStr(s => s.slice(0, -1));
+        else setLocalPicked(prev => prev.slice(0, -1));
+      };
+      const handleClear = () => setInputStr('');
+      const handleAdd = () => {
+        const v = parseInt(inputStr);
+        if (isNaN(v)) return;
+        const c = Math.max(EX_MIN, Math.min(EX_MAX, v));
+        setLocalPicked(prev => prev.includes(c) ? prev : [...prev, c].sort((a, b) => a - b));
+        setInputStr('');
+      };
+      const handleRemove = (n) => setLocalPicked(prev => prev.filter(x => x !== n));
+      const handleDone = () => onConfirm([...localPicked]);
+      const isEmpty = inputStr === '';
+      const parsedValid = !isEmpty && !isNaN(parseInt(inputStr));
+      return ReactDOM.createPortal(
+        <>
+          <div className="numpad-backdrop" onClick={handleDone} />
+          <div className="picker-popup">
+            <div className="numpad-header">Pick exercises</div>
+            <div className="picker-chips">
+              {localPicked.length === 0
+                ? <span className="picker-chips-empty">No bars selected</span>
+                : localPicked.map(n => (
+                    <button key={n} className="picker-chip" onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
+                      {fmt(n)}
+                    </button>
+                  ))
+              }
+            </div>
+            <div className="picker-divider" />
+            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            <button className="picker-add-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleAdd} disabled={!parsedValid}>Add</button>
+            <button className="picker-done-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleDone}>Done</button>
+          </div>
+        </>,
+        document.body
+      );
     }
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
@@ -1506,13 +1760,18 @@ c<!DOCTYPE html>
       const helpPulseTimer = useRef(null);
       const [setComplete,     setSetComplete]     = useState(false);
       const [barFlash,        setBarFlash]        = useState(false);
+      const [numpadOpen,      setNumpadOpen]      = useState(null); // null | 'min' | 'max'
+      const [exMode,          setExMode]          = useState(() => saved?.exMode ?? 'range');
+      const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
+      const [pickerOpen,      setPickerOpen]      = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                       minEx, maxEx, countInBars, countInEvery, mode, volume });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume]);
+                       minEx, maxEx, countInBars, countInEvery, mode, volume,
+                       exMode, pickedNums });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums]);
 
       useEffect(() => {
         if (!helpPulse) return;
@@ -1555,7 +1814,7 @@ c<!DOCTYPE html>
       const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
         bpm,
         beatsPerBar: timeSig.beats,
-        barsPerExercise: barsPerExercise * exerciseLength,
+        barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
         minEx, maxEx,
         onNewExercise: handleNewExercise,
         onNextExercise: handleNextExercise,
@@ -1564,6 +1823,7 @@ c<!DOCTYPE html>
         countInBars,
         countInEveryRound: countInEvery,
         mode, volume, looping, setComplete,
+        exMode, pickedNums,
       });
 
       const handleStart = () => {
@@ -1651,7 +1911,21 @@ c<!DOCTYPE html>
         }
       }, [currentBar, currentBeat, phase, paused]);
 
-      const validRange   = mode === MODE_CLICKONLY ? true : minEx <= maxEx;
+      const exInputDisabled = running || mode === MODE_CLICKONLY;
+      const minSwipeHandlers = useSwipeInput({
+        disabled: exInputDisabled,
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); setMinExStr(String(v)); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); setMinExStr(String(v)); },
+        onTap: () => setNumpadOpen('min'),
+      });
+      const maxSwipeHandlers = useSwipeInput({
+        disabled: exInputDisabled,
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onTap: () => setNumpadOpen('max'),
+      });
+
+      const validRange   = mode === MODE_CLICKONLY ? true : exMode === 'pick' ? pickedNums.length >= 1 : minEx <= maxEx;
       const totalBars    = barsPerExercise * exerciseLength;
       const currentRound = Math.floor(currentBar / exerciseLength) + 1;
       const progress     = totalBars > 1 ? currentBar / (totalBars - 1) : 1;
@@ -1725,7 +1999,11 @@ c<!DOCTYPE html>
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. To get a count-in before every exercise (not just the first), tap the Count in button and enable "count in every exercise".</p>
+                  <p>Set everything up before you press Start — exercise range or pick specific exercises, BPM, mode, rounds and count-in. To get a count-in before every exercise (not just the first), tap the Count in button and enable "count in every exercise".</p>
+                </div>
+                <div className="help-section">
+                  <h3>Exercises</h3>
+                  <p>Use Range to set a min and max — Shuffle will pick from all exercises in between. Use Pick to choose specific exercises (useful for targeting particular bars in a song or exercises in a workbook). Tap a number to remove it.</p>
                 </div>
                 <div className="help-section">
                   <h3>Modes</h3>
@@ -1792,7 +2070,9 @@ c<!DOCTYPE html>
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
-                    : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                    : exMode === 'pick'
+                      ? `${pickedNums.length > 0 ? pickedNums.join(', ') : 'no bars'} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -1919,36 +2199,51 @@ c<!DOCTYPE html>
                 />
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === 'pick' ? " dimmed" : ""}`}>
                 <label>Exercise length</label>
                 <CompactSelector
                   id="exLength"
                   value={exerciseLength}
                   options={[1, 2, 4]}
                   onChange={setExerciseLength}
-                  disabled={running || mode === MODE_CLICKONLY}
+                  disabled={running || mode === MODE_CLICKONLY || exMode === 'pick'}
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
                   getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
                 />
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Exercises</label>
-                <div className="range-row">
-                  <input type="text" inputMode="numeric" value={minExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                  <span>to</span>
-                  <input type="text" inputMode="numeric" value={maxExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                </div>
-              </div>
+              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>
+                    <label>Exercises</label>
+                    <div className="ex-control-row">
+                      {exMode === 'range' ? (
+                        <div className="range-row">
+                          <input type="text" readOnly value={minExStr}
+                            {...minSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
+                          <span>to</span>
+                          <input type="text" readOnly value={maxExStr}
+                            {...maxSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
+                        </div>
+                      ) : (
+                        <button
+                          className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => setPickerOpen(true)}>
+                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.join(', ')}
+                        </button>
+                      )}
+                      <div className="ex-mode-toggle">
+                        <button className={`ex-mode-btn${exMode === 'range' ? ' active' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => setExMode('range')}>Range</button>
+                        <button className={`ex-mode-btn${exMode === 'pick' ? ' active' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => { setExMode('pick'); setExerciseLength(1); }}>Pick</button>
+                      </div>
+                    </div>
+                  </div>
 
               <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Rounds</label>
@@ -2008,9 +2303,31 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
+          <div className="version-footer">v1.7.0.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
-          <div className="version-footer">v1.6.3.beta.22 · rossfarley.uk · © 2026 Ross Farley</div>
+          {numpadOpen === 'min' && (
+            <NumpadPopup
+              label="MIN"
+              initialValue={minEx}
+              onConfirm={(v) => { setMinEx(v); setMinExStr(String(v)); setNumpadOpen(null); }}
+              onClose={() => setNumpadOpen(null)}
+            />
+          )}
+          {numpadOpen === 'max' && (
+            <NumpadPopup
+              label="MAX"
+              initialValue={maxEx}
+              onConfirm={(v) => { setMaxEx(v); setMaxExStr(String(v)); setNumpadOpen(null); }}
+              onClose={() => setNumpadOpen(null)}
+            />
+          )}
+          {pickerOpen && (
+            <BarPickerPopup
+              pickedNums={pickedNums}
+              onConfirm={(nums) => { setPickedNums(nums); setPickerOpen(false); }}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
 
         </div>
       );
