@@ -143,9 +143,18 @@
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
       .btn-row { margin-top: 0.7dvh; }
-      .next-exercise { font-size: clamp(1.8rem, 4vw, 2.6rem); }
+      .exercise-label { font-size: 0.8rem; }
+      .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
+      .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
+      .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
+      .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
+      .idle-summary { font-size: 1.15rem; }
+      .beat-dot { width: 11px; height: 11px; }
+      .bar-block { height: 7px; border-radius: 3px; }
+      .bar-progress-track { height: 7px; border-radius: 3px; }
+      .bar-progress-fill { height: 7px; }
+      .bar-progress-counter { font-size: 0.75rem; }
       .control-group label { font-size: 0.85rem; }
-      .idle-summary { font-size: 1rem; }
       .check-row span { font-size: 1rem; }
       .sel-btn { height: 58px; }
       .bpm-widget { height: 58px; }
@@ -409,8 +418,8 @@
     }
     .bpm-btn:active { background: #2a2a2a; color: #fff; }
     .bpm-btn:disabled { opacity: 0.25; cursor: default; }
-    .bpm-btn.left { border-right: none; }
-    .bpm-btn.right { border-left: none; }
+    .bpm-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .bpm-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
 
     .bpm-tap {
       flex: 1; height: 44px;
@@ -435,8 +444,8 @@
     }
     .stepper-btn:active { background: #2a2a2a; color: #fff; }
     .stepper-btn:disabled { opacity: 0.25; cursor: default; }
-    .stepper-btn.left { border-right: none; }
-    .stepper-btn.right { border-left: none; }
+    .stepper-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .stepper-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
 
     .stepper-val {
       flex: 1; height: 44px;
@@ -453,7 +462,7 @@
       flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
       font-family: 'Share Tech Mono', monospace; font-size: 1rem;
-      padding: 0.4rem 0.5rem; text-align: center;
+      padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
     .range-row input:disabled { opacity: 0.25; }
@@ -465,7 +474,7 @@
       background: #1a1a1a; border: 1px solid #333; color: #bbb;
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
-      letter-spacing: 0.05em; height: 44px;
+      letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center;
     }
     .sel-btn:active { background: #252525; }
@@ -1998,7 +2007,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
