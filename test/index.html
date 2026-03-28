@@ -49,7 +49,7 @@ c<!DOCTYPE html>
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   padding-top: max(1rem, env(safe-area-inset-top));
-  padding-bottom: max(0.4rem, calc(env(safe-area-inset-bottom) - 28px));
+  padding-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 10px));
 
   gap: 0.75rem;
 
@@ -743,7 +743,7 @@ c<!DOCTYPE html>
       .help-overlay { padding-top: 3.5rem; }
       .help-content { max-width: 560px; }
       .app-header { max-width: 560px; }
-      .app-subtitle { font-size: 0.7rem; }
+      .app-subtitle { font-size: 0.6rem; }
       .display { max-width: 560px; }
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
@@ -2066,7 +2066,7 @@ c<!DOCTYPE html>
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
                     : exMode === 'pick'
                       ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                      : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                      : `${minEx}–${maxEx} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -2297,7 +2297,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
