@@ -774,6 +774,18 @@
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
     }
 
+    @media (hover: hover) and (min-width: 1440px) {
+      .app-header { max-width: 700px; }
+      .display { max-width: 700px; }
+      .controls { max-width: 700px; }
+      .btn-row { max-width: 700px; }
+      .vol-slider-row { max-width: 700px; }
+      .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
+      .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
+      .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
+      .idle-summary { font-size: 0.9rem; }
+    }
+
 
 
 
@@ -2007,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
