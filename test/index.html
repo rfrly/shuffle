@@ -16,8 +16,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="shuffle-icon-beta.png?v=5" />
-  <link rel="icon" href="shuffle-icon-beta.png?v=5" />
+  <link rel="apple-touch-icon" href="shuffle-icon-beta.png?v=6" />
+  <link rel="icon" href="shuffle-icon-beta.png?v=6" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -475,7 +475,7 @@
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
-      display: flex; align-items: center; flex: 1;
+      display: flex; align-items: center; justify-content: center; flex: 1;
     }
     .sel-btn:active { background: #252525; }
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
@@ -1868,7 +1868,7 @@
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
                       onClick={() => setMode(m.value)} disabled={running}
-                      style={m.value === MODE_CLICKONLY ? { marginLeft: "1rem" } : {}}>
+                      >
                       {m.label}
                     </button>
                   ))}
@@ -2019,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
