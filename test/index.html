@@ -136,7 +136,7 @@
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .app { justify-content: space-evenly; padding: 1.5dvh 2.5rem; gap: 1dvh; }
-      .display { height: 26dvh !important; flex: none !important; }
+      .display { min-height: 26dvh; flex: 1 !important; }
       .app-title { font-size: 2rem !important; }
       .controls { gap: 1dvh; }
       .section-grid { gap: 0.9dvh 1.5rem; }
@@ -1997,7 +1997,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.1.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
