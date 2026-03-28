@@ -142,7 +142,7 @@
       .controls { gap: 1dvh; }
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
-      .btn-row { margin-top: 0.7dvh; }
+      .btn-row { margin-top: 1.2dvh; }
       .exercise-label { font-size: 0.8rem; }
       .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
       .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
@@ -397,7 +397,7 @@
 
     .control-group label {
       font-size: 0.6rem;
-      letter-spacing: 0.1em;
+      letter-spacing: 0.15em;
       text-transform: uppercase;
       color: #888;
       font-family: 'Share Tech Mono', monospace;
@@ -475,7 +475,7 @@
       font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
-      display: flex; align-items: center;
+      display: flex; align-items: center; flex: 1;
     }
     .sel-btn:active { background: #252525; }
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
@@ -544,7 +544,7 @@
     .btn-row {
       display: flex; gap: 0.5rem;
       width: 100%; max-width: 440px;
-      margin-top: 0.5rem;
+      margin-top: 1rem;
       position: relative;
     }
 
@@ -2019,7 +2019,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
