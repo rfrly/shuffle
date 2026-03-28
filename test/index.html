@@ -614,9 +614,10 @@
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
       .help-content { max-width: 640px !important; gap: 1.25rem !important; }
-      .help-title { font-size: 1rem !important; }
-      .help-section h3 { font-size: 0.9rem !important; }
-      .help-section p { font-size: 0.95rem !important; line-height: 1.7 !important; }
+      .help-title { font-size: 1.1rem !important; }
+      .help-section h3 { font-size: 1rem !important; }
+      .help-section p { font-size: 1.05rem !important; line-height: 1.7 !important; }
+      .help-section ul { font-size: 1.05rem !important; line-height: 1.7 !important; }
       .help-close { font-size: 0.85rem !important; padding: 0.8rem 2rem !important; }
     }
 
@@ -761,6 +762,7 @@
 
     @media (hover: hover) and (min-width: 1024px) {
       .app { padding-bottom: 0.6rem; }
+      .help-content { max-width: 560px; }
       .app-header { max-width: 560px; }
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 560px; }
@@ -2020,7 +2022,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.3.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.3.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
