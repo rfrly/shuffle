@@ -79,9 +79,6 @@
       .browser-mode .display { padding: 0.3rem 1rem; }
     }
 
-    @media (max-width: 390px) {
-      .selector-row { flex-wrap: wrap; }
-    }
 
     @media (max-height: 840px) and (max-width: 767px) {
       .app { gap: 0.4rem; padding-top: max(0.5rem, env(safe-area-inset-top)); }
@@ -105,12 +102,13 @@
       .app { background: #0f0f0f !important; }
       .app-header { max-width: 700px !important; }
       .app-title { font-size: 1.8rem; }
-      .app-subtitle { font-size: 1rem; }
+      .app-subtitle { font-size: 1.2rem; }
       .display { max-width: 700px !important; }
       .controls { max-width: 700px !important; }
       .btn-row { max-width: 700px !important; }
       .vol-slider-row { max-width: 700px !important; }
       .sel-btn { height: 52px; font-size: 0.9rem; }
+      .compact-sel-btn { font-size: 0.9rem; }
       .bpm-widget { height: 52px; }
       .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .bpm-tap { height: 52px; font-size: 1.1rem; }
@@ -121,8 +119,8 @@
       .check-row { font-size: 0.95rem; }
       .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
-      .control-group label { font-size: 1rem; }
-      .idle-summary { font-size: 0.95rem; }
+      .control-group label { font-size: 1.3rem; }
+      .idle-summary { font-size: 1.1rem; }
       .version-footer { font-size: 0.6rem; }
       .beat-dots { max-width: none; }
     }
@@ -148,13 +146,13 @@
       .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
       .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
       .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
-      .idle-summary { font-size: 1.15rem; }
+      .idle-summary { font-size: 1.3rem; }
       .beat-dot { width: 11px; height: 11px; }
       .bar-block { height: 7px; border-radius: 3px; }
       .bar-progress-track { height: 7px; border-radius: 3px; }
       .bar-progress-fill { height: 7px; }
       .bar-progress-counter { font-size: clamp(0.75rem, 1.4dvh, 1.1rem); }
-      .control-group label { font-size: 1rem; }
+      .control-group label { font-size: 1.3rem; }
       .check-row span { font-size: 1rem; }
       .sel-btn { height: 58px; }
       .bpm-widget { height: 58px; }
@@ -2019,7 +2017,7 @@
 
           {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
 
-          <div className="version-footer">v1.6.3.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.6.3.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
         </div>
       );
