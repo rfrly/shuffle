@@ -398,20 +398,11 @@ c<!DOCTYPE html>
     }
 
     .range-row { display: flex; align-items: center; gap: 0.5rem; width: 100%; }
-    .swipe-input-wrap { position: relative; flex: 1; min-width: 0; }
     .range-row input {
-      width: 100%; box-sizing: border-box; height: 44px;
+      flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
       font-family: var(--font-mono); font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
-    }
-    .swipe-input-hint { display: none; }
-    @media (hover: none) and (pointer: coarse) {
-      .swipe-input-hint {
-        display: block; position: absolute; right: 5px; top: 50%;
-        transform: translateY(-50%); font-size: 0.55rem; color: #555;
-        pointer-events: none; line-height: 1; letter-spacing: -0.05em;
-      }
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
     .range-row input[readonly] { cursor: pointer; }
@@ -2042,7 +2033,7 @@ c<!DOCTYPE html>
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Choose your mode, then configure your session: exercise range or specific exercises, BPM, time signature, exercise length, and rounds. Tap Count in to set the length, and enable "count in every exercise" if you want a count-in before each exercise, not just the first.</p>
+                  <p>Choose your mode, then configure your session: exercise range (swipe up/down to nudge) or specific exercises, BPM, time signature, exercise length (always 1 bar in pick mode), and rounds. Tap Count in to set the length, and enable "count in every exercise" if you want a count-in before each exercise, not just the first.</p>
                 </div>
                 <div className="help-section">
                   <h3>Modes</h3>
@@ -2067,8 +2058,7 @@ c<!DOCTYPE html>
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
                     <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
-                    <li>In range mode, swipe up or down on the min/max inputs to nudge the value by one.</li>
-                    <li>Exercise length is always 1 bar in pick mode.</li>
+
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2259,21 +2249,15 @@ c<!DOCTYPE html>
                     <div className="ex-control-row">
                       {exMode === 'range' ? (
                         <div className="range-row">
-                          <div className="swipe-input-wrap">
-                            <input type="text" readOnly value={minExStr}
-                              className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
-                              {...minSwipeHandlers}
-                              disabled={running || mode === MODE_CLICKONLY} />
-                            <span className="swipe-input-hint">↑↓</span>
-                          </div>
+                          <input type="text" readOnly value={minExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                            {...minSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
                           <span>to</span>
-                          <div className="swipe-input-wrap">
-                            <input type="text" readOnly value={maxExStr}
-                              className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
-                              {...maxSwipeHandlers}
-                              disabled={running || mode === MODE_CLICKONLY} />
-                            <span className="swipe-input-hint">↑↓</span>
-                          </div>
+                          <input type="text" readOnly value={maxExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                            {...maxSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
                         </div>
                       ) : (
                         <button
@@ -2352,7 +2336,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.20 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.21 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
