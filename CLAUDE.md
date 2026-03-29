@@ -70,6 +70,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
+- Letter mode is a hidden feature that displays exercises as A–Z instead of numbers; activated by long-pressing the version footer (800ms); limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
 - Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
 - useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app
 
