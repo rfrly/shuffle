@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="shuffle-icon.png?v=8" />
-  <link rel="apple-touch-icon" sizes="512x512" href="shuffle-icon.png?v=8" />
-  <link rel="icon" href="shuffle-icon.png?v=8" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/shuffle-icon.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/shuffle-icon.png" />
+  <link rel="icon" href="https://shuffleclick.com/shuffle-icon.png" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -139,7 +139,7 @@
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
-      
+      position: relative;
     }
 
     .exercise-label {
@@ -405,11 +405,11 @@
       font-family: var(--font-mono); font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
-    .range-row input:focus { outline: none; border-color: #ff4500; }
+    .range-row input:focus { outline: none; }
     .range-row input[readonly] { cursor: pointer; }
     .range-row input[readonly]:active { border-color: #f5c842; }
-    .range-row input.invalid { border-color: #c44; }
-    .pick-trigger-btn.invalid { border-color: #c44; }
+    .range-row input.invalid { border-color: #aa3333; }
+    .pick-trigger-btn.invalid { border-color: #aa3333; }
     .range-row input:disabled { opacity: 0.25; cursor: default; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
@@ -844,6 +844,7 @@
       letter-spacing: 0.05em;
     }
     .numpad-display.empty { color: #444; }
+    .numpad-display.placeholder { color: #555; }
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
     .numpad-key {
       height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
@@ -938,6 +939,15 @@
       .pick-trigger-btn { height: 58px; }
       .ex-mode-toggle { height: 58px; }
     }
+
+    .mute-hint {
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-body); font-size: 12px; color: #888;
+      pointer-events: none; animation: mute-hint-in 0.4s ease forwards;
+    }
+    .mute-hint.fading { animation: mute-hint-out 0.4s ease forwards; }
+    @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
   </style>
   <script>if (!navigator.standalone) document.documentElement.classList.add('browser-mode');</script>
@@ -1520,12 +1530,13 @@
     }
 
     function NumpadPopup({ label, initialValue, onConfirm, onClose }) {
-      const [inputStr, setInputStr] = useState(String(initialValue));
+      const [inputStr, setInputStr] = useState('');
       const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
       const handleBackspace = () => setInputStr(s => s.slice(0, -1));
       const handleClear = () => setInputStr('');
       const handleOk = () => {
-        const v = parseInt(inputStr);
+        const raw = isEmpty ? String(initialValue) : inputStr;
+        const v = parseInt(raw);
         const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
         onConfirm(c);
       };
@@ -1535,11 +1546,11 @@
           <div className="numpad-backdrop" onClick={onClose} />
           <div className="numpad-popup">
             <div className="numpad-header">{label}</div>
-            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <div className={`numpad-display${isEmpty ? ' placeholder' : ''}`}>{isEmpty ? String(initialValue) : inputStr}</div>
             <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
             <div className="numpad-actions">
               <button className="numpad-cancel" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>Cancel</button>
-              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk} disabled={isEmpty}>OK</button>
+              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk}>OK</button>
             </div>
           </div>
         </>,
@@ -1801,6 +1812,7 @@
       const [exMode,          setExMode]          = useState(() => saved?.exMode ?? 'range');
       const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
       const [pickerOpen,      setPickerOpen]      = useState(false);
+      const [showMuteHint,    setShowMuteHint]    = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -1863,7 +1875,17 @@
         exMode, pickedNums,
       });
 
+      useEffect(() => {
+        if (!showMuteHint || phase !== "playing") return;
+        const t = setTimeout(() => setShowMuteHint(false), 400);
+        return () => clearTimeout(t);
+      }, [phase, showMuteHint]);
+
       const handleStart = () => {
+        if (!localStorage.getItem('muteHintSeen')) {
+          localStorage.setItem('muteHintSeen', '1');
+          setShowMuteHint(true);
+        }
         setSetComplete(false);
         setExercise(null); setNextEx(null); setExerciseKey(0);
         setPaused(false); setLooping(false); setResuming(false); setRunning(true);
@@ -2155,7 +2177,9 @@
               />
             )}
             {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
-
+            {showMuteHint && phase !== "idle" && (
+              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
+            )}
           </div>
 
           <div className="controls">
@@ -2340,7 +2364,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.7.0 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
