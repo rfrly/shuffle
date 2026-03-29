@@ -2244,7 +2244,7 @@ c<!DOCTYPE html>
                 <label>Rounds</label>
                 <div className="stepper">
                   <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
-                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
                   <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
                 </div>
               </div>
@@ -2298,7 +2298,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.16 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
