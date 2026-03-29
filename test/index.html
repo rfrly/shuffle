@@ -2083,22 +2083,21 @@
       function DebugInfo() {
         const [info, setInfo] = React.useState('');
         React.useEffect(() => {
-          const probe = document.createElement('div');
-          probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden';
-          document.body.appendChild(probe);
-          const app = document.querySelector('.app');
-          const footer = document.querySelector('.version-footer');
-          const display = document.querySelector('.display');
           setTimeout(() => {
-            const sab = probe.getBoundingClientRect().height;
-            const appH = app ? Math.round(app.getBoundingClientRect().height) : '?';
-            const dispH = display ? Math.round(display.getBoundingClientRect().height) : '?';
-            const footBottom = footer ? Math.round(footer.getBoundingClientRect().bottom) : '?';
-            setInfo(`vh:${window.innerHeight} app:${appH} disp:${dispH} footBot:${footBottom} sab:${Math.round(sab)}`);
-            document.body.removeChild(probe);
+            const r = (el) => el ? Math.round(el.getBoundingClientRect().height) : '?';
+            const t = (el) => el ? Math.round(el.getBoundingClientRect().top) : '?';
+            const header = document.querySelector('.app-header');
+            const display = document.querySelector('.display');
+            const controls = document.querySelector('.controls');
+            const btnRow = document.querySelector('.btn-row');
+            const footer = document.querySelector('.version-footer');
+            setInfo(
+              `hdr:${r(header)} disp:${r(display)} ctrl:${r(controls)} btn:${r(btnRow)} foot:${r(footer)}` +
+              ` | hdrT:${t(header)} dispT:${t(display)} ctrlT:${t(controls)} btnT:${t(btnRow)} footT:${t(footer)}`
+            );
           }, 500);
         }, []);
-        return <div style={{fontSize:'0.45rem',color:'#f5c842',marginTop:'2px'}}>{info}</div>;
+        return <div style={{fontSize:'0.4rem',color:'#f5c842',marginTop:'2px',lineHeight:1.4}}>{info}</div>;
       }
 
       return (
@@ -2457,7 +2456,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.2 · rossfarley.uk · © 2026 Ross Farley
+          >v1.8.1.beta.3 · rossfarley.uk · © 2026 Ross Farley
             <DebugInfo /></div>
 
           {numpadOpen === 'min' && (
