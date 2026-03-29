@@ -663,6 +663,8 @@ c<!DOCTYPE html>
 
     .help-section li { margin-bottom: 0.4rem; }
     .help-section li:last-child { margin-bottom: 0; }
+    .help-section a { color: #aaa; }
+    .help-section-support a { color: #f5c842; }
 
     .help-btn {
       background: none;
@@ -2065,7 +2067,7 @@ c<!DOCTYPE html>
                   <h3>Feedback</h3>
                   <p>Found a bug or have a suggestion? <a href="mailto:hello@shuffleclick.com">Get in touch →</a></p>
                 </div>
-                <div className="help-section">
+                <div className="help-section help-section-support">
                   <h3>Support Shuffle</h3>
                   <p>Enjoying Shuffle? Help keep it free and growing! ☕{" "}<a href="https://www.buymeacoffee.com/rossfarley" target="_blank" rel="noopener noreferrer">Support here →</a></p>
                 </div>
@@ -2336,7 +2338,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.21 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.22 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
