@@ -2080,6 +2080,27 @@
 
       const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "metronome";
 
+      function DebugInfo() {
+        const [info, setInfo] = React.useState('');
+        React.useEffect(() => {
+          const probe = document.createElement('div');
+          probe.style.cssText = 'position:fixed;bottom:0;height:env(safe-area-inset-bottom,0px);pointer-events:none;visibility:hidden';
+          document.body.appendChild(probe);
+          const app = document.querySelector('.app');
+          const footer = document.querySelector('.version-footer');
+          const display = document.querySelector('.display');
+          setTimeout(() => {
+            const sab = probe.getBoundingClientRect().height;
+            const appH = app ? Math.round(app.getBoundingClientRect().height) : '?';
+            const dispH = display ? Math.round(display.getBoundingClientRect().height) : '?';
+            const footBottom = footer ? Math.round(footer.getBoundingClientRect().bottom) : '?';
+            setInfo(`vh:${window.innerHeight} app:${appH} disp:${dispH} footBot:${footBottom} sab:${Math.round(sab)}`);
+            document.body.removeChild(probe);
+          }, 500);
+        }, []);
+        return <div style={{fontSize:'0.45rem',color:'#f5c842',marginTop:'2px'}}>{info}</div>;
+      }
+
       return (
         <div className="app">
 
@@ -2436,7 +2457,8 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1.beta.2 · rossfarley.uk · © 2026 Ross Farley
+            <DebugInfo /></div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
