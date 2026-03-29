@@ -139,7 +139,7 @@
       border: 1px solid #2a2a2a;
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
-      
+      position: relative;
     }
 
     .exercise-label {
@@ -938,6 +938,15 @@
       .pick-trigger-btn { height: 58px; }
       .ex-mode-toggle { height: 58px; }
     }
+
+    .mute-hint {
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-body); font-size: 12px; color: #888;
+      pointer-events: none; animation: mute-hint-in 0.4s ease forwards;
+    }
+    .mute-hint.fading { animation: mute-hint-out 0.4s ease forwards; }
+    @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
   </style>
   <script>if (!navigator.standalone) document.documentElement.classList.add('browser-mode');</script>
@@ -1801,6 +1810,7 @@
       const [exMode,          setExMode]          = useState(() => saved?.exMode ?? 'range');
       const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
       const [pickerOpen,      setPickerOpen]      = useState(false);
+      const [showMuteHint,    setShowMuteHint]    = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -1863,7 +1873,17 @@
         exMode, pickedNums,
       });
 
+      useEffect(() => {
+        if (!showMuteHint || phase !== "playing") return;
+        const t = setTimeout(() => setShowMuteHint(false), 400);
+        return () => clearTimeout(t);
+      }, [phase, showMuteHint]);
+
       const handleStart = () => {
+        if (!localStorage.getItem('muteHintSeen')) {
+          localStorage.setItem('muteHintSeen', '1');
+          setShowMuteHint(true);
+        }
         setSetComplete(false);
         setExercise(null); setNextEx(null); setExerciseKey(0);
         setPaused(false); setLooping(false); setResuming(false); setRunning(true);
@@ -2155,7 +2175,9 @@
               />
             )}
             {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
-
+            {showMuteHint && phase !== "idle" && (
+              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
+            )}
           </div>
 
           <div className="controls">
@@ -2340,7 +2362,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.28 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.37 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
