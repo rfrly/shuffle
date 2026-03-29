@@ -405,7 +405,7 @@
       font-family: var(--font-mono); font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
-    .range-row input:focus { outline: none; border-color: #ff4500; }
+    .range-row input:focus { outline: none; }
     .range-row input[readonly] { cursor: pointer; }
     .range-row input[readonly]:active { border-color: #f5c842; }
     .range-row input.invalid { border-color: #aa3333; }
@@ -844,6 +844,7 @@
       letter-spacing: 0.05em;
     }
     .numpad-display.empty { color: #444; }
+    .numpad-display.placeholder { color: #555; }
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
     .numpad-key {
       height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
@@ -1529,12 +1530,13 @@
     }
 
     function NumpadPopup({ label, initialValue, onConfirm, onClose }) {
-      const [inputStr, setInputStr] = useState(String(initialValue));
+      const [inputStr, setInputStr] = useState('');
       const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
       const handleBackspace = () => setInputStr(s => s.slice(0, -1));
       const handleClear = () => setInputStr('');
       const handleOk = () => {
-        const v = parseInt(inputStr);
+        const raw = isEmpty ? String(initialValue) : inputStr;
+        const v = parseInt(raw);
         const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
         onConfirm(c);
       };
@@ -1544,11 +1546,11 @@
           <div className="numpad-backdrop" onClick={onClose} />
           <div className="numpad-popup">
             <div className="numpad-header">{label}</div>
-            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <div className={`numpad-display${isEmpty ? ' placeholder' : ''}`}>{isEmpty ? String(initialValue) : inputStr}</div>
             <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
             <div className="numpad-actions">
               <button className="numpad-cancel" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>Cancel</button>
-              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk} disabled={isEmpty}>OK</button>
+              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk}>OK</button>
             </div>
           </div>
         </>,
@@ -2362,7 +2364,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.38 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.40 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
