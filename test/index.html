@@ -22,12 +22,16 @@ c<!DOCTYPE html>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
+    :root {
+      --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body, html {
       background: #0f0f0f;
       color: #e8e8e8;
-      font-family: 'Barlow', sans-serif;
+      font-family: var(--font-body);
       height: 100%;
       overflow: hidden;
       -webkit-text-size-adjust: 100%;
@@ -103,7 +107,7 @@ c<!DOCTYPE html>
     .app-header-spacer { width: 28px; flex-shrink: 0; }
 
     .app-title {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 1.1rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -112,7 +116,7 @@ c<!DOCTYPE html>
     }
 
     .app-subtitle {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -142,12 +146,12 @@ c<!DOCTYPE html>
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       min-height: 1em;
     }
 
     .exercise-number {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #f5c842;
@@ -176,7 +180,7 @@ c<!DOCTYPE html>
     }
 
     .next-exercise {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(1.4rem, 5vw, 2rem);
       color: #ccc;
       letter-spacing: 0.05em;
@@ -194,7 +198,7 @@ c<!DOCTYPE html>
     }
 
     .countdown-display {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #ff4500;
@@ -204,13 +208,18 @@ c<!DOCTYPE html>
     }
 
     .idle-summary {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       letter-spacing: 0.1em;
       color: #777;
       text-align: center;
       padding: 0.4rem 0 0.2rem;
       min-height: 1.2em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .beat-dots {
@@ -276,7 +285,7 @@ c<!DOCTYPE html>
     .bar-progress-fill.loop { opacity: 0.5; }
 
     .bar-progress-counter {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: #555;
@@ -318,6 +327,10 @@ c<!DOCTYPE html>
       }
     }
 
+    @media (max-width: 380px) {
+      .sel-btn { font-size: 0.65rem; letter-spacing: 0.02em; }
+    }
+
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
     .control-group.full-width { grid-column: 1 / -1; }
 
@@ -326,7 +339,7 @@ c<!DOCTYPE html>
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: #888;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
 
     .control-group.secondary label { color: #888; }
@@ -340,7 +353,7 @@ c<!DOCTYPE html>
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.1s, color 0.1s;
-      flex-shrink: 0; font-family: 'Share Tech Mono', monospace;
+      flex-shrink: 0; font-family: var(--font-mono);
     }
     .bpm-btn:active { background: #2a2a2a; color: #fff; }
     .bpm-btn:disabled { opacity: 0.25; cursor: default; }
@@ -350,7 +363,7 @@ c<!DOCTYPE html>
     .bpm-tap {
       flex: 1; height: 44px;
       background: #1a1a1a; border: 1px solid #333;
-      color: #f5c842; font-family: 'Share Tech Mono', monospace;
+      color: #f5c842; font-family: var(--font-mono);
       font-size: 1rem; text-align: center; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.08s; min-width: 40px;
@@ -367,7 +380,7 @@ c<!DOCTYPE html>
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.1s; flex-shrink: 0;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
     .stepper-btn:active { background: #2a2a2a; color: #fff; }
     .stepper-btn:disabled { opacity: 0.25; cursor: default; }
@@ -378,7 +391,7 @@ c<!DOCTYPE html>
       flex: 1; height: 44px;
       background: #1a1a1a; border: 1px solid #333;
       border-left: none; border-right: none;
-      color: #e8e8e8; font-family: 'Share Tech Mono', monospace;
+      color: #e8e8e8; font-family: var(--font-mono);
       font-size: 1rem; text-align: center;
       display: flex; align-items: center; justify-content: center;
       min-width: 40px;
@@ -388,12 +401,14 @@ c<!DOCTYPE html>
     .range-row input {
       flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
-      font-family: 'Share Tech Mono', monospace; font-size: 1rem;
+      font-family: var(--font-mono); font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
     .range-row input[readonly] { cursor: pointer; }
     .range-row input[readonly]:active { border-color: #f5c842; }
+    .range-row input.invalid { border-color: #c44; }
+    .pick-trigger-btn.invalid { border-color: #c44; }
     .range-row input:disabled { opacity: 0.25; cursor: default; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
@@ -401,7 +416,7 @@ c<!DOCTYPE html>
 
     .sel-btn {
       background: #1a1a1a; border: 1px solid #333; color: #bbb;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center; justify-content: center; flex: 1;
@@ -413,7 +428,7 @@ c<!DOCTYPE html>
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
       font-size: 0.75rem; color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
     .check-row.disabled { opacity: 0.25; }
 
@@ -444,7 +459,7 @@ c<!DOCTYPE html>
       background: #1e1e1e; border: 1px solid #444; color: #bbb;
       padding: 0 0.75rem; border-radius: 8px;
       cursor: pointer; transition: background 0.1s; flex-shrink: 0;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
       width: 100%;
     }
@@ -465,7 +480,7 @@ c<!DOCTYPE html>
       z-index: 10;
     }
     .vol-slider-row span {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem; color: #777;
       letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
     }
@@ -482,7 +497,7 @@ c<!DOCTYPE html>
 
     .action-btn {
       flex: 1; padding: 1rem;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase;
       cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
       border: 1px solid #f5c842; border-radius: 8px;
@@ -501,11 +516,11 @@ c<!DOCTYPE html>
 
     .error-msg {
       font-size: 0.7rem; color: #ff4500;
-      font-family: 'Share Tech Mono', monospace; letter-spacing: 0.1em;
+      font-family: var(--font-mono); letter-spacing: 0.1em;
     }
 
     .version-footer {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: #444;
       letter-spacing: 0.15em;
@@ -524,7 +539,7 @@ c<!DOCTYPE html>
       gap: 1rem;
     }
     .rotate-overlay p {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: #666;
       letter-spacing: 0.15em;
@@ -574,7 +589,7 @@ c<!DOCTYPE html>
       border: 1px solid #555;
       border-radius: 4px;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       cursor: pointer;
       padding: 0.4rem 0.7rem;
@@ -590,7 +605,7 @@ c<!DOCTYPE html>
       border: 1px solid #555;
       border-radius: 4px;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -612,7 +627,7 @@ c<!DOCTYPE html>
     }
 
     .help-title {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -622,7 +637,7 @@ c<!DOCTYPE html>
     .help-section { display: flex; flex-direction: column; gap: 0.3rem; }
 
     .help-section h3 {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -631,7 +646,7 @@ c<!DOCTYPE html>
     }
 
     .help-section p {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.9rem;
       color: #888;
       line-height: 1.6;
@@ -639,7 +654,7 @@ c<!DOCTYPE html>
     }
 
     .help-section ul {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.9rem;
       color: #888;
       line-height: 1.6;
@@ -653,7 +668,7 @@ c<!DOCTYPE html>
       background: none;
       border: 1px solid #444;
       color: #666;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       cursor: pointer;
       padding: 0.2rem 0.5rem;
@@ -754,6 +769,17 @@ c<!DOCTYPE html>
       .version-footer { font-size: 0.6rem; }
       .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
+
+      .bpm-btn:hover { background: #252525; color: #fff; }
+      .bpm-tap:hover { background: #212121; }
+      .stepper-btn:hover { background: #252525; color: #fff; }
+      .sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
+      .compact-sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
+      .action-btn:hover:not(:disabled) { filter: brightness(1.08); }
+      .help-btn:hover { color: #888; border-color: #555; }
+      .vol-label-btn:hover { background: #252525; }
+      .pick-trigger-btn:hover:not(:disabled) { background: #252525; border-color: #555; }
+      .ex-mode-btn:hover:not(:disabled):not(.active) { background: #252525; color: #888; }
     }
 
     @media (hover: hover) and (min-width: 1440px) {
@@ -774,7 +800,7 @@ c<!DOCTYPE html>
     /* ── CompactSelector ──────────────────────────────────────────────────── */
     .compact-sel-btn {
       background: #1a1a1a; border: 1px solid #333; color: #ccc;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.75rem;
       padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center; white-space: nowrap;
@@ -806,10 +832,10 @@ c<!DOCTYPE html>
       padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
       box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: min(280px, 88vw);
     }
-    .numpad-header { font-family: 'Barlow', sans-serif; font-size: 0.65rem; font-weight: 600;
+    .numpad-header { font-family: var(--font-body); font-size: 0.65rem; font-weight: 600;
       letter-spacing: 0.12em; text-transform: uppercase; color: #666; text-align: center; }
     .numpad-display {
-      font-family: 'Share Tech Mono', monospace; font-size: 2.2rem; color: #f5c842;
+      font-family: var(--font-mono); font-size: 2.2rem; color: #f5c842;
       text-align: center; min-height: 3rem; background: #141414; border: 1px solid #2a2a2a;
       border-radius: 6px; display: flex; align-items: center; justify-content: center;
       letter-spacing: 0.05em;
@@ -818,21 +844,21 @@ c<!DOCTYPE html>
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
     .numpad-key {
       height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
-      font-family: 'Share Tech Mono', monospace; font-size: 1.2rem; border-radius: 5px;
+      font-family: var(--font-mono); font-size: 1.2rem; border-radius: 5px;
       cursor: pointer; display: flex; align-items: center; justify-content: center;
       user-select: none; -webkit-user-select: none;
     }
     .numpad-key:active { background: #383838; color: #fff; border-color: #555; }
-    .numpad-key.fn { color: #777; font-size: 1rem; font-family: 'Barlow', sans-serif; }
+    .numpad-key.fn { color: #777; font-size: 1rem; font-family: var(--font-body); }
     .numpad-actions { display: flex; gap: 0.4rem; }
     .numpad-cancel {
       flex: 1; height: 46px; background: #1c1c1c; border: 1px solid #383838; color: #888;
-      font-family: 'Barlow', sans-serif; font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+      font-family: var(--font-body); font-size: 0.85rem; border-radius: 5px; cursor: pointer;
     }
     .numpad-cancel:active { background: #2a2a2a; color: #ccc; }
     .numpad-ok {
       flex: 2; height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
-      font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 600;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
       border-radius: 5px; cursor: pointer;
     }
     .numpad-ok:active { background: #d4ac38; }
@@ -850,11 +876,11 @@ c<!DOCTYPE html>
       display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 2.2rem;
       padding: 0.4rem; background: #141414; border: 1px solid #2a2a2a; border-radius: 6px;
     }
-    .picker-chips-empty { color: #444; font-family: 'Barlow', sans-serif; font-size: 0.75rem;
+    .picker-chips-empty { color: #444; font-family: var(--font-body); font-size: 0.75rem;
       display: flex; align-items: center; }
     .picker-chip {
       background: #2a2a2a; border: 1px solid #f5c842; color: #f5c842;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.8rem;
+      font-family: var(--font-mono); font-size: 0.8rem;
       padding: 0.2rem 0.45rem; border-radius: 4px; cursor: pointer;
       user-select: none; -webkit-user-select: none;
     }
@@ -862,13 +888,13 @@ c<!DOCTYPE html>
     .picker-divider { height: 1px; background: #2a2a2a; }
     .picker-add-btn {
       height: 46px; background: #252525; border: 1px solid #383838; color: #ccc;
-      font-family: 'Barlow', sans-serif; font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+      font-family: var(--font-body); font-size: 0.85rem; border-radius: 5px; cursor: pointer;
     }
     .picker-add-btn:active { background: #383838; color: #fff; }
     .picker-add-btn:disabled { opacity: 0.25; cursor: default; }
     .picker-done-btn {
       height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
-      font-family: 'Barlow', sans-serif; font-size: 0.9rem; font-weight: 600;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
       border-radius: 5px; cursor: pointer;
     }
     .picker-done-btn:active { background: #d4ac38; }
@@ -881,7 +907,7 @@ c<!DOCTYPE html>
       height: 44px; border-radius: 4px; overflow: hidden; border: 1px solid #2a2a2a; }
     .ex-mode-btn {
       flex: 1; background: #1c1c1c; border: none; color: #555;
-      font-family: 'Barlow', sans-serif; font-size: 0.6rem; font-weight: 600;
+      font-family: var(--font-body); font-size: 0.6rem; font-weight: 600;
       letter-spacing: 0.04em; cursor: pointer; line-height: 1;
     }
     .ex-mode-btn + .ex-mode-btn { border-top: 1px solid #2a2a2a; }
@@ -889,7 +915,7 @@ c<!DOCTYPE html>
     .ex-mode-btn:disabled { opacity: 0.3; cursor: default; }
     .pick-trigger-btn {
       width: 100%; height: 44px; background: #1c1c1c; border: 1px solid #2a2a2a;
-      color: #ccc; font-family: 'Share Tech Mono', monospace; font-size: 0.85rem;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.85rem;
       border-radius: 5px; cursor: pointer; text-align: center; padding: 0 0.5rem;
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
     }
@@ -1521,6 +1547,7 @@ c<!DOCTYPE html>
     function BarPickerPopup({ pickedNums, onConfirm, onClose }) {
       const [localPicked, setLocalPicked] = useState(() => [...pickedNums]);
       const [inputStr, setInputStr] = useState('');
+      const [flashChip, setFlashChip] = useState(null);
       const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
       const handleBackspace = () => {
         if (inputStr !== '') setInputStr(s => s.slice(0, -1));
@@ -1531,7 +1558,13 @@ c<!DOCTYPE html>
         const v = parseInt(inputStr);
         if (isNaN(v)) return;
         const c = Math.max(EX_MIN, Math.min(EX_MAX, v));
-        setLocalPicked(prev => prev.includes(c) ? prev : [...prev, c].sort((a, b) => a - b));
+        if (localPicked.includes(c)) {
+          setFlashChip(c);
+          setTimeout(() => setFlashChip(null), 400);
+          setInputStr('');
+          return;
+        }
+        setLocalPicked(prev => [...prev, c].sort((a, b) => a - b));
         setInputStr('');
       };
       const handleRemove = (n) => setLocalPicked(prev => prev.filter(x => x !== n));
@@ -1540,14 +1573,16 @@ c<!DOCTYPE html>
       const parsedValid = !isEmpty && !isNaN(parseInt(inputStr));
       return ReactDOM.createPortal(
         <>
-          <div className="numpad-backdrop" onClick={handleDone} />
+          <div className="numpad-backdrop" onClick={onClose} />
           <div className="picker-popup">
             <div className="numpad-header">Pick exercises</div>
             <div className="picker-chips">
               {localPicked.length === 0
-                ? <span className="picker-chips-empty">No bars selected</span>
+                ? <span className="picker-chips-empty">No exercises selected</span>
                 : localPicked.map(n => (
-                    <button key={n} className="picker-chip" onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
+                    <button key={n} className="picker-chip"
+                      style={flashChip === n ? { borderColor: '#ff4500', color: '#ff4500' } : {}}
+                      onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
                       {fmt(n)}
                     </button>
                   ))
@@ -1991,7 +2026,7 @@ c<!DOCTYPE html>
                   setHelpScrolledToEnd(atEnd);
                 }}>
                 <div className="help-content" onClick={e => e.stopPropagation()}>
-                {helpNeedsScroll && <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>}
+                <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
                   <p>Shuffle randomises your exercises to help you practise more effectively.</p>
@@ -2023,6 +2058,8 @@ c<!DOCTYPE html>
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
                     <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
+                    <li>In range mode, swipe up or down on the min/max inputs to nudge the value by one.</li>
+                    <li>Exercise length is always 1 bar in pick mode.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2214,16 +2251,18 @@ c<!DOCTYPE html>
                       {exMode === 'range' ? (
                         <div className="range-row">
                           <input type="text" readOnly value={minExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...minSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
                           <span>to</span>
                           <input type="text" readOnly value={maxExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...maxSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
                         </div>
                       ) : (
                         <button
-                          className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}`}
+                          className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running && mode !== MODE_CLICKONLY ? ' invalid' : ''}`}
                           disabled={running || mode === MODE_CLICKONLY}
                           onClick={() => setPickerOpen(true)}>
                           {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.join(', ')}
@@ -2298,7 +2337,7 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.17 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.7.0.beta.19 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
