@@ -16,18 +16,22 @@ c<!DOCTYPE html>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="shuffle-icon.png?v=6" />
-  <link rel="icon" href="shuffle-icon.png?v=6" />
+  <link rel="apple-touch-icon" sizes="512x512" href="shuffle-icon.png?v=7" />
+  <link rel="icon" href="shuffle-icon.png?v=7" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <style>
+    :root {
+      --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+      --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+    }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
     body, html {
       background: #0f0f0f;
       color: #e8e8e8;
-      font-family: 'Barlow', sans-serif;
+      font-family: var(--font-body);
       height: 100%;
       overflow: hidden;
       -webkit-text-size-adjust: 100%;
@@ -49,7 +53,7 @@ c<!DOCTYPE html>
   padding-left: 1.5rem;
   padding-right: 1.5rem;
   padding-top: max(1rem, env(safe-area-inset-top));
-  padding-bottom: max(0.4rem, calc(env(safe-area-inset-bottom) - 28px));
+  padding-bottom: max(0.5rem, calc(env(safe-area-inset-bottom) - 10px));
 
   gap: 0.75rem;
 
@@ -103,7 +107,7 @@ c<!DOCTYPE html>
     .app-header-spacer { width: 28px; flex-shrink: 0; }
 
     .app-title {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 1.1rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -112,7 +116,7 @@ c<!DOCTYPE html>
     }
 
     .app-subtitle {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.55rem;
       letter-spacing: 0.1em;
       text-transform: uppercase;
@@ -142,12 +146,12 @@ c<!DOCTYPE html>
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       min-height: 1em;
     }
 
     .exercise-number {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #f5c842;
@@ -176,7 +180,7 @@ c<!DOCTYPE html>
     }
 
     .next-exercise {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(1.4rem, 5vw, 2rem);
       color: #ccc;
       letter-spacing: 0.05em;
@@ -194,7 +198,7 @@ c<!DOCTYPE html>
     }
 
     .countdown-display {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #ff4500;
@@ -204,13 +208,18 @@ c<!DOCTYPE html>
     }
 
     .idle-summary {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.7rem;
       letter-spacing: 0.1em;
       color: #777;
       text-align: center;
       padding: 0.4rem 0 0.2rem;
       min-height: 1.2em;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
 
     .beat-dots {
@@ -276,7 +285,7 @@ c<!DOCTYPE html>
     .bar-progress-fill.loop { opacity: 0.5; }
 
     .bar-progress-counter {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: #555;
@@ -318,6 +327,10 @@ c<!DOCTYPE html>
       }
     }
 
+    @media (max-width: 380px) {
+      .sel-btn { font-size: 0.65rem; letter-spacing: 0.02em; }
+    }
+
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
     .control-group.full-width { grid-column: 1 / -1; }
 
@@ -326,7 +339,7 @@ c<!DOCTYPE html>
       letter-spacing: 0.15em;
       text-transform: uppercase;
       color: #888;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
 
     .control-group.secondary label { color: #888; }
@@ -340,7 +353,7 @@ c<!DOCTYPE html>
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.1s, color 0.1s;
-      flex-shrink: 0; font-family: 'Share Tech Mono', monospace;
+      flex-shrink: 0; font-family: var(--font-mono);
     }
     .bpm-btn:active { background: #2a2a2a; color: #fff; }
     .bpm-btn:disabled { opacity: 0.25; cursor: default; }
@@ -350,7 +363,7 @@ c<!DOCTYPE html>
     .bpm-tap {
       flex: 1; height: 44px;
       background: #1a1a1a; border: 1px solid #333;
-      color: #f5c842; font-family: 'Share Tech Mono', monospace;
+      color: #f5c842; font-family: var(--font-mono);
       font-size: 1rem; text-align: center; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.08s; min-width: 40px;
@@ -367,7 +380,7 @@ c<!DOCTYPE html>
       font-size: 1.2rem; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
       user-select: none; transition: background 0.1s; flex-shrink: 0;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
     .stepper-btn:active { background: #2a2a2a; color: #fff; }
     .stepper-btn:disabled { opacity: 0.25; cursor: default; }
@@ -378,7 +391,7 @@ c<!DOCTYPE html>
       flex: 1; height: 44px;
       background: #1a1a1a; border: 1px solid #333;
       border-left: none; border-right: none;
-      color: #e8e8e8; font-family: 'Share Tech Mono', monospace;
+      color: #e8e8e8; font-family: var(--font-mono);
       font-size: 1rem; text-align: center;
       display: flex; align-items: center; justify-content: center;
       min-width: 40px;
@@ -388,18 +401,22 @@ c<!DOCTYPE html>
     .range-row input {
       flex: 1; min-width: 0; height: 44px;
       background: #1a1a1a; border: 1px solid #333; color: #e8e8e8;
-      font-family: 'Share Tech Mono', monospace; font-size: 1rem;
+      font-family: var(--font-mono); font-size: 1rem;
       padding: 0.4rem 0.5rem; text-align: center; border-radius: 4px;
     }
     .range-row input:focus { outline: none; border-color: #ff4500; }
-    .range-row input:disabled { opacity: 0.25; }
+    .range-row input[readonly] { cursor: pointer; }
+    .range-row input[readonly]:active { border-color: #f5c842; }
+    .range-row input.invalid { border-color: #c44; }
+    .pick-trigger-btn.invalid { border-color: #c44; }
+    .range-row input:disabled { opacity: 0.25; cursor: default; }
     .range-row span { font-size: 0.7rem; color: #777; }
 
     .selector-row { display: flex; gap: 0.4rem; flex-wrap: nowrap; }
 
     .sel-btn {
       background: #1a1a1a; border: 1px solid #333; color: #bbb;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.75rem;
       padding: 0 0.65rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center; justify-content: center; flex: 1;
@@ -411,7 +428,7 @@ c<!DOCTYPE html>
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
       font-size: 0.75rem; color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
     }
     .check-row.disabled { opacity: 0.25; }
 
@@ -442,7 +459,7 @@ c<!DOCTYPE html>
       background: #1e1e1e; border: 1px solid #444; color: #bbb;
       padding: 0 0.75rem; border-radius: 8px;
       cursor: pointer; transition: background 0.1s; flex-shrink: 0;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase;
       width: 100%;
     }
@@ -463,7 +480,7 @@ c<!DOCTYPE html>
       z-index: 10;
     }
     .vol-slider-row span {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem; color: #777;
       letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
     }
@@ -480,7 +497,7 @@ c<!DOCTYPE html>
 
     .action-btn {
       flex: 1; padding: 1rem;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem; letter-spacing: 0.2em; text-transform: uppercase;
       cursor: pointer; transition: background 0.15s, color 0.15s, border-color 0.15s;
       border: 1px solid #f5c842; border-radius: 8px;
@@ -499,11 +516,11 @@ c<!DOCTYPE html>
 
     .error-msg {
       font-size: 0.7rem; color: #ff4500;
-      font-family: 'Share Tech Mono', monospace; letter-spacing: 0.1em;
+      font-family: var(--font-mono); letter-spacing: 0.1em;
     }
 
     .version-footer {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.5rem;
       color: #444;
       letter-spacing: 0.15em;
@@ -522,7 +539,7 @@ c<!DOCTYPE html>
       gap: 1rem;
     }
     .rotate-overlay p {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       color: #666;
       letter-spacing: 0.15em;
@@ -572,7 +589,7 @@ c<!DOCTYPE html>
       border: 1px solid #555;
       border-radius: 4px;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       cursor: pointer;
       padding: 0.4rem 0.7rem;
@@ -588,7 +605,7 @@ c<!DOCTYPE html>
       border: 1px solid #555;
       border-radius: 4px;
       color: #aaa;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.65rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -610,7 +627,7 @@ c<!DOCTYPE html>
     }
 
     .help-title {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       letter-spacing: 0.2em;
       text-transform: uppercase;
@@ -620,7 +637,7 @@ c<!DOCTYPE html>
     .help-section { display: flex; flex-direction: column; gap: 0.3rem; }
 
     .help-section h3 {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.85rem;
       letter-spacing: 0.15em;
       text-transform: uppercase;
@@ -629,7 +646,7 @@ c<!DOCTYPE html>
     }
 
     .help-section p {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.9rem;
       color: #888;
       line-height: 1.6;
@@ -637,7 +654,7 @@ c<!DOCTYPE html>
     }
 
     .help-section ul {
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.9rem;
       color: #888;
       line-height: 1.6;
@@ -646,12 +663,14 @@ c<!DOCTYPE html>
 
     .help-section li { margin-bottom: 0.4rem; }
     .help-section li:last-child { margin-bottom: 0; }
+    .help-section a { color: #aaa; }
+    .help-section-support a { color: #f5c842; }
 
     .help-btn {
       background: none;
       border: 1px solid #444;
       color: #666;
-      font-family: 'Share Tech Mono', monospace;
+      font-family: var(--font-mono);
       font-size: 0.75rem;
       cursor: pointer;
       padding: 0.2rem 0.5rem;
@@ -741,7 +760,7 @@ c<!DOCTYPE html>
       .help-overlay { padding-top: 3.5rem; }
       .help-content { max-width: 560px; }
       .app-header { max-width: 560px; }
-      .app-subtitle { font-size: 0.7rem; }
+      .app-subtitle { font-size: 0.6rem; }
       .display { max-width: 560px; }
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
@@ -752,6 +771,17 @@ c<!DOCTYPE html>
       .version-footer { font-size: 0.6rem; }
       .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
       .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
+
+      .bpm-btn:hover { background: #252525; color: #fff; }
+      .bpm-tap:hover { background: #212121; }
+      .stepper-btn:hover { background: #252525; color: #fff; }
+      .sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
+      .compact-sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
+      .action-btn:hover:not(:disabled) { filter: brightness(1.08); }
+      .help-btn:hover { color: #888; border-color: #555; }
+      .vol-label-btn:hover { background: #252525; }
+      .pick-trigger-btn:hover:not(:disabled) { background: #252525; border-color: #555; }
+      .ex-mode-btn:hover:not(:disabled):not(.active) { background: #252525; color: #888; }
     }
 
     @media (hover: hover) and (min-width: 1440px) {
@@ -772,7 +802,7 @@ c<!DOCTYPE html>
     /* ── CompactSelector ──────────────────────────────────────────────────── */
     .compact-sel-btn {
       background: #1a1a1a; border: 1px solid #333; color: #ccc;
-      font-family: 'Share Tech Mono', monospace; font-size: 0.75rem;
+      font-family: var(--font-mono); font-size: 0.75rem;
       padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
       letter-spacing: 0.05em; height: 44px; border-radius: 4px;
       display: flex; align-items: center; white-space: nowrap;
@@ -794,6 +824,118 @@ c<!DOCTYPE html>
     }
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .compact-sel-btn { height: 58px; }
+    }
+
+    /* ── Numpad popup ─────────────────────────────────────────────────────────── */
+    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; }
+    .numpad-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: min(280px, 88vw);
+    }
+    .numpad-header { font-family: var(--font-body); font-size: 0.65rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase; color: #666; text-align: center; }
+    .numpad-display {
+      font-family: var(--font-mono); font-size: 2.2rem; color: #f5c842;
+      text-align: center; min-height: 3rem; background: #141414; border: 1px solid #2a2a2a;
+      border-radius: 6px; display: flex; align-items: center; justify-content: center;
+      letter-spacing: 0.05em;
+    }
+    .numpad-display.empty { color: #444; }
+    .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+    .numpad-key {
+      height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
+      font-family: var(--font-mono); font-size: 1.2rem; border-radius: 5px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      user-select: none; -webkit-user-select: none;
+    }
+    .numpad-key:active { background: #383838; color: #fff; border-color: #555; }
+    .numpad-key.fn { color: #777; font-size: 1rem; font-family: var(--font-body); }
+    .numpad-actions { display: flex; gap: 0.4rem; }
+    .numpad-cancel {
+      flex: 1; height: 46px; background: #1c1c1c; border: 1px solid #383838; color: #888;
+      font-family: var(--font-body); font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+    }
+    .numpad-cancel:active { background: #2a2a2a; color: #ccc; }
+    .numpad-ok {
+      flex: 2; height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+      border-radius: 5px; cursor: pointer;
+    }
+    .numpad-ok:active { background: #d4ac38; }
+    .numpad-ok:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Bar Picker popup ─────────────────────────────────────────────────────── */
+    .picker-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
+      padding: 1rem; display: flex; flex-direction: column; gap: 0.6rem;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.8); min-width: min(280px, 88vw); max-height: 90vh;
+      overflow-y: auto;
+    }
+    .picker-chips {
+      display: flex; flex-wrap: wrap; gap: 0.3rem; min-height: 2.2rem;
+      padding: 0.4rem; background: #141414; border: 1px solid #2a2a2a; border-radius: 6px;
+    }
+    .picker-chips-empty { color: #444; font-family: var(--font-body); font-size: 0.75rem;
+      display: flex; align-items: center; }
+    .picker-chip {
+      background: #2a2a2a; border: 1px solid #f5c842; color: #f5c842;
+      font-family: var(--font-mono); font-size: 0.8rem;
+      padding: 0.2rem 0.45rem; border-radius: 4px; cursor: pointer;
+      user-select: none; -webkit-user-select: none;
+    }
+    .picker-chip:active { background: #3a3210; border-color: #ff4500; color: #ff4500; }
+    .picker-divider { height: 1px; background: #2a2a2a; }
+    .picker-add-btn {
+      height: 46px; background: #252525; border: 1px solid #383838; color: #ccc;
+      font-family: var(--font-body); font-size: 0.85rem; border-radius: 5px; cursor: pointer;
+    }
+    .picker-add-btn:active { background: #383838; color: #fff; }
+    .picker-add-btn:disabled { opacity: 0.25; cursor: default; }
+    .picker-done-btn {
+      height: 46px; background: #f5c842; border: 1px solid #f5c842; color: #0f0f0f;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+      border-radius: 5px; cursor: pointer;
+    }
+    .picker-done-btn:active { background: #d4ac38; }
+
+    /* ── Ex mode toggle ───────────────────────────────────────────────────────── */
+    .ex-control-row { display: flex; gap: 0.5rem; align-items: stretch; width: 100%; }
+    .ex-control-row .range-row { flex: 1; width: auto; min-width: 0; margin: 0; }
+    .ex-control-row .pick-trigger-btn { flex: 1; }
+    .ex-mode-toggle { display: flex; flex-direction: column; flex-shrink: 0; width: 46px;
+      height: 44px; border-radius: 4px; overflow: hidden; border: 1px solid #2a2a2a; }
+    .ex-mode-btn {
+      flex: 1; background: #1c1c1c; border: none; color: #555;
+      font-family: var(--font-body); font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.04em; cursor: pointer; line-height: 1;
+    }
+    .ex-mode-btn + .ex-mode-btn { border-top: 1px solid #2a2a2a; }
+    .ex-mode-btn.active { background: #252525; color: #f5c842; }
+    .ex-mode-btn:disabled { opacity: 0.3; cursor: default; }
+    .pick-trigger-btn {
+      width: 100%; height: 44px; background: #1c1c1c; border: 1px solid #2a2a2a;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.85rem;
+      border-radius: 5px; cursor: pointer; text-align: center; padding: 0 0.5rem;
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .pick-trigger-btn:active { background: #252525; border-color: #f5c842; }
+    .pick-trigger-btn:disabled { opacity: 0.25; cursor: default; }
+    .pick-trigger-btn.empty { color: #555; }
+
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
+      .numpad-key { height: 60px; font-size: 1.3rem; }
+      .numpad-ok, .numpad-cancel { height: 52px; }
+      .pick-trigger-btn { height: 52px; }
+      .ex-mode-toggle { height: 52px; width: 50px; }
+    }
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+      .numpad-key { height: 64px; }
+      .numpad-ok, .numpad-cancel { height: 56px; }
+      .pick-trigger-btn { height: 58px; }
+      .ex-mode-toggle { height: 58px; }
     }
 
   </style>
@@ -833,7 +975,7 @@ c<!DOCTYPE html>
     const BARS_MIN                = 1;
     const BARS_MAX                = 32;
     const EX_MIN                  = 1;
-    const EX_MAX                  = 99;
+    const EX_MAX                  = 200;
     const TAP_MAX_HISTORY         = 8;
     const TAP_RESET_MS            = 2000;
     const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
@@ -926,7 +1068,8 @@ c<!DOCTYPE html>
                             onNewExercise, onNextExercise, onSetComplete,
                             running, paused, resuming,
                             countInBars, countInEveryRound,
-                            mode, volume, looping, setComplete }) {
+                            mode, volume, looping, setComplete,
+                            exMode, pickedNums }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -974,7 +1117,37 @@ c<!DOCTYPE html>
         return arr;
       }, []);
 
+      const buildDeckFromArray = useCallback((arr, avoidFirst) => {
+        const deck = [...arr];
+        for (let i = deck.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [deck[i], deck[j]] = [deck[j], deck[i]];
+        }
+        if (avoidFirst != null && deck.length > 1 && deck[0] === avoidFirst) {
+          const swap = Math.floor(Math.random() * (deck.length - 1)) + 1;
+          [deck[0], deck[swap]] = [deck[swap], deck[0]];
+        }
+        return deck;
+      }, []);
+
       const pickNext = useCallback((min, max, last, currentMode) => {
+        const { exMode: em, pickedNums: pn } = stateRef.current;
+        if (em === 'pick' && pn && pn.length > 0) {
+          if (currentMode === MODE_FULLSET) {
+            if (deckRef.current.length === 0) deckRef.current = buildDeckFromArray(pn, last);
+            return deckRef.current.shift();
+          } else if (currentMode === MODE_SEQUENTIAL) {
+            const ex = pn[seqIndex.current % pn.length];
+            seqIndex.current++;
+            return ex;
+          } else {
+            if (pn.length === 1) return pn[0];
+            let ex, attempts = 0;
+            do { ex = pn[Math.floor(Math.random() * pn.length)]; attempts++; }
+            while (ex === last && attempts < 20);
+            return ex;
+          }
+        }
         if (currentMode === MODE_FULLSET) {
           if (deckRef.current.length === 0) deckRef.current = buildDeck(min, max, last);
           return deckRef.current.shift();
@@ -990,14 +1163,14 @@ c<!DOCTYPE html>
           while (ex === last && attempts < 20);
           return ex;
         }
-      }, [buildDeck]);
+      }, [buildDeck, buildDeckFromArray]);
 
       const stateRef = useRef({});
       useEffect(() => {
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete,
                              countInBars, countInEveryRound,
-                             mode, volume };
+                             mode, volume, exMode, pickedNums };
       });
 
       const resumingRef = useRef(false);
@@ -1097,7 +1270,8 @@ c<!DOCTYPE html>
           const firstEx = pickNext(mn, mx, null, m);
           lastExercise.current = firstEx;
 
-          const totalInSetAtStart = mx - mn + 1;
+          const { exMode: emStart, pickedNums: pnStart } = stateRef.current;
+          const totalInSetAtStart = (emStart === 'pick' && pnStart && pnStart.length > 0) ? pnStart.length : mx - mn + 1;
           if ((m === MODE_FULLSET || m === MODE_SEQUENTIAL) && totalInSetAtStart === 1) {
             nextExercise.current = firstEx;
             setEndPending.current = true;
@@ -1120,7 +1294,8 @@ c<!DOCTYPE html>
           const beatLen           = 60 / b;
           const countInBeats      = bpb2 * cib2;
           const interCountInBeats = cier ? bpb2 * cib2 : 0;
-          const totalInSet        = max - min + 1;
+          const { exMode: em, pickedNums: pn } = stateRef.current;
+          const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
           while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
             const bc = beatCount.current;
@@ -1309,6 +1484,121 @@ c<!DOCTYPE html>
         onTouchEnd: (e) => { e.preventDefault(); stop(); },
         onTouchCancel: stop,
       };
+    }
+
+    // ── Swipe input ────────────────────────────────────────────────────────────
+
+    function useSwipeInput({ onSwipeUp, onSwipeDown, onTap, disabled, threshold = 15 }) {
+      const startYRef = useRef(null);
+      return {
+        onTouchStart: (e) => { if (disabled) return; e.preventDefault(); startYRef.current = e.touches[0].clientY; },
+        onTouchEnd: (e) => {
+          if (startYRef.current === null) return;
+          const delta = startYRef.current - e.changedTouches[0].clientY;
+          startYRef.current = null;
+          if (Math.abs(delta) > threshold) { if (delta > 0) onSwipeUp(); else onSwipeDown(); } else { onTap(); }
+        },
+        onClick: () => { if (!disabled) onTap(); },
+        style: { touchAction: 'none' },
+      };
+    }
+
+    // ── Numpad components ──────────────────────────────────────────────────────
+
+    function NumpadGrid({ onDigit, onBackspace, onClear }) {
+      return (
+        <div className="numpad-grid">
+          {[7,8,9,4,5,6,1,2,3].map(d => (
+            <button key={d} className="numpad-key" onPointerDown={(e) => { e.preventDefault(); onDigit(String(d)); }}>{d}</button>
+          ))}
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onClear(); }}>✕</button>
+          <button className="numpad-key" onPointerDown={(e) => { e.preventDefault(); onDigit('0'); }}>0</button>
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onBackspace(); }}>⌫</button>
+        </div>
+      );
+    }
+
+    function NumpadPopup({ label, initialValue, onConfirm, onClose }) {
+      const [inputStr, setInputStr] = useState(String(initialValue));
+      const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleBackspace = () => setInputStr(s => s.slice(0, -1));
+      const handleClear = () => setInputStr('');
+      const handleOk = () => {
+        const v = parseInt(inputStr);
+        const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
+        onConfirm(c);
+      };
+      const isEmpty = inputStr === '';
+      return ReactDOM.createPortal(
+        <>
+          <div className="numpad-backdrop" onClick={onClose} />
+          <div className="numpad-popup">
+            <div className="numpad-header">{label}</div>
+            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            <div className="numpad-actions">
+              <button className="numpad-cancel" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>Cancel</button>
+              <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk} disabled={isEmpty}>OK</button>
+            </div>
+          </div>
+        </>,
+        document.body
+      );
+    }
+
+    function BarPickerPopup({ pickedNums, onConfirm, onClose }) {
+      const [localPicked, setLocalPicked] = useState(() => [...pickedNums]);
+      const [inputStr, setInputStr] = useState('');
+      const [flashChip, setFlashChip] = useState(null);
+      const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleBackspace = () => {
+        if (inputStr !== '') setInputStr(s => s.slice(0, -1));
+        else setLocalPicked(prev => prev.slice(0, -1));
+      };
+      const handleClear = () => { if (inputStr !== '') setInputStr(''); else setLocalPicked([]); };
+      const handleAdd = () => {
+        const v = parseInt(inputStr);
+        if (isNaN(v)) return;
+        const c = Math.max(EX_MIN, Math.min(EX_MAX, v));
+        if (localPicked.includes(c)) {
+          setFlashChip(c);
+          setTimeout(() => setFlashChip(null), 400);
+          setInputStr('');
+          return;
+        }
+        setLocalPicked(prev => [...prev, c].sort((a, b) => a - b));
+        setInputStr('');
+      };
+      const handleRemove = (n) => setLocalPicked(prev => prev.filter(x => x !== n));
+      const handleDone = () => onConfirm([...localPicked]);
+      const isEmpty = inputStr === '';
+      const parsedValid = !isEmpty && !isNaN(parseInt(inputStr));
+      return ReactDOM.createPortal(
+        <>
+          <div className="numpad-backdrop" onClick={onClose} />
+          <div className="picker-popup">
+            <div className="numpad-header">Pick exercises</div>
+            <div className="picker-chips">
+              {localPicked.length === 0
+                ? <span className="picker-chips-empty">No exercises selected</span>
+                : localPicked.map(n => (
+                    <button key={n} className="picker-chip"
+                      style={flashChip === n ? { borderColor: '#ff4500', color: '#ff4500' } : {}}
+                      onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
+                      {fmt(n)}
+                    </button>
+                  ))
+              }
+            </div>
+            <div className="picker-divider" />
+            <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
+            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            <button className="picker-add-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleAdd} disabled={!parsedValid}>Add</button>
+            <button className="picker-done-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleDone}>Done</button>
+          </div>
+        </>,
+        document.body
+      );
     }
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
@@ -1506,13 +1796,18 @@ c<!DOCTYPE html>
       const helpPulseTimer = useRef(null);
       const [setComplete,     setSetComplete]     = useState(false);
       const [barFlash,        setBarFlash]        = useState(false);
+      const [numpadOpen,      setNumpadOpen]      = useState(null); // null | 'min' | 'max'
+      const [exMode,          setExMode]          = useState(() => saved?.exMode ?? 'range');
+      const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
+      const [pickerOpen,      setPickerOpen]      = useState(false);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                       minEx, maxEx, countInBars, countInEvery, mode, volume });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume]);
+                       minEx, maxEx, countInBars, countInEvery, mode, volume,
+                       exMode, pickedNums });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums]);
 
       useEffect(() => {
         if (!helpPulse) return;
@@ -1555,7 +1850,7 @@ c<!DOCTYPE html>
       const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
         bpm,
         beatsPerBar: timeSig.beats,
-        barsPerExercise: barsPerExercise * exerciseLength,
+        barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
         minEx, maxEx,
         onNewExercise: handleNewExercise,
         onNextExercise: handleNextExercise,
@@ -1564,6 +1859,7 @@ c<!DOCTYPE html>
         countInBars,
         countInEveryRound: countInEvery,
         mode, volume, looping, setComplete,
+        exMode, pickedNums,
       });
 
       const handleStart = () => {
@@ -1651,7 +1947,21 @@ c<!DOCTYPE html>
         }
       }, [currentBar, currentBeat, phase, paused]);
 
-      const validRange   = mode === MODE_CLICKONLY ? true : minEx <= maxEx;
+      const exInputDisabled = running || mode === MODE_CLICKONLY;
+      const minSwipeHandlers = useSwipeInput({
+        disabled: exInputDisabled,
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); setMinExStr(String(v)); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); setMinExStr(String(v)); },
+        onTap: () => setNumpadOpen('min'),
+      });
+      const maxSwipeHandlers = useSwipeInput({
+        disabled: exInputDisabled,
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onTap: () => setNumpadOpen('max'),
+      });
+
+      const validRange   = mode === MODE_CLICKONLY ? true : exMode === 'pick' ? pickedNums.length >= 1 : minEx <= maxEx;
       const totalBars    = barsPerExercise * exerciseLength;
       const currentRound = Math.floor(currentBar / exerciseLength) + 1;
       const progress     = totalBars > 1 ? currentBar / (totalBars - 1) : 1;
@@ -1718,14 +2028,15 @@ c<!DOCTYPE html>
                   setHelpScrolledToEnd(atEnd);
                 }}>
                 <div className="help-content" onClick={e => e.stopPropagation()}>
-                {helpNeedsScroll && <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>}
+                <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
                 <div className="help-title">How to use Shuffle</div>
                 <div className="help-section">
                   <p>Shuffle randomises your exercises to help you practise more effectively.</p>
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Set everything up before you press Start — exercise range, BPM, mode, rounds and count-in. To get a count-in before every exercise (not just the first), tap the Count in button and enable "count in every exercise".</p>
+                  <p>Choose your mode, then configure your session: exercise range (swipe up/down to nudge) or specific exercises, BPM, time signature, exercise length (always 1 bar in pick mode), and rounds.</p>
+                  <p>Tap Count in to set the count-in length. Enable "count in every exercise" if you want a count-in before each exercise, not just the first.</p>
                 </div>
                 <div className="help-section">
                   <h3>Modes</h3>
@@ -1739,8 +2050,8 @@ c<!DOCTYPE html>
                 <div className="help-section">
                   <h3>Loop / Pause / Stop</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                    <li>Loop — stay on the current exercise. Tap again to exit at the end of the current round.</li>
-                    <li>Pause — stops the metronome and resumes from the start of the current exercise with a count-in.</li>
+                    <li>Loop — repeats the current exercise indefinitely. Tap again to turn off loop mode; it will exit at the end of the current round.</li>
+                    <li>Pause — stops the metronome. Resuming restarts the current exercise from the beginning with a count-in.</li>
                     <li>Stop — ends the session and resets everything.</li>
                   </ul>
                 </div>
@@ -1750,13 +2061,14 @@ c<!DOCTYPE html>
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
                     <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
+
                   </ul>
                 </div>
                 <div className="help-section">
                   <h3>Feedback</h3>
                   <p>Found a bug or have a suggestion? <a href="mailto:hello@shuffleclick.com">Get in touch →</a></p>
                 </div>
-                <div className="help-section">
+                <div className="help-section help-section-support">
                   <h3>Support Shuffle</h3>
                   <p>Enjoying Shuffle? Help keep it free and growing! ☕{" "}<a href="https://www.buymeacoffee.com/rossfarley" target="_blank" rel="noopener noreferrer">Support here →</a></p>
                 </div>
@@ -1792,7 +2104,9 @@ c<!DOCTYPE html>
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
-                    : `${minEx}–${maxEx} · ${exerciseLength}-bar exercise · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                    : exMode === 'pick'
+                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      : `${minEx}–${maxEx} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -1919,42 +2233,59 @@ c<!DOCTYPE html>
                 />
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === 'pick' ? " dimmed" : ""}`}>
                 <label>Exercise length</label>
                 <CompactSelector
                   id="exLength"
                   value={exerciseLength}
                   options={[1, 2, 4]}
                   onChange={setExerciseLength}
-                  disabled={running || mode === MODE_CLICKONLY}
+                  disabled={running || mode === MODE_CLICKONLY || exMode === 'pick'}
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
                   getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
                 />
               </div>
 
-              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
-                <label>Exercises</label>
-                <div className="range-row">
-                  <input type="text" inputMode="numeric" value={minExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMinExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(minExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMinEx(c); setMinExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                  <span>to</span>
-                  <input type="text" inputMode="numeric" value={maxExStr}
-                    onFocus={e => { const t = e.target; setTimeout(() => t.select(), 0); }}
-                    onChange={e => setMaxExStr(e.target.value.replace(/[^0-9]/g, ''))}
-                    onBlur={() => { const v = parseInt(maxExStr); const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX); setMaxEx(c); setMaxExStr(String(c)); }}
-                    disabled={running || mode === MODE_CLICKONLY} />
-                </div>
-              </div>
+              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>
+                    <label>Exercises</label>
+                    <div className="ex-control-row">
+                      {exMode === 'range' ? (
+                        <div className="range-row">
+                          <input type="text" readOnly value={minExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                            {...minSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
+                          <span>to</span>
+                          <input type="text" readOnly value={maxExStr}
+                            className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                            {...maxSwipeHandlers}
+                            disabled={running || mode === MODE_CLICKONLY} />
+                        </div>
+                      ) : (
+                        <button
+                          className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running && mode !== MODE_CLICKONLY ? ' invalid' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => setPickerOpen(true)}>
+                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.join(', ')}
+                        </button>
+                      )}
+                      <div className="ex-mode-toggle">
+                        <button className={`ex-mode-btn${exMode === 'range' ? ' active' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => setExMode('range')}>Range</button>
+                        <button className={`ex-mode-btn${exMode === 'pick' ? ' active' : ''}`}
+                          disabled={running || mode === MODE_CLICKONLY}
+                          onClick={() => { setExMode('pick'); setExerciseLength(1); }}>Pick</button>
+                      </div>
+                    </div>
+                  </div>
 
               <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
                 <label>Rounds</label>
                 <div className="stepper">
                   <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
-                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.5 } : {}}>{barsPerExercise}</div>
+                  <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
                   <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
                 </div>
               </div>
@@ -2008,9 +2339,31 @@ c<!DOCTYPE html>
             )}
           </div>
 
-          {!validRange && <div className="error-msg">min must be less than or equal to max</div>}
+          <div className="version-footer">v1.7.0 · rossfarley.uk · © 2026 Ross Farley</div>
 
-          <div className="version-footer">v1.6.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          {numpadOpen === 'min' && (
+            <NumpadPopup
+              label="MIN"
+              initialValue={minEx}
+              onConfirm={(v) => { setMinEx(v); setMinExStr(String(v)); setNumpadOpen(null); }}
+              onClose={() => setNumpadOpen(null)}
+            />
+          )}
+          {numpadOpen === 'max' && (
+            <NumpadPopup
+              label="MAX"
+              initialValue={maxEx}
+              onConfirm={(v) => { setMaxEx(v); setMaxExStr(String(v)); setNumpadOpen(null); }}
+              onClose={() => setNumpadOpen(null)}
+            />
+          )}
+          {pickerOpen && (
+            <BarPickerPopup
+              pickedNums={pickedNums}
+              onConfirm={(nums) => { setPickedNums(nums); setPickerOpen(false); }}
+              onClose={() => setPickerOpen(false)}
+            />
+          )}
 
         </div>
       );
