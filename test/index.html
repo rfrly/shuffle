@@ -846,6 +846,8 @@
     .numpad-display.empty { color: #444; }
     .numpad-display.placeholder { color: #555; }
     .numpad-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.35rem; }
+    .letterpad-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; margin-bottom: 0.4rem; }
+    .letter-key { font-size: 0.85rem !important; }
     .numpad-key {
       height: 52px; background: #252525; border: 1px solid #333; color: #ccc;
       font-family: var(--font-mono); font-size: 1.2rem; border-radius: 5px;
@@ -867,6 +869,26 @@
     }
     .numpad-ok:active { background: #d4ac38; }
     .numpad-ok:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Letter mode popup ───────────────────────────────────────────────────── */
+    .letter-mode-popup {
+      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
+      padding: 1.4rem 1.2rem 1rem; display: flex; flex-direction: column; gap: 0.7rem;
+      width: min(320px, calc(100vw - 2.5rem)); text-align: center;
+    }
+    .letter-mode-popup-title {
+      font-family: var(--font-mono); font-size: 1.1rem; color: #f5c842; letter-spacing: 0.03em;
+    }
+    .letter-mode-popup-body {
+      font-family: var(--font-body); font-size: 0.85rem; color: #aaa; line-height: 1.5;
+    }
+    .letter-mode-popup-ok {
+      height: 44px; background: #f5c842; border: none; color: #0f0f0f;
+      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
+      border-radius: 5px; cursor: pointer; margin-top: 0.2rem;
+    }
+    .letter-mode-popup-ok:active { background: #e0b530; }
 
     /* ── Bar Picker popup ─────────────────────────────────────────────────────── */
     .picker-popup {
@@ -987,6 +1009,7 @@
     const BARS_MAX                = 32;
     const EX_MIN                  = 1;
     const EX_MAX                  = 200;
+    const EX_MAX_LETTERS          = 26;
     const TAP_MAX_HISTORY         = 8;
     const TAP_RESET_MS            = 2000;
     const BAR_BLOCKS_MAX          = 16;  // above this threshold, use progress bar
@@ -1529,25 +1552,48 @@
       );
     }
 
-    function NumpadPopup({ label, initialValue, onConfirm, onClose }) {
+    function LetterpadGrid({ onLetter, onBackspace, onClear }) {
+      return (
+        <div className="letterpad-grid">
+          {'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(l => (
+            <button key={l} className="numpad-key letter-key" onPointerDown={(e) => { e.preventDefault(); onLetter(l); }}>{l}</button>
+          ))}
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onClear(); }}>✕</button>
+          <button className="numpad-key fn" onPointerDown={(e) => { e.preventDefault(); onBackspace(); }}>⌫</button>
+        </div>
+      );
+    }
+
+    function NumpadPopup({ label, initialValue, onConfirm, onClose, letterMode }) {
       const [inputStr, setInputStr] = useState('');
       const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleLetter = (l) => setInputStr(l);
       const handleBackspace = () => setInputStr(s => s.slice(0, -1));
       const handleClear = () => setInputStr('');
       const handleOk = () => {
-        const raw = isEmpty ? String(initialValue) : inputStr;
-        const v = parseInt(raw);
-        const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
-        onConfirm(c);
+        if (letterMode) {
+          const raw = isEmpty ? numToLetter(initialValue) : inputStr;
+          const v = raw.toUpperCase().charCodeAt(0) - 64;
+          const c = isNaN(v) || v < 1 ? 1 : Math.min(v, EX_MAX_LETTERS);
+          onConfirm(c);
+        } else {
+          const raw = isEmpty ? String(initialValue) : inputStr;
+          const v = parseInt(raw);
+          const c = isNaN(v) || v < EX_MIN ? EX_MIN : Math.min(v, EX_MAX);
+          onConfirm(c);
+        }
       };
       const isEmpty = inputStr === '';
+      const placeholder = letterMode ? numToLetter(initialValue) : String(initialValue);
       return ReactDOM.createPortal(
         <>
           <div className="numpad-backdrop" onClick={onClose} />
           <div className="numpad-popup">
             <div className="numpad-header">{label}</div>
-            <div className={`numpad-display${isEmpty ? ' placeholder' : ''}`}>{isEmpty ? String(initialValue) : inputStr}</div>
-            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            <div className={`numpad-display${isEmpty ? ' placeholder' : ''}`}>{isEmpty ? placeholder : inputStr}</div>
+            {letterMode
+              ? <LetterpadGrid onLetter={handleLetter} onBackspace={handleBackspace} onClear={handleClear} />
+              : <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />}
             <div className="numpad-actions">
               <button className="numpad-cancel" onPointerDown={(e) => e.preventDefault()} onClick={onClose}>Cancel</button>
               <button className="numpad-ok" onPointerDown={(e) => e.preventDefault()} onClick={handleOk}>OK</button>
@@ -1558,20 +1604,27 @@
       );
     }
 
-    function BarPickerPopup({ pickedNums, onConfirm, onClose }) {
+    function BarPickerPopup({ pickedNums, onConfirm, onClose, letterMode }) {
       const [localPicked, setLocalPicked] = useState(() => [...pickedNums]);
       const [inputStr, setInputStr] = useState('');
       const [flashChip, setFlashChip] = useState(null);
       const handleDigit = (d) => setInputStr(s => s.length < 3 ? s + d : s);
+      const handleLetter = (l) => setInputStr(l);
       const handleBackspace = () => {
         if (inputStr !== '') setInputStr(s => s.slice(0, -1));
         else setLocalPicked(prev => prev.slice(0, -1));
       };
       const handleClear = () => { if (inputStr !== '') setInputStr(''); else setLocalPicked([]); };
       const handleAdd = () => {
-        const v = parseInt(inputStr);
-        if (isNaN(v)) return;
-        const c = Math.max(EX_MIN, Math.min(EX_MAX, v));
+        let c;
+        if (letterMode) {
+          if (!/^[A-Za-z]$/.test(inputStr)) return;
+          c = inputStr.toUpperCase().charCodeAt(0) - 64;
+        } else {
+          const v = parseInt(inputStr);
+          if (isNaN(v)) return;
+          c = Math.max(EX_MIN, Math.min(EX_MAX, v));
+        }
         if (localPicked.includes(c)) {
           setFlashChip(c);
           setTimeout(() => setFlashChip(null), 400);
@@ -1584,7 +1637,7 @@
       const handleRemove = (n) => setLocalPicked(prev => prev.filter(x => x !== n));
       const handleDone = () => onConfirm([...localPicked]);
       const isEmpty = inputStr === '';
-      const parsedValid = !isEmpty && !isNaN(parseInt(inputStr));
+      const parsedValid = letterMode ? (!isEmpty && /^[A-Za-z]$/.test(inputStr)) : (!isEmpty && !isNaN(parseInt(inputStr)));
       return ReactDOM.createPortal(
         <>
           <div className="numpad-backdrop" onClick={onClose} />
@@ -1597,14 +1650,16 @@
                     <button key={n} className="picker-chip"
                       style={flashChip === n ? { borderColor: '#ff4500', color: '#ff4500' } : {}}
                       onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
-                      {fmt(n)}
+                      {fmtEx(n, letterMode)}
                     </button>
                   ))
               }
             </div>
             <div className="picker-divider" />
             <div className={`numpad-display${isEmpty ? ' empty' : ''}`}>{isEmpty ? '–' : inputStr}</div>
-            <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />
+            {letterMode
+              ? <LetterpadGrid onLetter={handleLetter} onBackspace={handleBackspace} onClear={handleClear} />
+              : <NumpadGrid onDigit={handleDigit} onBackspace={handleBackspace} onClear={handleClear} />}
             <button className="picker-add-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleAdd} disabled={!parsedValid}>Add</button>
             <button className="picker-done-btn" onPointerDown={(e) => e.preventDefault()} onClick={handleDone}>Done</button>
           </div>
@@ -1614,6 +1669,8 @@
     }
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
+    function numToLetter(n) { return String.fromCharCode(64 + n); }
+    function fmtEx(n, lm) { return lm ? numToLetter(n) : fmt(n); }
 
     // ── Bar progress display ───────────────────────────────────────────────────
 
@@ -1813,14 +1870,25 @@
       const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
       const [pickerOpen,      setPickerOpen]      = useState(false);
       const [showMuteHint,    setShowMuteHint]    = useState(false);
+      const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
+      const [showLetterModePopup, setShowLetterModePopup] = useState(false);
+      const letterLongPress = useRef(null);
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, volume,
-                       exMode, pickedNums });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums]);
+                       exMode, pickedNums, letterMode });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums, letterMode]);
+
+      useEffect(() => {
+        if (!letterMode) return;
+        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
+        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
+        setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
+        setShowLetterModePopup(true);
+      }, [letterMode]);
 
       useEffect(() => {
         if (!helpPulse) return;
@@ -2116,7 +2184,7 @@
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {exercise !== null ? fmt(exercise) : "--"}
+                {exercise !== null ? fmtEx(exercise, letterMode) : "--"}
               </div>
             )}
 
@@ -2128,8 +2196,8 @@
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
                     : exMode === 'pick'
-                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                      : `${minEx}–${maxEx} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      : `${fmtEx(minEx, letterMode)}–${fmtEx(maxEx, letterMode)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -2143,13 +2211,13 @@
                 {paused
                   ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
                   : isResuming
-                    ? <><span className="next-label">resuming</span>{fmt(nextEx ?? exercise)}</>
+                    ? <><span className="next-label">resuming</span>{fmtEx(nextEx ?? exercise, letterMode)}</>
                     : looping
                       ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
                       : nextEx === -1 && phase === "playing"
                         ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
                         : nextEx !== null && (phase === "playing" || phase === "countin")
-                          ? <><span className="next-label">up next</span>{fmt(nextEx === -1 ? exercise : nextEx)}</>
+                          ? <><span className="next-label">up next</span>{fmtEx(nextEx === -1 ? exercise : nextEx, letterMode)}</>
                           : "\u00A0"}
               </div>
             )}
@@ -2277,12 +2345,12 @@
                     <div className="ex-control-row">
                       {exMode === 'range' ? (
                         <div className="range-row">
-                          <input type="text" readOnly value={minExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(minEx) : minExStr}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...minSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
                           <span>to</span>
-                          <input type="text" readOnly value={maxExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : maxExStr}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...maxSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
@@ -2292,7 +2360,7 @@
                           className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running && mode !== MODE_CLICKONLY ? ' invalid' : ''}`}
                           disabled={running || mode === MODE_CLICKONLY}
                           onClick={() => setPickerOpen(true)}>
-                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.join(', ')}
+                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')}
                         </button>
                       )}
                       <div className="ex-mode-toggle">
@@ -2364,7 +2432,11 @@
             )}
           </div>
 
-          <div className="version-footer">v1.7.0.beta.40 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer"
+            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
+            onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
+            onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
+          >v1.7.0.beta.43 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -2372,6 +2444,7 @@
               initialValue={minEx}
               onConfirm={(v) => { setMinEx(v); setMinExStr(String(v)); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
+              letterMode={letterMode}
             />
           )}
           {numpadOpen === 'max' && (
@@ -2380,6 +2453,7 @@
               initialValue={maxEx}
               onConfirm={(v) => { setMaxEx(v); setMaxExStr(String(v)); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
+              letterMode={letterMode}
             />
           )}
           {pickerOpen && (
@@ -2387,7 +2461,20 @@
               pickedNums={pickedNums}
               onConfirm={(nums) => { setPickedNums(nums); setPickerOpen(false); }}
               onClose={() => setPickerOpen(false)}
+              letterMode={letterMode}
             />
+          )}
+
+          {showLetterModePopup && ReactDOM.createPortal(
+            <>
+              <div className="numpad-backdrop" onClick={() => setShowLetterModePopup(false)} />
+              <div className="letter-mode-popup">
+                <div className="letter-mode-popup-title">You've discovered letter mode!</div>
+                <div className="letter-mode-popup-body">Exercises will now show as letters A–Z. To switch back to number mode, press and hold the version number at the bottom of the screen.</div>
+                <button className="letter-mode-popup-ok" onPointerDown={(e) => e.preventDefault()} onClick={() => setShowLetterModePopup(false)}>Got it</button>
+              </div>
+            </>,
+            document.body
           )}
 
         </div>
