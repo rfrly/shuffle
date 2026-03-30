@@ -122,7 +122,7 @@ watch_css = r"""
       cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0;
     }
     .sharing-indicator-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #4caf7d;
+      width: 8px; height: 8px; border-radius: 50%; background: #f5c842;
       animation: sharing-pulse 2s ease-in-out infinite;
     }
     @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -503,6 +503,10 @@ src = src.replace(
     '              : <div className="app-header-spacer" />}',
     1
 )
+
+# ── 9. Strip beta suffix from footer version string ─────────────────────────
+
+src = re.sub(r'(v\d+\.\d+\.\d+)\.beta\.\d+', r'\1', src)
 
 # ── Write output ─────────────────────────────────────────────────────────────
 

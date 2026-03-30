@@ -1040,7 +1040,7 @@
       cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0;
     }
     .sharing-indicator-dot {
-      width: 8px; height: 8px; border-radius: 50%; background: #4caf7d;
+      width: 8px; height: 8px; border-radius: 50%; background: #f5c842;
       animation: sharing-pulse 2s ease-in-out infinite;
     }
     @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
@@ -2839,7 +2839,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
