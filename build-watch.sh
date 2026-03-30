@@ -708,11 +708,12 @@ watch_state = """
       const [observedState,   setObservedState]   = useState(null);
       const [watchCode,       setWatchCode]       = useState("");
       const [teacherConnected, setTeacherConnected] = useState(false);
-      const watchDbRef    = useRef(null);
-      const shareDbRef    = useRef(null);
-      const shareInterval = useRef(null);
-      const cmdDbRef      = useRef(null);
-      const lastTSeq      = useRef(0);
+      const watchDbRef      = useRef(null);
+      const shareDbRef      = useRef(null);
+      const shareInterval   = useRef(null);
+      const cmdDbRef        = useRef(null);
+      const lastTSeq        = useRef(0);
+      const watchSilentLoop = useRef(null);
 
 """
 src = src.replace(
@@ -722,7 +723,15 @@ src = src.replace(
 
 # ── 6. Watch effects and handlers (after useDrumTimer, before showMuteHint) ──
 
-watch_effects = """      // ── Watch: broadcast live state when sharing ──────────────────────────
+watch_effects = """      // ── Watch: stop pre-start silent loop once useDrumTimer takes over ──────
+      useEffect(() => {
+        if (running && watchSilentLoop.current) {
+          try { watchSilentLoop.current.stop(); } catch {}
+          watchSilentLoop.current = null;
+        }
+      }, [running]);
+
+      // ── Watch: broadcast live state when sharing ──────────────────────────
       useEffect(() => {
         if ((watchScreen !== "share" && watchScreen !== "app") || !shareDbRef.current) return;
         const payload = {
@@ -763,6 +772,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
         shareDbRef.current = null;
         setShareCode("");
         setTeacherConnected(false);
+        if (watchSilentLoop.current) { try { watchSilentLoop.current.stop(); } catch {} watchSilentLoop.current = null; }
         setWatchScreen("home");
       }, [shareCode]);
 
@@ -881,7 +891,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             {teacherConnected
               ? <div className="share-session-hint" style={{ color: "#4caf50" }}>Teacher connected — tap Open Shuffle to begin.</div>
               : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
-            <button className="watch-btn primary" onClick={() => { try { const ctx = getCtx(); const buf = ctx.createBuffer(1, 1, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(); ctx.resume().catch(() => {}); } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
+            <button className="watch-btn primary" onClick={() => { try { const ctx = getCtx(); ctx.resume().catch(() => {}); if (!watchSilentLoop.current) { const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; const gain = ctx.createGain(); gain.gain.value = 0.001; src.connect(gain); gain.connect(ctx.destination); src.start(); watchSilentLoop.current = src; } } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
             <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
