@@ -766,19 +766,6 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
         setWatchScreen("home");
       }, [shareCode]);
 
-      const handleOpenShuffle = useCallback(() => {
-        try {
-          const ctx = getCtx();
-          const buf = ctx.createBuffer(1, 1, ctx.sampleRate);
-          const src = ctx.createBufferSource();
-          src.buffer = buf;
-          src.connect(ctx.destination);
-          src.start();
-          ctx.resume().catch(() => {});
-        } catch(e) {}
-        setWatchScreen("app");
-      }, [getCtx]);
-
       const handleConnectWatch = useCallback((code) => {
         const stateRef = _db.ref("sessions/" + code + "/state");
         stateRef.once("value").then(snap => {
@@ -894,7 +881,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             {teacherConnected
               ? <div className="share-session-hint" style={{ color: "#4caf50" }}>Teacher connected — tap Open Shuffle to begin.</div>
               : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
-            <button className="watch-btn primary" onClick={handleOpenShuffle}>Open Shuffle</button>
+            <button className="watch-btn primary" onClick={() => { try { const ctx = getCtx(); const buf = ctx.createBuffer(1, 1, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.connect(ctx.destination); src.start(); ctx.resume().catch(() => {}); } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
             <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
