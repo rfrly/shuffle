@@ -33,6 +33,14 @@ src = src.replace(
     '<meta name="apple-mobile-web-app-title" content="Shuffle" />',
     '<meta name="apple-mobile-web-app-title" content="Shuffle Watch" />'
 )
+src = src.replace(
+    '  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />\n'
+    '  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />\n'
+    '  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />',
+    '  <link rel="apple-touch-icon" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />\n'
+    '  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />\n'
+    '  <link rel="icon" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />'
+)
 
 # ── 2. Firebase SDK scripts ──────────────────────────────────────────────────
 
