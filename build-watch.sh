@@ -603,13 +603,13 @@ firebase_and_observer = r"""
                       <input type="text" readOnly
                         value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
                         disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onClick={() => !disabled && !obsRunning && obsMode !== "clickonly" && setNumpadOpen("min")}
+                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("min"); }}
                         style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
                       <span>to</span>
                       <input type="text" readOnly
                         value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
                         disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onClick={() => !disabled && !obsRunning && obsMode !== "clickonly" && setNumpadOpen("max")}
+                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("max"); }}
                         style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
                     </div>
                   ) : (
@@ -736,6 +736,14 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, watchScreen]);
 
+
+      // ── Watch: prime audio context on first touch after entering app ──────
+      useEffect(() => {
+        if (watchScreen !== "app") return;
+        const unlock = () => { getCtx().resume().catch(() => {}); document.removeEventListener("pointerdown", unlock); };
+        document.addEventListener("pointerdown", unlock, { once: true });
+        return () => document.removeEventListener("pointerdown", unlock);
+      }, [watchScreen]);
 
       // ── Watch: clean up on unmount ─────────────────────────────────────────
       useEffect(() => {
