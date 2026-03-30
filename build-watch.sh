@@ -110,7 +110,7 @@ watch_css = r"""
       color: #555; text-align: center; line-height: 1.7; max-width: 320px;
     }
     .sharing-indicator {
-      position: fixed; top: max(0.5rem, env(safe-area-inset-top)); right: 1rem;
+      position: fixed; top: max(0.5rem, env(safe-area-inset-top)); left: 1rem;
       z-index: 150; background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
       padding: 0.3rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
       cursor: pointer;
@@ -261,16 +261,16 @@ firebase_and_observer = r"""
               </div>
             )}
 
-            {!sc && isPlaying && nextEx != null && nextEx !== -1 && !obsLooping && (
+            {!sc && (isPlaying || isCountIn) && nextEx != null && nextEx !== -1 && !obsLooping && (
               <div className="next-exercise">
                 <span className="next-label">up next</span>
                 {obsLm ? String.fromCharCode(64 + nextEx) : (nextEx < 10 ? "0" + nextEx : "" + nextEx)}
               </div>
             )}
-            {!sc && isPlaying && nextEx === -1 && (
+            {!sc && (isPlaying || isCountIn) && nextEx === -1 && (
               <div className="next-exercise" style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase" }}>last exercise</div>
             )}
-            {!sc && obsLooping && isPlaying && (
+            {!sc && obsLooping && (isPlaying || isCountIn) && (
               <div className="next-exercise" style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</div>
             )}
             {!sc && paused && (
