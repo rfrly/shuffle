@@ -30,6 +30,8 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - schedulerFn ref stores the scheduler function so resume can restart it without re-picking exercises
 - Settings persisted to localStorage under key shuffle_settings_v7
 - iOS background audio stops when the app leaves the screen — this is a fundamental WebKit limitation
+- `.app` uses `overflow: clip` not `overflow: hidden` — `overflow: hidden` creates a scroll container on iOS which constrains `position: fixed` children, preventing them from covering the full screen (home indicator zone)
+- Help overlay renders inside `.app`, not via portal — portalled `position: fixed` elements are constrained by `body { height: 100% }` on iOS PWA and won't reach the bottom of the screen
 
 ---
 
