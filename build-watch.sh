@@ -118,20 +118,14 @@ watch_css = r"""
       color: #555; text-align: center; line-height: 1.7; max-width: 320px;
     }
     .sharing-indicator {
-      position: fixed; top: max(0.5rem, env(safe-area-inset-top)); left: 1rem;
-      z-index: 150; background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
-      padding: 0.3rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
-      cursor: pointer;
+      width: 28px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0;
     }
     .sharing-indicator-dot {
-      width: 6px; height: 6px; border-radius: 50%; background: #4caf7d;
+      width: 8px; height: 8px; border-radius: 50%; background: #4caf7d;
       animation: sharing-pulse 2s ease-in-out infinite;
     }
     @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-    .sharing-indicator-label {
-      font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.1em;
-      text-transform: uppercase; color: #888;
-    }
     /* Observer display */
     .observer-app {
       position: fixed; inset: 0; background: #0f0f0f; display: flex;
@@ -486,12 +480,6 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <button className="watch-back-btn" onClick={() => { setWatchScreen("home"); setWatchEntryCode(""); setWatchEntryError(""); }}>← back</button>
           </div>
         )}
-        {watchScreen === "app" && (
-          <div className="sharing-indicator" onClick={() => setWatchScreen("share")}>
-            <div className="sharing-indicator-dot" />
-            <span className="sharing-indicator-label">sharing · {shareCode}</span>
-          </div>
-        )}
         <div className="app" style={watchScreen === "app" || watchScreen === "share" ? {} : { display: "none" }}>"""
 
 src = src.replace(old_return_open, watch_jsx, 1)
@@ -500,6 +488,18 @@ old_close = '\n        </div>\n      );'
 new_close = '\n        </div>\n        </>\n      );'
 last_idx = src.rfind(old_close)
 src = src[:last_idx] + new_close + src[last_idx + len(old_close):]
+
+# ── 8. Replace left header spacer with sharing indicator ────────────────────
+
+src = src.replace(
+    '            <div className="app-header-spacer" />',
+    '            {watchScreen === "app"\n'
+    '              ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">\n'
+    '                  <div className="sharing-indicator-dot" />\n'
+    '                </div>\n'
+    '              : <div className="app-header-spacer" />}',
+    1
+)
 
 # ── Write output ─────────────────────────────────────────────────────────────
 
