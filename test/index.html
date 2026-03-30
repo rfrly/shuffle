@@ -554,7 +554,7 @@
     .help-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0,0,0,0.92);
+      background: #000;
       z-index: 100;
       display: flex;
       align-items: flex-start;
@@ -578,7 +578,7 @@
       left: 0;
       right: 0;
       height: 80px;
-      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.92));
+      background: linear-gradient(to bottom, transparent, #000);
       pointer-events: none;
       z-index: 101;
       transition: opacity 0.3s;
@@ -2438,7 +2438,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
