@@ -134,7 +134,12 @@ A private teacher/student session observation tool. Not part of the public app �
 9. Watch UI overlays wrapping the JSX return (home/share/watch-entry screens; observer view renders instead of the main app when watching)
 
 ### Keeping watch in sync with the main app
-After making changes to `test/index.html`, run:
+
+**CRITICAL RULE: Never edit `test/index.html` for watch feature work.** `test/index.html` is the main Shuffle app source only. All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
+
+**Never edit `watch/index.html` directly** — it is a generated file and changes will be overwritten next time `build-watch.sh` runs.
+
+After making changes to `test/index.html` (main app changes only), run:
 ```
 python3 build-watch.sh
 ```
@@ -142,15 +147,11 @@ This rebuilds `watch/index.html` from scratch. Commit both `test/index.html` and
 
 For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh` and `watch/index.html` — do not touch `test/index.html`.
 
-**Never edit `watch/index.html` directly** — changes will be overwritten next time `build-watch.sh` runs. If you need to change the watch-specific layer (Firebase config, observer UI, etc.), edit the injection code inside `build-watch.sh` instead.
-
-**Never edit `test/index.html` for watch feature work.** `test/index.html` is the main Shuffle app source only. All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
-
 ### Firebase
 - Project: `shuffle-watch-d578b` (Firebase console)
 - Database: `shuffle-watch-d578b-default-rtdb.europe-west1.firebasedatabase.app`
 - Free Spark plan — sufficient for personal use (100 concurrent connections)
-- Security rules: state is readable by anyone, writable with timestamp protection; cmds path is freely writable (teacher sends commands); auto-deleted via `onDisconnect().remove()` when the student leaves. Rules to apply in Firebase console:
+- Security rules: state is readable by anyone, writable with timestamp protection and validated to require a numeric `ts` field; cmds path is freely writable (teacher sends commands); auto-deleted via `onDisconnect().remove()` when the student leaves. Rules currently applied in Firebase console:
   ```json
   {
     "rules": {
@@ -158,7 +159,8 @@ For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` 
         "$code": {
           ".read": true,
           "state": {
-            ".write": "!data.exists() || data.child('ts').val() < newData.child('ts').val()"
+            ".write": "!data.exists() || data.child('ts').val() < newData.child('ts').val()",
+            ".validate": "newData.hasChildren(['ts']) && newData.child('ts').isNumber()"
           },
           "cmds": {
             ".write": true
@@ -168,7 +170,9 @@ For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` 
     }
   }
   ```
-- Firebase config is embedded in `build-watch.sh` — if the Firebase project ever changes, update it there
+- API key is restricted in Google Cloud Console to HTTP referrers `https://shuffleclick.com/*` and `https://www.shuffleclick.com/*` — rotate key in Cloud Console and update `build-watch.sh` if compromised
+- Firebase config (including API key) is embedded in `build-watch.sh` — if the Firebase project ever changes, update it there
+- Local testing: open via `python3 -m http.server 8000` and `http://localhost:8000/watch/` rather than `file://` (API key referrer restriction doesn't cover `file://` origins)
 
 ---
 

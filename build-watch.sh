@@ -28,10 +28,14 @@ with open(SRC, "r") as f:
 
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
-src = src.replace("<title>Shuffle</title>", "<title>Shuffle · Watch</title>")
+src = src.replace("<title>Shuffle</title>", "<title>Shuffle Watch</title>")
 src = src.replace(
     '<meta name="apple-mobile-web-app-title" content="Shuffle" />',
     '<meta name="apple-mobile-web-app-title" content="Shuffle Watch" />'
+)
+src = src.replace(
+    '<meta property="og:title" content="Shuffle" />',
+    '<meta property="og:title" content="Shuffle Watch" />'
 )
 src = src.replace(
     '  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />\n'
@@ -173,6 +177,7 @@ watch_css = r"""
     }
     /* Observer display layout */
     .observer-app .display { min-height: clamp(178px, 30dvh, 320px); }
+    .observer-app .bpm-tap { user-select: none; }
     .observer-app .btn-row { width: 100%; max-width: 440px; }
     /* Observer controls panel */
     .observer-controls {
@@ -312,7 +317,7 @@ firebase_and_observer = r"""
     let _db;
     try {
       const _app = firebase.initializeApp({
-        apiKey: "AIzaSyDKdwYMTi7RWI3iRoGooQ4ScdrNy8lB1G0",
+        apiKey: "AIzaSyD8efbcrvPm3rBt0NGU3RFhhTRyUTFrB_s",
         authDomain: "shuffle-watch-d578b.firebaseapp.com",
         projectId: "shuffle-watch-d578b",
         storageBucket: "shuffle-watch-d578b.firebasestorage.app",
@@ -324,23 +329,27 @@ firebase_and_observer = r"""
     } catch(e) { _db = firebase.database(); }
 
     const WATCH_WORDS = [
-      "BIRD","BOAT","BOLT","BONE","BOOK","BOOT","BOWL","BRICK","BRIDGE","BRUSH",
-      "CAKE","CAMP","CARD","CART","CAVE","CHIN","CHIP","CLAY","CLIP","CLOCK",
-      "CLOUD","CLUB","COAL","COAT","COIN","CORK","CORN","CRAB","CROP","CROWN",
-      "DRUM","DUCK","DUSK","DUST","FERN","FISH","FLAG","FLAME","FLASK","FLINT",
-      "FLOOR","FOAM","FOLD","FONT","FORK","FROG","FROST","GATE","GIFT","GLEN",
-      "GLOVE","GLOW","GOLD","GRAIN","GRAPE","GRASS","GRID","GUST","HAND","HARP",
-      "HAWK","HILL","HIVE","HOOD","HOOK","HORN","HUSK","IRON","JADE","KITE",
-      "KNOT","LAMP","LEAF","LIME","LINK","LION","LOCK","LOFT","LOOM","LUTE",
-      "MAST","MINT","MIST","MOAT","MOON","MOSS","MOTH","MOUNT","DRUM","NAIL",
-      "NEST","NOTE","OAK","OAR","ORB","PAIL","PALM","PATH","PEAK","PINE",
-      "PIPE","PLANK","POND","POOL","PORT","REED","REEF","RING","ROAD","ROCK",
-      "ROOF","ROOT","ROPE","ROSE","RUST","SAGE","SAIL","SALT","SAND","SEED",
-      "SHELL","SHIP","SILK","SLATE","SLOPE","SNOW","SOIL","SPARK","SPIRE","STAFF",
-      "STAG","STAR","STEM","STEP","STIR","STONE","STORM","STREAM","STUMP","SURF",
-      "SWAN","THORN","TIDE","TILE","TOAD","TORCH","TOWER","TRAIL","TREE","VALE",
-      "VAULT","VINE","WAVE","WELD","WELL","WHEAT","WIND","WING","WIRE","WOLF",
-      "WOOD","WOOL","WREN","YARD","YOKE",
+      "ARCH","BALE","BARK","BELL","BIRD","BLADE","BLOOM","BOAT","BOG","BOLT",
+      "BONE","BOOK","BOOT","BOWL","BOW","BRICK","BRIDGE","BRUSH","BUD","BURR",
+      "CAKE","CAMP","CARD","CART","CASK","CAVE","CHIN","CHIP","CLAW","CLAY",
+      "CLIFF","CLIP","CLOCK","CLOUD","CLUB","COAL","COAT","COIN","CORK","CORN",
+      "CRAB","CREST","CROP","CROWN","DELL","DRUM","DUCK","DUNE","DUSK","DUST",
+      "FERN","FISH","FLAX","FLAG","FLAME","FLASK","FLINT","FLOCK","FLOOR","FOAM",
+      "FOLD","FONT","FORD","FORK","FROG","FROST","GATE","GIFT","GLEN","GLOVE",
+      "GLOW","GOLD","GORGE","GRAIN","GRAPE","GRASS","GRID","GROVE","GUST","HAND",
+      "HARP","HAWK","HELM","HILL","HIVE","HOOD","HOOK","HORN","HULL","HUSK",
+      "IRON","JADE","KITE","KNOT","LAMP","LARK","LEAF","LEDGE","LIME","LINK",
+      "LION","LOCK","LOFT","LOOM","LUTE","MARSH","MAST","MILL","MINT","MIST",
+      "MOAT","MOON","MOOR","MOSS","MOTH","MOUNT","NAIL","NEST","NOTE","OAK",
+      "OAR","ORB","PAIL","PALM","PATH","PEAK","PERCH","PINE","PIPE","PLANK",
+      "PLUM","POND","POOL","PORT","QUILL","REED","REEF","RIDGE","RING","RIND",
+      "ROAD","ROCK","ROOF","ROOT","ROPE","ROSE","RUNE","RUST","SAGE","SAIL",
+      "SALT","SAND","SEED","SHARD","SHELL","SHIP","SILK","SILT","SLATE","SLOPE",
+      "SNOW","SOIL","SPAN","SPARK","SPIRE","SPRIG","STAFF","STAG","STAR","STEM",
+      "STEP","STIR","STONE","STORM","STREAM","STUMP","SURF","SWAN","THORN","TIDE",
+      "TILE","TOAD","TORCH","TOWER","TRAIL","TREE","TURF","TWIG","VALE","VAULT",
+      "VINE","WAVE","WELD","WELL","WHEAT","WICK","WIND","WING","WISP","WIRE",
+      "WOLF","WOOD","WOOL","WREN","YARD","YOKE",
     ];
     function generateWatchCode() {
       const pick = () => WATCH_WORDS[Math.floor(Math.random() * WATCH_WORDS.length)];
@@ -764,6 +773,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           setWatchCode(code);
           setObservedState(snap.val());
           setWatchScreen("watching");
+          _db.ref("sessions/" + code + "/cmds").update({ tcmd: "connected", tseq: Date.now() });
           stateRef.on("value", s => {
             if (s.exists()) {
               setObservedState(s.val());
@@ -796,7 +806,8 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           const cmd = snap.val();
           if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
             lastTSeq.current = cmd.tseq;
-            if      (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            if      (cmd.tcmd === "connected") { setWatchScreen("app"); }
+            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false); }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
             else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
