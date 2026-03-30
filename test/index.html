@@ -26,8 +26,6 @@
     :root {
       --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
       --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
-      --sat: env(safe-area-inset-top);
-      --sab: env(safe-area-inset-bottom);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -2082,32 +2080,6 @@
 
       const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "metronome";
 
-      function DebugInfo() {
-        const [info, setInfo] = React.useState('');
-        React.useEffect(() => {
-          setTimeout(() => {
-            const r = (el) => el ? Math.round(el.getBoundingClientRect().height) : '?';
-            const t = (el) => el ? Math.round(el.getBoundingClientRect().top) : '?';
-            const header = document.querySelector('.app-header');
-            const display = document.querySelector('.display');
-            const controls = document.querySelector('.controls');
-            const btnRow = document.querySelector('.btn-row');
-            const footer = document.querySelector('.version-footer');
-            const app = document.querySelector('.app');
-            const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0');
-            const safeBot = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0');
-            const winH = window.innerHeight;
-            const appH = app ? Math.round(app.getBoundingClientRect().height) : '?';
-            const footBot = footer ? Math.round(footer.getBoundingClientRect().bottom) : '?';
-            setInfo(
-              `hdr:${r(header)} disp:${r(display)} ctrl:${r(controls)} btn:${r(btnRow)} foot:${r(footer)}` +
-              ` | hdrT:${t(header)} dispT:${t(display)} ctrlT:${t(controls)} btnT:${t(btnRow)} footT:${t(footer)}` +
-              ` | winH:${winH} appH:${appH} footBot:${footBot}`
-            );
-          }, 500);
-        }, []);
-        return <div style={{fontSize:'0.4rem',color:'#f5c842',marginTop:'2px',lineHeight:1.4}}>{info}</div>;
-      }
 
       return (
         <div className="app">
@@ -2137,7 +2109,7 @@
             }}>?</button>
           </div>
 
-          {showHelp && (
+          {showHelp && ReactDOM.createPortal(
             <>
               <div className="help-scroll-fade" style={{ opacity: (helpNeedsScroll && !helpScrolledToEnd) ? 1 : 0 }} />
               <div className="help-overlay" ref={helpOverlayRef}
@@ -2195,7 +2167,8 @@
                 <button className="help-close-bottom" style={{ display: (!helpNeedsScroll || helpScrolledToEnd) ? 'block' : 'none' }} onClick={() => setShowHelp(false)}>Close</button>
               </div>
               </div>
-            </>
+            </>,
+            document.body
           )}
 
           <div className="display">
@@ -2465,8 +2438,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.4 · rossfarley.uk · © 2026 Ross Farley
-            <DebugInfo /></div>
+          >v1.8.1.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
