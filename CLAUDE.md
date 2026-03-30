@@ -116,7 +116,8 @@ A private teacher/student session observation tool. Not part of the public app �
 - Teacher opens `shuffleclick.com/watch/` on their device → taps "Watch a session" → enters the code → sees a live view of the student's session and can control all settings and transport (BPM, mode, time sig, count-in, exercise length, exercises, rounds, start/pause/loop/stop)
 - Sessions auto-delete from Firebase when the student closes or navigates away
 - Teacher session auto-disconnects after 30 minutes of inactivity
-- **iOS audio note:** The student must tap "Open Shuffle" before the teacher starts — this is the required user gesture to unlock the Web Audio context. If the teacher starts before the student taps, the metronome will hang silently. The green "Teacher connected" prompt exists specifically to prompt this tap.
+- **iOS audio note:** The student must tap "Open Shuffle" before the teacher starts — this is the required user gesture to unlock the Web Audio context. On tap, a looping near-silent buffer is started immediately to keep the context alive while waiting for the teacher to start (iOS re-suspends the context if no audio is playing). `useDrumTimer` takes over with its own silent loop once `running` becomes true. If the teacher starts before the student taps, the metronome will hang silently. The green "Teacher connected" prompt exists specifically to prompt this tap.
+- **Teacher commands use `.set()` not `.update()`** — cmds are always written as a complete replacement. Using `.update()` would merge with previous cmds, causing old setting fields (BPM, mode, etc.) to be re-applied when a transport command (start/stop) arrives, disrupting the scheduler.
 
 
 ### Files
@@ -130,7 +131,7 @@ A private teacher/student session observation tool. Not part of the public app �
 2. Watch-specific CSS (home/share/watch-entry/observer screens; student control dimming)
 3. `src.replace()` patches on student controls — adds `watch-locked` class to control groups and guards on `handleTap`, `incBpm`, `decBpm`, `incBars`, `decBars` to block interaction when `watchScreen === "app"`
 4. Firebase init + `ObserverDisplay` React component (teacher's interactive view)
-5. Watch mode state variables in `App` (`watchScreen`, `shareCode`, `observedState`, etc.)
+5. Watch mode state variables in `App` (`watchScreen`, `shareCode`, `observedState`, etc.) and `watchSilentLoop` ref
 6. `useEffect` that broadcasts live playback state (including `isResuming`) to Firebase at `sessions/{CODE}/state`
 7. Watch handlers (`handleStartSharing`, `handleStopSharing`, `handleConnectWatch`, `handleDisconnectWatch`, `handleSendCmd`)
 8. Student command listener — reads teacher commands from `sessions/{CODE}/cmds` and applies them
