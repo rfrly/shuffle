@@ -77,10 +77,6 @@ watch_css = r"""
       font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #888; text-align: center; margin-top: -0.75rem;
     }
-    .watch-overlay-version {
-      font-family: var(--font-mono); font-size: 0.5rem; letter-spacing: 0.08em;
-      color: #444; text-align: center; position: absolute; bottom: max(1rem, env(safe-area-inset-bottom));
-    }
     .watch-btn {
       width: 100%; max-width: 380px; height: 56px; border-radius: 4px; border: none;
       font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.15em;
@@ -887,7 +883,6 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div className="watch-overlay-version">__APP_VERSION__ · Watch __WATCH_VERSION__</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -964,13 +959,6 @@ src = src.replace(
 # ── 9. Strip beta suffix from footer version string ─────────────────────────
 
 src = re.sub(r'(v\d+\.\d+\.\d+)\.beta\.\d+', r'\1', src)
-
-# ── 10. Inject version into home screen ──────────────────────────────────────
-
-app_version_match = re.search(r'(v\d+\.\d+\.\d+)', src)
-app_version = app_version_match.group(1) if app_version_match else "v?"
-src = src.replace("__APP_VERSION__", app_version)
-src = src.replace("__WATCH_VERSION__", WATCH_VERSION)
 
 # ── Write output ─────────────────────────────────────────────────────────────
 
