@@ -126,18 +126,20 @@ watch_css = r"""
       animation: sharing-pulse 2s ease-in-out infinite;
     }
     @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    /* Student controls: dimmed but readable while sharing */
+    .control-group.watch-locked { opacity: 0.6; pointer-events: none; cursor: default; }
     /* Observer display */
     .observer-app {
       position: fixed; inset: 0; background: #0f0f0f; display: flex;
       flex-direction: column; align-items: center; justify-content: flex-start;
       padding-left: 1.5rem; padding-right: 1.5rem;
       padding-top: max(1rem, env(safe-area-inset-top));
-      padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
-      gap: 0.75rem; overflow: clip;
+      padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+      gap: 0.75rem; overflow-y: auto;
     }
     .watching-banner {
       display: flex; align-items: center; justify-content: space-between;
-      width: 100%; max-width: 440px;
+      width: 100%; max-width: 440px; flex-shrink: 0;
       padding: 0.5rem 0.75rem; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
     }
     .watching-code-text {
@@ -169,8 +171,139 @@ watch_css = r"""
       .observer-info-strip { max-width: 700px; }
       .observer-app .display { max-width: 700px; }
     }
+    /* Observer display layout */
+    .observer-app .display { min-height: clamp(178px, 30dvh, 320px); }
+    .observer-app .btn-row { width: 100%; max-width: 440px; }
+    /* Observer controls panel */
+    .observer-controls {
+      width: 100%; max-width: 440px;
+    }
+    .observer-divider {
+      width: 100%; max-width: 440px;
+      border: none; border-top: 1px solid #1e1e1e; margin: 0.25rem 0; flex-shrink: 0;
+    }
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
+      .observer-controls { max-width: 700px; }
+      .observer-divider  { max-width: 700px; }
+    }
 """
 src = src.replace("  </style>", watch_css + "  </style>")
+
+# ── 3b. Student controls: lock when watchScreen === "app" ────────────────────
+# The watch layer injects watchScreen into App scope. We patch the student
+# controls to add watch-locked class (opacity 0.6, pointer-events none) without
+# adding disabled attributes — disabled causes its own opacity: 0.25 override.
+
+# handleTap guard
+src = src.replace(
+    "      const handleTap = useCallback(() => {\n        if (running) return;",
+    "      const handleTap = useCallback(() => {\n        if (running || watchScreen === \"app\") return;"
+)
+
+# incBpm / decBpm / incBars / decBars guards
+src = src.replace(
+    "      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));\n"
+    "      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);\n"
+    "      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);\n"
+    "      const incBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);\n"
+    "      const decBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);",
+    "      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));\n"
+    "      const incBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b + 1)); }, [watchScreen]);\n"
+    "      const decBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b - 1)); }, [watchScreen]);\n"
+    "      const incBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running, watchScreen]);\n"
+    "      const decBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running, watchScreen]);"
+)
+
+# Mode control group
+src = src.replace(
+    '              <div className={`control-group full-width${running ? " dimmed" : ""}`}>',
+    '              <div className={`control-group full-width${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>'
+)
+
+# Mode buttons: no disabled for watchScreen (pointer-events: none on parent handles it)
+# (leave disabled={running} as-is; the watch-locked class already blocks interaction)
+
+# BPM control group
+src = src.replace(
+    '              <div className="control-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
+    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                    onClick={!running ? handleTap : undefined}\n'
+    '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                      <span>{bpm}</span>\n'
+    '                      {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                    </div>\n'
+    '                  </div>\n'
+    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
+    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                      <span>{bpm}</span>\n'
+    '                      {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                    </div>\n'
+    '                  </div>\n'
+    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
+)
+
+# Time signature control group
+src = src.replace(
+    '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Time signature</label>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Time signature</label>'
+)
+
+# Count in control group
+src = src.replace(
+    '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Count in</label>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Count in</label>'
+)
+
+# Exercise length control group
+src = src.replace(
+    '              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>'
+)
+
+# Exercises control group
+src = src.replace(
+    '              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>'
+)
+
+# Rounds control group
+src = src.replace(
+    '              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>',
+    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
+)
+
+# Idle summary: no leading zeros (use plain numbers, not fmt())
+src = src.replace(
+    "      : `${fmtEx(minEx, letterMode)}–${fmtEx(maxEx, letterMode)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`}",
+    "      : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`}"
+)
+src = src.replace(
+    "      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`",
+    "      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`"
+)
+
+# Letter mode popup: suppress when sharing
+src = src.replace(
+    '        setShowLetterModePopup(true);',
+    '        if (watchScreen !== "app") setShowLetterModePopup(true);'
+)
+
+# Mute hint: suppress when sharing
+src = src.replace(
+    '            {showMuteHint && phase !== "idle" && (\n'
+    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '            )}',
+    '            {showMuteHint && phase !== "idle" && watchScreen !== "app" && (\n'
+    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '            )}'
+)
 
 # ── 4. Firebase init + ObserverDisplay component ─────────────────────────────
 
@@ -217,15 +350,40 @@ firebase_and_observer = r"""
     }
 
     // ── Observer display component ─────────────────────────────────────────────
-    function ObserverDisplay({ state, code, onDisconnect }) {
+    function ObserverDisplay({ state, code, onDisconnect, onSendCmd }) {
       const {
-        running, paused, phase, setComplete: sc,
+        running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
         mode: obsMode, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
-        countInBars: obsCib, looping: obsLooping, letterMode: obsLm,
+        countInBars: obsCib, countInEvery: obsCountInEvery,
+        looping: obsLooping, letterMode: obsLm,
+        minEx: obsMinEx, maxEx: obsMaxEx,
+        pickedNums: obsPickedNums, exMode: obsExMode,
         disconnected,
-      } = state;
+      } = state || {};
+
+      const [openSelector, setOpenSelector] = React.useState(null);
+      const [pickerOpen, setPickerOpen] = React.useState(false);
+      const [numpadOpen, setNumpadOpen] = React.useState(null);
+      const tapTimesObs = React.useRef([]);
+      const [tapped, setTapped] = React.useState(false);
+      const [letterModeOverride, setLetterModeOverride] = React.useState(null);
+      const letterLongPressObs = React.useRef(null);
+      const effectiveLm = letterModeOverride !== null ? letterModeOverride : !!obsLm;
+
+      const obsBpmRef = React.useRef(obsBpm);
+      React.useEffect(() => { obsBpmRef.current = obsBpm; }, [obsBpm]);
+      const incObsBpm = React.useCallback(() => {
+        if (disabled) return;
+        onSendCmd({ bpm: Math.min(300, (obsBpmRef.current || 100) + 1) });
+      }, [disabled, onSendCmd]);
+      const decObsBpm = React.useCallback(() => {
+        if (disabled) return;
+        onSendCmd({ bpm: Math.max(30, (obsBpmRef.current || 100) - 1) });
+      }, [disabled, onSendCmd]);
+      const bpmObsIncHandlers = useLongPress(incObsBpm);
+      const bpmObsDecHandlers = useLongPress(decObsBpm);
 
       const beatsPerBar = parseInt(obsTimeSigLabel) || 4;
       const exLen = obsExLen || 1;
@@ -233,14 +391,39 @@ firebase_and_observer = r"""
       const currentRound = Math.floor((currentBar || 0) / exLen) + 1;
       const isCountIn = phase === "countin";
       const isPlaying = phase === "playing";
-      const isIdle = !running && !paused;
+      const isIdle = !obsRunning && !obsPaused;
+      const disabled = !!disconnected;
+      const obsTimeSig = TIME_SIGS.find(t => t.label === obsTimeSigLabel) || TIME_SIGS[2];
+      const exMode = obsExMode || "range";
+      const pickedNums = obsPickedNums || [];
+      const validRange = obsMode === "clickonly" ? true
+        : exMode === "pick" ? pickedNums.length >= 1
+        : (obsMinEx || 1) <= (obsMaxEx || 1);
 
       const modeLabel = { fullset: "Shuffle", sequential: "Sequential", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
+
+      const handleTapBpm = () => {
+        if (disabled) return;
+        const now = Date.now();
+        tapTimesObs.current = [...tapTimesObs.current.filter(t => now - t < 3000), now];
+        if (tapTimesObs.current.length >= 2) {
+          const intervals = tapTimesObs.current.slice(1).map((t, i) => t - tapTimesObs.current[i]);
+          const avg = intervals.reduce((a, b) => a + b, 0) / intervals.length;
+          const newBpm = Math.round(60000 / avg);
+          if (newBpm >= 30 && newBpm <= 300) onSendCmd({ bpm: newBpm });
+        }
+        setTapped(true);
+        setTimeout(() => setTapped(false), 100);
+      };
 
       return (
         <div className="observer-app">
           <div className="watching-banner">
-            <span className="watching-code-text">watching <span>{code}</span></span>
+            <span className="watching-code-text"
+              onPointerDown={() => { letterLongPressObs.current = setTimeout(() => { const next = !effectiveLm; setLetterModeOverride(next); onSendCmd({ letterMode: next }); letterLongPressObs.current = null; }, 800); }}
+              onPointerUp={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
+              onPointerLeave={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
+              style={{ userSelect: "none" }}>watching <span>{code}</span></span>
             <button className="watching-disconnect-btn" onClick={onDisconnect}>stop</button>
           </div>
 
@@ -259,30 +442,40 @@ firebase_and_observer = r"""
               <div className="exercise-number done">done</div>
             ) : (
               <div className={`exercise-number${isIdle ? " idle" : ""}`}>
-                {exercise != null ? (obsLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
+                {exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
               </div>
             )}
 
-            {!sc && (isPlaying || isCountIn) && nextEx != null && nextEx !== -1 && !obsLooping && (
-              <div className="next-exercise">
-                <span className="next-label">up next</span>
-                {obsLm ? String.fromCharCode(64 + nextEx) : (nextEx < 10 ? "0" + nextEx : "" + nextEx)}
-              </div>
-            )}
-            {!sc && (isPlaying || isCountIn) && nextEx === -1 && (
-              <div className="next-exercise" style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase" }}>last exercise</div>
-            )}
-            {!sc && obsLooping && (isPlaying || isCountIn) && (
-              <div className="next-exercise" style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</div>
-            )}
-            {!sc && paused && (
-              <div className="next-exercise" style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</div>
+            {!sc && (
+              isIdle ? (
+                <div className="idle-summary">
+                  {obsMode === "clickonly"
+                    ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
+                    : exMode === "pick"
+                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`
+                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`}
+                </div>
+              ) : (
+                <div className="next-exercise">
+                  {obsPaused
+                    ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                    : obsResuming
+                      ? <><span className="next-label">resuming</span>{exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}</>
+                      : obsLooping
+                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                        : nextEx === -1
+                          ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase" }}>last exercise</span>
+                          : nextEx != null && nextEx !== -1
+                            ? <><span className="next-label">up next</span>{effectiveLm ? String.fromCharCode(64 + nextEx) : (nextEx < 10 ? "0" + nextEx : "" + nextEx)}</>
+                            : "\u00A0"}
+                </div>
+              )
             )}
 
             {!sc && (
               <div className="beat-dots">
                 {Array.from({ length: beatsPerBar }).map((_, i) => (
-                  <div key={i} className={`beat-dot${i === 0 ? " beat1" : ""}${isPlaying && !paused && (currentBeat || 0) === i ? " active" : ""}`} />
+                  <div key={i} className={`beat-dot${isIdle ? " inactive" : ""}${i === 0 ? " beat1" : ""}${isPlaying && !obsPaused && (currentBeat || 0) === i ? " active" : ""}`} />
                 ))}
               </div>
             )}
@@ -303,20 +496,185 @@ firebase_and_observer = r"""
             )}
           </div>
 
-          <div className="observer-info-strip">
-            <div className="observer-info-item">
-              <span className="observer-info-label">bpm</span>
-              <span className="observer-info-value">{obsBpm || "--"}</span>
-            </div>
-            <div className="observer-info-item">
-              <span className="observer-info-label">mode</span>
-              <span className="observer-info-value">{modeLabel}</span>
-            </div>
-            <div className="observer-info-item">
-              <span className="observer-info-label">time</span>
-              <span className="observer-info-value">{obsTimeSigLabel || "--"}</span>
+
+          <div className="observer-controls">
+            <div className="section-grid controls-grid">
+
+              <div className={`control-group full-width${obsRunning ? " dimmed" : ""}`}>
+                <label>Mode</label>
+                <div className="selector-row">
+                  {[
+                    { label: "Shuffle",    value: "fullset" },
+                    { label: "Sequential", value: "sequential" },
+                    { label: "Random",     value: "random" },
+                    { label: "Metronome",  value: "clickonly" },
+                  ].map(m => (
+                    <button key={m.value}
+                      className={`sel-btn${obsMode === m.value ? " active" : ""}`}
+                      onClick={() => onSendCmd({ mode: m.value })} disabled={disabled || obsRunning}>
+                      {m.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="control-group">
+                <label>BPM</label>
+                <div className="bpm-widget">
+                  <button className="bpm-btn left" disabled={disabled} {...bpmObsDecHandlers}>−</button>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!disabled ? handleTapBpm : undefined}
+                    style={disabled ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                      <span>{obsBpm || "--"}</span>
+                      {!disabled && <span className="bpm-tap-label">tap to set</span>}
+                    </div>
+                  </div>
+                  <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
+                </div>
+              </div>
+
+              <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                <label>Time signature</label>
+                <CompactSelector
+                  id="obs-timeSig"
+                  value={obsTimeSig}
+                  options={TIME_SIGS}
+                  onChange={ts => onSendCmd({ timeSig: ts.label })}
+                  disabled={disabled || obsRunning}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={ts => ts.label}
+                />
+              </div>
+
+              <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                <label>Count in</label>
+                <CompactSelector
+                  id="obs-countIn"
+                  value={obsCib || 1}
+                  options={[1, 2, 4]}
+                  onChange={n => onSendCmd({ countInBars: n })}
+                  disabled={disabled || obsRunning}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
+                  buttonLabel={(obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars") + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
+                  footer={
+                    <div className={"check-row" + (obsMode === "clickonly" ? " disabled" : "")} style={{ width: "100%", padding: "0.1rem 0" }}>
+                      <input type="checkbox" checked={!!obsCountInEvery}
+                        onChange={() => onSendCmd({ countInEvery: !obsCountInEvery })}
+                        disabled={disabled || obsMode === "clickonly"}
+                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
+                      <span>Count in every exercise</span>
+                    </div>
+                  }
+                />
+              </div>
+
+              <div className={`control-group${obsMode === "clickonly" || obsRunning || exMode === "pick" ? " dimmed" : ""}`}>
+                <label>Exercise length</label>
+                <CompactSelector
+                  id="obs-exLength"
+                  value={obsExLen || 1}
+                  options={[1, 2, 4]}
+                  onChange={n => onSendCmd({ exerciseLength: n })}
+                  disabled={disabled || obsRunning || obsMode === "clickonly" || exMode === "pick"}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
+                />
+              </div>
+
+              <div className={`control-group${obsRunning || obsMode === "clickonly" ? " dimmed" : ""}`}>
+                <label>Exercises</label>
+                <div className="ex-control-row">
+                  {exMode !== "pick" ? (
+                    <div className="range-row">
+                      <input type="text" readOnly
+                        value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
+                        disabled={disabled || obsRunning || obsMode === "clickonly"}
+                        onClick={() => !disabled && !obsRunning && obsMode !== "clickonly" && setNumpadOpen("min")}
+                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
+                      <span>to</span>
+                      <input type="text" readOnly
+                        value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
+                        disabled={disabled || obsRunning || obsMode === "clickonly"}
+                        onClick={() => !disabled && !obsRunning && obsMode !== "clickonly" && setNumpadOpen("max")}
+                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
+                    </div>
+                  ) : (
+                    <button
+                      className={"pick-trigger-btn" + (pickedNums.length === 0 ? " empty" : "") + (pickedNums.length === 0 && !obsRunning && obsMode !== "clickonly" ? " invalid" : "")}
+                      disabled={disabled || obsRunning || obsMode === "clickonly"}
+                      onClick={() => setPickerOpen(true)}>
+                      {pickedNums.length === 0 ? "Tap to select..." : pickedNums.map(n => effectiveLm ? String.fromCharCode(64 + n) : (n < 10 ? "0" + n : "" + n)).join(", ")}
+                    </button>
+                  )}
+                  <div className="ex-mode-toggle">
+                    <button className={"ex-mode-btn" + (exMode !== "pick" ? " active" : "")}
+                      disabled={disabled || obsRunning || obsMode === "clickonly"}
+                      onClick={() => onSendCmd({ exMode: "range" })}>Range</button>
+                    <button className={"ex-mode-btn" + (exMode === "pick" ? " active" : "")}
+                      disabled={disabled || obsRunning || obsMode === "clickonly"}
+                      onClick={() => onSendCmd({ exMode: "pick", exerciseLength: 1 })}>Pick</button>
+                  </div>
+                </div>
+              </div>
+
+              <div className={`control-group${obsMode === "clickonly" || obsRunning ? " dimmed" : ""}`}>
+                <label>Rounds</label>
+                <div className="stepper">
+                  <button className="stepper-btn left" disabled={disabled || obsRunning || obsMode === "clickonly"}
+                    onClick={() => onSendCmd({ barsPerExercise: Math.max(1, (obsBpe || 4) - 1) })}>−</button>
+                  <div className="stepper-val" style={obsMode === "clickonly" || obsRunning ? { opacity: 0.25 } : {}}>{obsBpe || "--"}</div>
+                  <button className="stepper-btn right" disabled={disabled || obsRunning || obsMode === "clickonly"}
+                    onClick={() => onSendCmd({ barsPerExercise: Math.min(32, (obsBpe || 4) + 1) })}>+</button>
+                </div>
+              </div>
+
             </div>
           </div>
+
+          <div className="btn-row" style={{ width: "100%", maxWidth: 440 }}>
+            {!obsRunning ? (
+              <button className="action-btn" disabled={disabled || !validRange}
+                onClick={() => onSendCmd({ tcmd: "start", tseq: Date.now() })}>Start</button>
+            ) : (
+              <>
+                <div className="btn-group">
+                  <button className={`action-btn${obsPaused ? " pause-active" : " secondary"}`} disabled={disabled}
+                    onClick={() => onSendCmd({ tcmd: obsPaused ? "resume" : "pause", tseq: Date.now() })}>
+                    {obsPaused ? "Resume" : "Pause"}
+                  </button>
+                  {obsMode !== "clickonly" && (
+                    <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
+                      onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
+                  )}
+                  <button className="action-btn stop" disabled={disabled}
+                    onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
+                </div>
+              </>
+            )}
+          </div>
+
+          {numpadOpen === "min" && (
+            <NumpadPopup label="Min exercise" initialValue={obsMinEx || 1}
+              onConfirm={v => { setNumpadOpen(null); onSendCmd({ minEx: v }); }}
+              onClose={() => setNumpadOpen(null)} letterMode={effectiveLm} />
+          )}
+          {numpadOpen === "max" && (
+            <NumpadPopup label="Max exercise" initialValue={obsMaxEx || 1}
+              onConfirm={v => { setNumpadOpen(null); onSendCmd({ maxEx: v }); }}
+              onClose={() => setNumpadOpen(null)} letterMode={effectiveLm} />
+          )}
+          {pickerOpen && (
+            <BarPickerPopup
+              pickedNums={pickedNums}
+              onConfirm={nums => { setPickerOpen(false); onSendCmd({ pickedNums: nums, exMode: "pick" }); }}
+              onClose={() => setPickerOpen(false)}
+              letterMode={effectiveLm} />
+          )}
         </div>
       );
     }
@@ -341,6 +699,8 @@ watch_state = """
       const watchDbRef    = useRef(null);
       const shareDbRef    = useRef(null);
       const shareInterval = useRef(null);
+      const cmdDbRef      = useRef(null);
+      const lastTSeq      = useRef(0);
 
 """
 src = src.replace(
@@ -354,16 +714,18 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
       useEffect(() => {
         if ((watchScreen !== "share" && watchScreen !== "app") || !shareDbRef.current) return;
         const payload = {
-          running, paused, looping, phase, setComplete,
+          running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
+          exMode, pickedNums,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
-      }, [running, paused, looping, phase, setComplete, currentBeat, currentBar,
+      }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, bpm, timeSig, barsPerExercise,
-          exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode, watchScreen]);
+          exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
+          exMode, pickedNums, watchScreen]);
 
 
       // ── Watch: clean up on unmount ─────────────────────────────────────────
@@ -378,30 +740,31 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
       const handleStartSharing = useCallback(() => {
         const code = generateWatchCode();
         setShareCode(code);
-        const ref = _db.ref("sessions/" + code);
+        const ref = _db.ref("sessions/" + code + "/state");
         shareDbRef.current = ref;
-        ref.onDisconnect().remove();
+        _db.ref("sessions/" + code).onDisconnect().remove();
         setWatchScreen("share");
       }, []);
 
       const handleStopSharing = useCallback(() => {
-        if (shareDbRef.current) { shareDbRef.current.remove(); shareDbRef.current = null; }
+        if (shareCode) _db.ref("sessions/" + shareCode).remove();
+        shareDbRef.current = null;
         setShareCode("");
         setWatchScreen("home");
-      }, []);
+      }, [shareCode]);
 
       const handleConnectWatch = useCallback((code) => {
-        const ref = _db.ref("sessions/" + code);
-        ref.once("value").then(snap => {
+        const stateRef = _db.ref("sessions/" + code + "/state");
+        stateRef.once("value").then(snap => {
           if (!snap.exists()) {
             setWatchEntryError("Session not found. Check the code and try again.");
             return;
           }
-          watchDbRef.current = ref;
+          watchDbRef.current = stateRef;
           setWatchCode(code);
           setObservedState(snap.val());
           setWatchScreen("watching");
-          ref.on("value", s => {
+          stateRef.on("value", s => {
             if (s.exists()) {
               setObservedState(s.val());
             } else {
@@ -422,6 +785,52 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
         setWatchScreen("home");
       }, []);
 
+      // ── Watch: listen for teacher commands when sharing ────────────────────
+      useEffect(() => {
+        if (watchScreen !== "share" && watchScreen !== "app") return;
+        if (!shareDbRef.current) return;
+        const cmdsRef = _db.ref("sessions/" + shareCode + "/cmds");
+        cmdDbRef.current = cmdsRef;
+        cmdsRef.on("value", snap => {
+          if (!snap.exists()) return;
+          const cmd = snap.val();
+          if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
+            lastTSeq.current = cmd.tseq;
+            if      (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false); }
+            else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
+            else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
+            else if (cmd.tcmd === "loop")   { setLooping(l => !l); }
+          }
+          if (cmd.bpm != null) setBpm(Math.min(300, Math.max(30, Math.round(cmd.bpm))));
+          if (cmd.mode != null) setMode(cmd.mode);
+          if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
+          if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
+          if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
+          if (cmd.exerciseLength != null) setExerciseLength(cmd.exerciseLength);
+          if (cmd.minEx != null) { const v = Math.min(200, Math.max(1, cmd.minEx)); setMinEx(v); setMinExStr(String(v)); }
+          if (cmd.maxEx != null) { const v = Math.min(200, Math.max(1, cmd.maxEx)); setMaxEx(v); setMaxExStr(String(v)); }
+          if (cmd.barsPerExercise != null) setBarsPerExercise(cmd.barsPerExercise);
+          if (cmd.exMode != null) setExMode(cmd.exMode);
+          if (cmd.pickedNums != null) setPickedNums(Array.isArray(cmd.pickedNums) ? cmd.pickedNums.map(Number) : []);
+          if (cmd.letterMode != null) setLetterMode(!!cmd.letterMode);
+        });
+        return () => { cmdsRef.off(); cmdDbRef.current = null; };
+      }, [watchScreen, shareCode]);
+
+      // ── Watch: auto-disconnect teacher after 30 min idle ──────────────────
+      useEffect(() => {
+        if (watchScreen !== "watching" || !observedState) return;
+        const timer = setTimeout(() => handleDisconnectWatch(), 30 * 60 * 1000);
+        return () => clearTimeout(timer);
+      }, [watchScreen, observedState && observedState.ts]);
+
+      // ── Watch: send command to student ────────────────────────────────────
+      const handleSendCmd = useCallback((cmdPatch) => {
+        if (!watchCode) return;
+        _db.ref("sessions/" + watchCode + "/cmds").update(cmdPatch);
+      }, [watchCode]);
+
 """
 src = src.replace(
     '\n\n      useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
@@ -434,7 +843,7 @@ src = src.replace(
 old_return_open = '      return (\n        <div className="app">'
 watch_jsx = """      // If watching someone else, show observer view entirely
       if (watchScreen === "watching" && observedState) {
-        return <ObserverDisplay state={observedState} code={watchCode} onDisconnect={handleDisconnectWatch} />;
+        return <ObserverDisplay state={observedState} code={watchCode} onDisconnect={handleDisconnectWatch} onSendCmd={handleSendCmd} />;
       }
 
       return (
@@ -496,11 +905,24 @@ src = src[:last_idx] + new_close + src[last_idx + len(old_close):]
 
 src = src.replace(
     '            <div className="app-header-spacer" />',
+    '            <div className="app-header-spacer" />',
+    1
+)
+
+# Replace help button with sharing indicator when sharing, hide help entirely
+src = src.replace(
+    '            <button className={`help-btn app-header-spacer${helpPulse ? \' help-btn-pulse\' : \'\'}`}',
     '            {watchScreen === "app"\n'
     '              ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">\n'
-    '                  <div className="sharing-indicator-dot" />\n'
+    '                  <div className="sharing-indicator-dot" style={{ animationDuration: `${Math.round(120000 / bpm)}ms` }} />\n'
     '                </div>\n'
-    '              : <div className="app-header-spacer" />}',
+    '              : <button className={`help-btn app-header-spacer${helpPulse ? \' help-btn-pulse\' : \'\'}`}',
+    1
+)
+# Close the conditional — find the end of the help button JSX and add the closing brace
+src = src.replace(
+    '            }}>?</button>',
+    '            }}>?</button>}',
     1
 )
 
@@ -525,6 +947,12 @@ checks = [
     "handleConnectWatch",
     "watch-overlay-title",
     "observer-app",
+    "handleSendCmd",
+    "onSendCmd",
+    "cmds",
+    "tcmd",
+    "tseq",
+    "observer-controls",
 ]
 for token in checks:
     if token not in src:
