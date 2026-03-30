@@ -102,3 +102,24 @@ vX.X.X - Brief summary of main change
 - Specific change
 
 Only describe changes since the last deployed version. Keep it to 3–5 bullets.
+
+---
+
+## Referral tracking
+
+GoatCounter is used for analytics. Referrals are tracked via the `?ref=` query parameter.
+
+Redirect pages (in repo root, each as `folder/index.html`):
+- `/me` → `?ref=me` — personal use and testing
+- `/ross` → `?ref=ross` — shared with a friend
+- `/s` → `?ref=student` — shared with students
+
+Direct referral links (no redirect):
+- `?ref=bmc` — Buy Me A Coffee
+- `?ref=web` — rossfarley.com
+- `?ref=facebook`
+- `?ref=bluesky`
+- `?ref=reddit`
+- `?ref=instagram`
+- `?ref=email`
+- `?ref=youtube`
