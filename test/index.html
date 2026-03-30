@@ -553,13 +553,16 @@
 
     .help-overlay {
       position: fixed;
-      inset: 0;
-      background: red;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: -100px;
+      background: #000;
       z-index: 100;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2rem, env(safe-area-inset-bottom));
+      padding: max(2rem, env(safe-area-inset-top)) 1.5rem calc(max(2rem, env(safe-area-inset-bottom)) + 100px);
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -2438,7 +2441,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
