@@ -705,6 +705,7 @@ watch_state = """
       const [watchEntryError, setWatchEntryError] = useState("");
       const [observedState,   setObservedState]   = useState(null);
       const [watchCode,       setWatchCode]       = useState("");
+      const [teacherConnected, setTeacherConnected] = useState(false);
       const watchDbRef    = useRef(null);
       const shareDbRef    = useRef(null);
       const shareInterval = useRef(null);
@@ -737,14 +738,6 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           exMode, pickedNums, watchScreen]);
 
 
-      // ── Watch: prime audio context on first touch after entering app ──────
-      useEffect(() => {
-        if (watchScreen !== "app") return;
-        const unlock = () => { getCtx().resume().catch(() => {}); document.removeEventListener("pointerdown", unlock); };
-        document.addEventListener("pointerdown", unlock, { once: true });
-        return () => document.removeEventListener("pointerdown", unlock);
-      }, [watchScreen]);
-
       // ── Watch: clean up on unmount ─────────────────────────────────────────
       useEffect(() => {
         return () => {
@@ -767,6 +760,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
         if (shareCode) _db.ref("sessions/" + shareCode).remove();
         shareDbRef.current = null;
         setShareCode("");
+        setTeacherConnected(false);
         setWatchScreen("home");
       }, [shareCode]);
 
@@ -814,7 +808,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           const cmd = snap.val();
           if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
             lastTSeq.current = cmd.tseq;
-            if      (cmd.tcmd === "connected") { setWatchScreen("app"); }
+            if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
             else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false); }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
@@ -882,8 +876,10 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Sharing</div>
             <div className="share-session-label">Your session code</div>
             <div className="share-session-code">{shareCode}</div>
-            <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>
-            <button className="watch-btn primary" onClick={() => setWatchScreen("app")}>Open Shuffle</button>
+            {teacherConnected
+              ? <div className="share-session-hint" style={{ color: "#f5c842" }}>Teacher connected — tap Open Shuffle to begin.</div>
+              : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
+            <button className="watch-btn primary" onClick={() => { getCtx().resume().catch(() => {}); setWatchScreen("app"); }}>Open Shuffle</button>
             <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
