@@ -60,7 +60,7 @@
 
   user-select: none;
   -webkit-user-select: none;
-  overflow: hidden;
+  overflow: clip;
 }
 
     @media (hover: none) and (pointer: coarse) {
@@ -553,16 +553,13 @@
 
     .help-overlay {
       position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: -100px;
-      background: #000;
+      inset: 0;
+      background: #0f0f0f;
       z-index: 100;
       display: flex;
       align-items: flex-start;
       justify-content: center;
-      padding: max(2rem, env(safe-area-inset-top)) 1.5rem calc(max(2rem, env(safe-area-inset-bottom)) + 100px);
+      padding: max(2rem, env(safe-area-inset-top)) 1.5rem max(2rem, env(safe-area-inset-bottom));
       overflow-y: auto;
       -webkit-overflow-scrolling: touch;
     }
@@ -581,7 +578,7 @@
       left: 0;
       right: 0;
       height: 80px;
-      background: linear-gradient(to bottom, transparent, #000);
+      background: linear-gradient(to bottom, transparent, #0f0f0f);
       pointer-events: none;
       z-index: 101;
       transition: opacity 0.3s;
@@ -2112,7 +2109,7 @@
             }}>?</button>
           </div>
 
-          {showHelp && ReactDOM.createPortal(
+          {showHelp && (
             <>
               {(helpNeedsScroll && !helpScrolledToEnd) && <div className="help-scroll-fade" />}
               <div className="help-overlay" ref={helpOverlayRef}
@@ -2170,8 +2167,7 @@
                 <button className="help-close-bottom" style={{ display: (!helpNeedsScroll || helpScrolledToEnd) ? 'block' : 'none' }} onClick={() => setShowHelp(false)}>Close</button>
               </div>
               </div>
-            </>,
-            document.body
+            </>
           )}
 
           <div className="display">
@@ -2441,7 +2437,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
