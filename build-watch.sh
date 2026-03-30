@@ -74,11 +74,11 @@ watch_css = r"""
     .watch-code-input {
       width: 100%; max-width: 380px; height: 56px;
       background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
-      color: #f5c842; font-family: var(--font-mono); font-size: 1.5rem;
-      letter-spacing: 0.3em; text-align: center; text-transform: uppercase;
+      color: #f5c842; font-family: var(--font-mono); font-size: 1.3rem;
+      letter-spacing: 0.1em; text-align: center; text-transform: uppercase;
       outline: none; caret-color: #f5c842;
     }
-    .watch-code-input::placeholder { color: #333; letter-spacing: 0.2em; }
+    .watch-code-input::placeholder { color: #333; letter-spacing: 0.05em; }
     .watch-code-input:focus { border-color: #f5c842; }
     .watch-connect-btn {
       width: 100%; max-width: 380px; height: 56px; border-radius: 4px; border: none;
@@ -108,6 +108,21 @@ watch_css = r"""
     .share-session-hint {
       font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.08em;
       color: #555; text-align: center; line-height: 1.7; max-width: 320px;
+    }
+    .sharing-indicator {
+      position: fixed; top: max(0.5rem, env(safe-area-inset-top)); right: 1rem;
+      z-index: 150; background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+      padding: 0.3rem 0.6rem; display: flex; align-items: center; gap: 0.4rem;
+      cursor: pointer;
+    }
+    .sharing-indicator-dot {
+      width: 6px; height: 6px; border-radius: 50%; background: #4caf7d;
+      animation: sharing-pulse 2s ease-in-out infinite;
+    }
+    @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+    .sharing-indicator-label {
+      font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: #888;
     }
     /* Observer display */
     .observer-app {
@@ -173,8 +188,30 @@ firebase_and_observer = r"""
       _db = firebase.database(_app);
     } catch(e) { _db = firebase.database(); }
 
+    const WATCH_WORDS = [
+      "BIRD","BOAT","BOLT","BONE","BOOK","BOOT","BOWL","BRICK","BRIDGE","BRUSH",
+      "CAKE","CAMP","CARD","CART","CAVE","CHIN","CHIP","CLAY","CLIP","CLOCK",
+      "CLOUD","CLUB","COAL","COAT","COIN","CORK","CORN","CRAB","CROP","CROWN",
+      "DRUM","DUCK","DUSK","DUST","FERN","FISH","FLAG","FLAME","FLASK","FLINT",
+      "FLOOR","FOAM","FOLD","FONT","FORK","FROG","FROST","GATE","GIFT","GLEN",
+      "GLOVE","GLOW","GOLD","GRAIN","GRAPE","GRASS","GRID","GUST","HAND","HARP",
+      "HAWK","HILL","HIVE","HOOD","HOOK","HORN","HUSK","IRON","JADE","KITE",
+      "KNOT","LAMP","LEAF","LIME","LINK","LION","LOCK","LOFT","LOOM","LUTE",
+      "MAST","MINT","MIST","MOAT","MOON","MOSS","MOTH","MOUNT","DRUM","NAIL",
+      "NEST","NOTE","OAK","OAR","ORB","PAIL","PALM","PATH","PEAK","PINE",
+      "PIPE","PLANK","POND","POOL","PORT","REED","REEF","RING","ROAD","ROCK",
+      "ROOF","ROOT","ROPE","ROSE","RUST","SAGE","SAIL","SALT","SAND","SEED",
+      "SHELL","SHIP","SILK","SLATE","SLOPE","SNOW","SOIL","SPARK","SPIRE","STAFF",
+      "STAG","STAR","STEM","STEP","STIR","STONE","STORM","STREAM","STUMP","SURF",
+      "SWAN","THORN","TIDE","TILE","TOAD","TORCH","TOWER","TRAIL","TREE","VALE",
+      "VAULT","VINE","WAVE","WELD","WELL","WHEAT","WIND","WING","WIRE","WOLF",
+      "WOOD","WOOL","WREN","YARD","YOKE",
+    ];
     function generateWatchCode() {
-      return Math.random().toString(36).slice(2, 10).toUpperCase();
+      const pick = () => WATCH_WORDS[Math.floor(Math.random() * WATCH_WORDS.length)];
+      let a = pick(), b = pick();
+      while (b === a) b = pick();
+      return a + "-" + b;
     }
 
     // ── Observer display component ─────────────────────────────────────────────
@@ -313,7 +350,7 @@ src = src.replace(
 
 watch_effects = """      // ── Watch: broadcast live state when sharing ──────────────────────────
       useEffect(() => {
-        if (watchScreen !== "share" || !shareDbRef.current) return;
+        if ((watchScreen !== "share" && watchScreen !== "app") || !shareDbRef.current) return;
         const payload = {
           running, paused, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
@@ -325,6 +362,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
       }, [running, paused, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode, watchScreen]);
+
 
       // ── Watch: clean up on unmount ─────────────────────────────────────────
       useEffect(() => {
@@ -384,8 +422,8 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
 
 """
 src = src.replace(
-    '\nuseEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
-    '\n' + watch_effects + 'useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
+    '\n\n      useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
+    '\n\n' + watch_effects + '      useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
     1
 )
 
@@ -415,6 +453,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="share-session-label">Your session code</div>
             <div className="share-session-code">{shareCode}</div>
             <div className="share-session-hint">Open shuffleclick.com/watch on the teacher's iPad and enter this code.</div>
+            <button className="watch-btn primary" onClick={() => setWatchScreen("app")}>Open Shuffle</button>
             <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
@@ -425,21 +464,27 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <input
               className="watch-code-input"
               type="text"
-              maxLength={8}
-              placeholder="XXXXXXXX"
+              maxLength={13}
+              placeholder="WORD-WORD"
               value={watchEntryCode}
-              onChange={e => { setWatchEntryCode(e.target.value.toUpperCase()); setWatchEntryError(""); }}
-              onKeyDown={e => { if (e.key === "Enter" && watchEntryCode.length === 8) handleConnectWatch(watchEntryCode); }}
+              onChange={e => { setWatchEntryCode(e.target.value.toUpperCase().replace(/[^A-Z-]/g, "")); setWatchEntryError(""); }}
+              onKeyDown={e => { if (e.key === "Enter" && watchEntryCode.includes("-")) handleConnectWatch(watchEntryCode); }}
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
             />
             {watchEntryError && <div className="watch-entry-error">{watchEntryError}</div>}
-            <button className="watch-connect-btn" disabled={watchEntryCode.length !== 8} onClick={() => handleConnectWatch(watchEntryCode)}>Connect</button>
+            <button className="watch-connect-btn" disabled={!watchEntryCode.includes("-")} onClick={() => handleConnectWatch(watchEntryCode)}>Connect</button>
             <button className="watch-back-btn" onClick={() => { setWatchScreen("home"); setWatchEntryCode(""); setWatchEntryError(""); }}>← back</button>
           </div>
         )}
-        <div className="app" style={watchScreen !== "home" ? {} : { display: "none" }}>"""
+        {watchScreen === "app" && (
+          <div className="sharing-indicator" onClick={() => setWatchScreen("share")}>
+            <div className="sharing-indicator-dot" />
+            <span className="sharing-indicator-label">sharing · {shareCode}</span>
+          </div>
+        )}
+        <div className="app" style={watchScreen === "app" || watchScreen === "share" ? {} : { display: "none" }}>"""
 
 src = src.replace(old_return_open, watch_jsx, 1)
 
