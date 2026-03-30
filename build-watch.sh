@@ -777,7 +777,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
           setWatchCode(code);
           setObservedState(snap.val());
           setWatchScreen("watching");
-          _db.ref("sessions/" + code + "/cmds").update({ tcmd: "connected", tseq: Date.now() });
+          _db.ref("sessions/" + code + "/cmds").set({ tcmd: "connected", tseq: Date.now() });
           stateRef.on("value", s => {
             if (s.exists()) {
               setObservedState(s.val());
@@ -843,7 +843,7 @@ watch_effects = """      // ── Watch: broadcast live state when sharing ─�
       // ── Watch: send command to student ────────────────────────────────────
       const handleSendCmd = useCallback((cmdPatch) => {
         if (!watchCode) return;
-        _db.ref("sessions/" + watchCode + "/cmds").update(cmdPatch);
+        _db.ref("sessions/" + watchCode + "/cmds").set(cmdPatch);
       }, [watchCode]);
 
 """
