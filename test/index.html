@@ -26,6 +26,8 @@
     :root {
       --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
       --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      --sat: env(safe-area-inset-top);
+      --sab: env(safe-area-inset-bottom);
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -2091,9 +2093,16 @@
             const controls = document.querySelector('.controls');
             const btnRow = document.querySelector('.btn-row');
             const footer = document.querySelector('.version-footer');
+            const app = document.querySelector('.app');
+            const safeTop = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sat') || '0');
+            const safeBot = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--sab') || '0');
+            const winH = window.innerHeight;
+            const appH = app ? Math.round(app.getBoundingClientRect().height) : '?';
+            const footBot = footer ? Math.round(footer.getBoundingClientRect().bottom) : '?';
             setInfo(
               `hdr:${r(header)} disp:${r(display)} ctrl:${r(controls)} btn:${r(btnRow)} foot:${r(footer)}` +
-              ` | hdrT:${t(header)} dispT:${t(display)} ctrlT:${t(controls)} btnT:${t(btnRow)} footT:${t(footer)}`
+              ` | hdrT:${t(header)} dispT:${t(display)} ctrlT:${t(controls)} btnT:${t(btnRow)} footT:${t(footer)}` +
+              ` | winH:${winH} appH:${appH} footBot:${footBot}`
             );
           }, 500);
         }, []);
@@ -2456,7 +2465,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.3 · rossfarley.uk · © 2026 Ross Farley
+          >v1.8.1.beta.4 · rossfarley.uk · © 2026 Ross Farley
             <DebugInfo /></div>
 
           {numpadOpen === 'min' && (
