@@ -877,9 +877,9 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="share-session-label">Your session code</div>
             <div className="share-session-code">{shareCode}</div>
             {teacherConnected
-              ? <div className="share-session-hint" style={{ color: "#f5c842" }}>Teacher connected — tap Open Shuffle to begin.</div>
+              ? <div className="share-session-hint" style={{ color: "#ff4500" }}>Teacher connected — tap Open Shuffle to begin.</div>
               : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
-            <button className="watch-btn primary" onClick={() => { getCtx().resume().catch(() => {}); setWatchScreen("app"); }}>Open Shuffle</button>
+            <button className="watch-btn primary" onClick={() => { try { getCtx().resume().catch(() => {}); } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
             <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
