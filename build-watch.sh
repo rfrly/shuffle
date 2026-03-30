@@ -759,6 +759,18 @@ watch_effects = """      // ── Watch: stop pre-start silent loop once useDru
 
       // ── Watch: handlers ────────────────────────────────────────────────────
       const handleStartSharing = useCallback(() => {
+        // Reset to defaults so each session starts clean
+        setBpm(100);
+        setTimeSig(TIME_SIGS[2]);
+        setBarsPerExercise(4);
+        setExerciseLength(1);
+        setMinEx(1); setMinExStr("1");
+        setMaxEx(4); setMaxExStr("4");
+        setCountInBars(1);
+        setCountInEvery(true);
+        setMode(MODE_FULLSET);
+        setExMode("range");
+        setPickedNums([]);
         const code = generateWatchCode();
         setShareCode(code);
         const ref = _db.ref("sessions/" + code + "/state");
