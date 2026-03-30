@@ -470,7 +470,10 @@ watch_jsx = """      // If watching someone else, show observer view entirely
               placeholder="WORD-WORD"
               value={watchEntryCode}
               onChange={e => { setWatchEntryCode(e.target.value.toUpperCase().replace(/[^A-Z-]/g, "")); setWatchEntryError(""); }}
-              onKeyDown={e => { if (e.key === "Enter" && watchEntryCode.includes("-")) handleConnectWatch(watchEntryCode); }}
+              onKeyDown={e => {
+                if (e.key === " ") { e.preventDefault(); setWatchEntryCode(c => (c.includes("-") ? c : c + "-").replace(/[^A-Z-]/g, "")); setWatchEntryError(""); }
+                if (e.key === "Enter" && watchEntryCode.includes("-")) handleConnectWatch(watchEntryCode);
+              }}
               autoCapitalize="characters"
               autoCorrect="off"
               spellCheck={false}
