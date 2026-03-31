@@ -1837,7 +1837,7 @@
       const [paused,          setPaused]          = useState(false);
       const [resuming,        setResuming]        = useState(false);
       const [looping,         setLooping]         = useState(false);
-      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 100);
+      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 80);
       const [timeSig,         setTimeSig]         = useState(() => TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
       const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 4);
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
@@ -2437,7 +2437,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.1.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.1.beta.11 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

@@ -2349,7 +2349,7 @@
       const [paused,          setPaused]          = useState(false);
       const [resuming,        setResuming]        = useState(false);
       const [looping,         setLooping]         = useState(false);
-      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 100);
+      const [bpm,             setBpm]             = useState(() => saved?.bpm ?? 80);
       const [timeSig,         setTimeSig]         = useState(() => TIME_SIGS.find(t => t.label === saved?.timeSig) ?? TIME_SIGS[2]);
       const [barsPerExercise, setBarsPerExercise] = useState(() => saved?.barsPerExercise ?? 4);
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
