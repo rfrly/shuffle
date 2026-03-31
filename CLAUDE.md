@@ -119,6 +119,7 @@ A private teacher/student session observation tool. Not part of the public app �
 - Student opens `shuffleclick.com/watch/` → taps "Share my session" → gets a two-word code (e.g. `BIRD-BOAT`) → share screen shows code and waits
 - When teacher connects, student's share screen shows green "Teacher connected" message → student taps "Open Shuffle" → this tap unlocks the iOS Web Audio context (required by iOS before any audio can play) and transitions to the app; controls are dimmed and non-interactive while sharing
 - Teacher opens `shuffleclick.com/watch/` on their device → taps "Watch a session" → enters the code → sees a live view of the student's session and can control all settings and transport (BPM, mode, time sig, count-in, exercise length, exercises, rounds, start/pause/loop/stop)
+- In the teacher view: long-press the idle settings summary to copy a compact settings string to the clipboard (e.g. `Shuffle, 01–10, 4 rounds`); long-press the "watching BIRD-BOAT" code text to toggle letter mode — both show an amber toast confirmation; letter mode long-press sends the change to the student as before
 - When the student taps "Share my session", settings reset to defaults (BPM 80, 4/4, 1-bar count-in, exercises 1–4, shuffle mode, range mode) so each session starts clean
 - Sessions auto-delete from Firebase when the student closes or navigates away
 - Teacher session auto-disconnects after 30 minutes of inactivity

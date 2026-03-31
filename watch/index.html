@@ -1086,6 +1086,16 @@
       font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
       color: #ff4500; text-align: center;
     }
+    .obs-toast {
+      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; text-align: center; pointer-events: none;
+      animation: obsToastFade 1.8s ease forwards;
+    }
+    @keyframes obsToastFade {
+      0%   { opacity: 1; }
+      60%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .watching-banner { max-width: 700px; }
       .observer-info-strip { max-width: 700px; }
@@ -1181,7 +1191,17 @@
       const [tapped, setTapped] = React.useState(false);
       const [letterModeOverride, setLetterModeOverride] = React.useState(null);
       const letterLongPressObs = React.useRef(null);
+      const copyLongPressObs = React.useRef(null);
       const effectiveLm = letterModeOverride !== null ? letterModeOverride : !!obsLm;
+      const [toastMsg, setToastMsg] = React.useState(null);
+      const [toastKey, setToastKey] = React.useState(0);
+      const toastTimer = React.useRef(null);
+      const showToast = (msg) => {
+        setToastMsg(msg);
+        setToastKey(k => k + 1);
+        if (toastTimer.current) clearTimeout(toastTimer.current);
+        toastTimer.current = setTimeout(() => setToastMsg(null), 1800);
+      };
 
       const obsBpmRef = React.useRef(obsBpm);
       React.useEffect(() => { obsBpmRef.current = obsBpm; }, [obsBpm]);
@@ -1231,7 +1251,7 @@
         <div className="observer-app">
           <div className="watching-banner">
             <span className="watching-code-text"
-              onPointerDown={() => { letterLongPressObs.current = setTimeout(() => { const next = !effectiveLm; setLetterModeOverride(next); onSendCmd({ letterMode: next }); letterLongPressObs.current = null; }, 800); }}
+              onPointerDown={() => { letterLongPressObs.current = setTimeout(() => { const next = !effectiveLm; setLetterModeOverride(next); onSendCmd({ letterMode: next }); showToast(next ? "Letter mode on" : "Letter mode off"); letterLongPressObs.current = null; }, 800); }}
               onPointerUp={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
               onPointerLeave={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
               >watching <span>{code}</span></span>
@@ -1239,6 +1259,7 @@
           </div>
 
           {disconnected && <div className="observer-offline">Session ended</div>}
+          {toastMsg && <div key={toastKey} className="obs-toast">{toastMsg}</div>}
 
           <div className="display" style={{ maxWidth: 440 }}>
             <div className="exercise-label">
@@ -1259,7 +1280,27 @@
 
             {!sc && (
               isIdle ? (
-                <div className="idle-summary">
+                <div className="idle-summary" style={{ userSelect: "none", cursor: "pointer" }}
+                  onPointerDown={() => { copyLongPressObs.current = setTimeout(() => {
+                    let parts = [modeLabel];
+                    if (obsMode !== "clickonly") {
+                      if (exMode === "pick") {
+                        if (pickedNums.length === 0) parts.push("no exercises");
+                        else parts.push(...pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)));
+                      } else {
+                        const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
+                        const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
+                        parts.push(`${lo}\u2013${hi}`);
+                      }
+                      const rds = obsBpe || 1;
+                      parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
+                    }
+                    navigator.clipboard.writeText(parts.join(", ")).then(() => showToast("Copied!")).catch(() => showToast("Copied!"));
+                    copyLongPressObs.current = null;
+                  }, 800); }}
+                  onPointerUp={() => { if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
+                  onPointerLeave={() => { if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
+                >
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
                     : exMode === "pick"
@@ -2810,7 +2851,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.6</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.7</div>
           </div>
         )}
         {watchScreen === "share" && (
