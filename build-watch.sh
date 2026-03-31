@@ -477,8 +477,28 @@ firebase_and_observer = r"""
             {!sc && (
               isIdle ? (
                 <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none", cursor: "pointer" }}
-                  onTouchStart={(e) => e.preventDefault()}
-                  onPointerDown={() => { copyLongPressObs.current = setTimeout(() => {
+                  onTouchStart={(e) => { e.preventDefault(); copyLongPressObs.current = Date.now(); }}
+                  onTouchEnd={(e) => { e.preventDefault(); if (!copyLongPressObs.current) return; const elapsed = Date.now() - copyLongPressObs.current; copyLongPressObs.current = null; if (elapsed < 800) return;
+                    let parts = [modeLabel];
+                    if (obsMode !== "clickonly") {
+                      if (exMode === "pick") {
+                        if (pickedNums.length === 0) parts.push("no exercises");
+                        else parts.push(...pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)));
+                      } else {
+                        const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
+                        const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
+                        parts.push(`${lo}\u2013${hi}`);
+                      }
+                      const rds = obsBpe || 1;
+                      parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
+                    }
+                    const cib = obsCib || 1;
+                    const ciLabel = `${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`;
+                    parts.push(ciLabel);
+                    const text = parts.join(", ");
+                    navigator.clipboard.writeText(text).then(() => showToast("Copied!")).catch(() => { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.focus(); ta.select(); try { document.execCommand("copy"); showToast("Copied!"); } catch(err) {} document.body.removeChild(ta); });
+                  }}
+                  onPointerDown={() => { if ("ontouchstart" in window) return; copyLongPressObs.current = setTimeout(() => {
                     let parts = [modeLabel];
                     if (obsMode !== "clickonly") {
                       if (exMode === "pick") {
@@ -498,8 +518,8 @@ firebase_and_observer = r"""
                     navigator.clipboard.writeText(parts.join(", ")).then(() => showToast("Copied!")).catch(() => showToast("Copied!"));
                     copyLongPressObs.current = null;
                   }, 800); }}
-                  onPointerUp={() => { if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
-                  onPointerLeave={() => { if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
+                  onPointerUp={() => { if ("ontouchstart" in window) return; if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
+                  onPointerLeave={() => { if ("ontouchstart" in window) return; if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
                 >
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
@@ -1033,7 +1053,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.14</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.15</div>
           </div>
         )}
         {watchScreen === "share" && (
