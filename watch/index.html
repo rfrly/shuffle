@@ -2470,13 +2470,30 @@
         exMode, pickedNums,
       });
 
-      // ── Watch: stop pre-start silent loop once useDrumTimer takes over ──────
+      // ── Watch: manage silent loop to keep AudioContext alive while sharing ──
+      // Stop it when useDrumTimer takes over (running=true); restart when idle.
       useEffect(() => {
-        if (running && watchSilentLoop.current) {
-          try { watchSilentLoop.current.stop(); } catch {}
-          watchSilentLoop.current = null;
+        if ((watchScreen !== "share" && watchScreen !== "app")) return;
+        if (running) {
+          if (watchSilentLoop.current) {
+            try { watchSilentLoop.current.stop(); } catch {}
+            watchSilentLoop.current = null;
+          }
+        } else {
+          if (!watchSilentLoop.current) {
+            try {
+              const ctx = getCtx();
+              ctx.resume().catch(() => {});
+              const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
+              const src = ctx.createBufferSource();
+              src.buffer = buf; src.loop = true;
+              const gain = ctx.createGain(); gain.gain.value = 0.001;
+              src.connect(gain); gain.connect(ctx.destination); src.start();
+              watchSilentLoop.current = src;
+            } catch(e) {}
+          }
         }
-      }, [running]);
+      }, [running, watchScreen]);
 
       // ── Watch: broadcast live state when sharing ──────────────────────────
       useEffect(() => {
