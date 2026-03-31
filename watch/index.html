@@ -2459,6 +2459,23 @@
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
+      // ── Watch mode state ───────────────────────────────────────────────────
+      // "home" | "share" | "watch-entry" | "watching"
+      const [watchScreen,     setWatchScreen]     = useState("home");
+      const [shareCode,       setShareCode]       = useState("");
+      const [watchEntryCode,  setWatchEntryCode]  = useState("");
+      const [watchEntryError, setWatchEntryError] = useState("");
+      const [observedState,   setObservedState]   = useState(null);
+      const [watchCode,       setWatchCode]       = useState("");
+      const [teacherConnected, setTeacherConnected] = useState(false);
+      const watchDbRef      = useRef(null);
+      const shareDbRef      = useRef(null);
+      const shareInterval   = useRef(null);
+      const cmdDbRef        = useRef(null);
+      const lastTSeq        = useRef(0);
+      const watchSilentLoop = useRef(null);
+
+
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, volume,
@@ -2862,7 +2879,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.11</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.12</div>
           </div>
         )}
         {watchScreen === "share" && (
