@@ -874,10 +874,9 @@
 
     /* ── App toast ───────────────────────────────────────────────────────────── */
     .app-toast {
-      position: fixed; bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
-      left: 50%; transform: translateX(-50%);
-      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
-      color: #f5c842; pointer-events: none; white-space: nowrap; z-index: 50;
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; pointer-events: none;
       animation: appToastFade 1.8s ease forwards;
     }
     @keyframes appToastFade {
@@ -2471,11 +2470,7 @@
         if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
         if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
-        if (!letterModeSeenRef.current) {
-          letterModeSeenRef.current = true;
-          localStorage.setItem('shuffle_lm_seen', '1');
-          if (!watchScreen) setShowLetterModePopup(true);
-        }
+        /* letter mode popup suppressed in watch build */
       }, [letterMode]);
 
       useEffect(() => {
@@ -2867,7 +2862,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.10</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.11</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3078,6 +3073,7 @@
             {showMuteHint && phase !== "idle" && watchScreen !== "app" && (
               <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
             )}
+            {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
           </div>
 
           <div className="controls">
@@ -3263,7 +3259,7 @@
           </div>
 
           <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => { showAppToast(m ? "Number mode" : "Letter mode"); return !m; }); letterLongPress.current = null; }, 800); }}
+            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
           >v1.8.3 · rossfarley.uk · © 2026 Ross Farley</div>
@@ -3294,8 +3290,6 @@
               letterMode={letterMode}
             />
           )}
-
-          {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
 
           {showLetterModePopup && ReactDOM.createPortal(
             <>

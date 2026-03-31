@@ -872,10 +872,9 @@
 
     /* ── App toast ───────────────────────────────────────────────────────────── */
     .app-toast {
-      position: fixed; bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
-      left: 50%; transform: translateX(-50%);
-      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
-      color: #f5c842; pointer-events: none; white-space: nowrap; z-index: 50;
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; pointer-events: none;
       animation: appToastFade 1.8s ease forwards;
     }
     @keyframes appToastFade {
@@ -2277,6 +2276,7 @@
             {showMuteHint && phase !== "idle" && (
               <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
             )}
+            {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
           </div>
 
           <div className="controls">
@@ -2462,10 +2462,10 @@
           </div>
 
           <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => { showAppToast(m ? "Number mode" : "Letter mode"); return !m; }); letterLongPress.current = null; }, 800); }}
+            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.3.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.3.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -2493,8 +2493,6 @@
               letterMode={letterMode}
             />
           )}
-
-          {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
 
           {showLetterModePopup && ReactDOM.createPortal(
             <>
