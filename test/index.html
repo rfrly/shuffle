@@ -1886,6 +1886,7 @@
       const [showMuteHint,    setShowMuteHint]    = useState(false);
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
+      const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
       const letterLongPress = useRef(null);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
@@ -1910,7 +1911,11 @@
         if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
         if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
-        setShowLetterModePopup(true);
+        if (!letterModeSeenRef.current) {
+          letterModeSeenRef.current = true;
+          localStorage.setItem('shuffle_lm_seen', '1');
+          setShowLetterModePopup(true);
+        }
       }, [letterMode]);
 
       useEffect(() => {
@@ -2220,8 +2225,8 @@
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
                     : exMode === 'pick'
-                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                      : `${fmtEx(minEx, letterMode)}–${fmtEx(maxEx, letterMode)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -2460,7 +2465,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => { showAppToast(m ? "Number mode" : "Letter mode"); return !m; }); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.3.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.3.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

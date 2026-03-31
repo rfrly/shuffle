@@ -2446,6 +2446,7 @@
       const [showMuteHint,    setShowMuteHint]    = useState(false);
       const [letterMode,          setLetterMode]          = useState(false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
+      const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
       const letterLongPress = useRef(null);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
@@ -2470,7 +2471,11 @@
         if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
         if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
-        if (watchScreen !== "app") setShowLetterModePopup(true);
+        if (!letterModeSeenRef.current) {
+          letterModeSeenRef.current = true;
+          localStorage.setItem('shuffle_lm_seen', '1');
+          if (!watchScreen) setShowLetterModePopup(true);
+        }
       }, [letterMode]);
 
       useEffect(() => {
@@ -2862,7 +2867,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.9</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.10</div>
           </div>
         )}
         {watchScreen === "share" && (

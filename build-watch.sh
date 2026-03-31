@@ -300,20 +300,10 @@ src = src.replace(
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
 )
 
-# Idle summary: no leading zeros (use plain numbers, not fmt())
+# Letter mode popup: suppress in watch (student or share screen)
 src = src.replace(
-    "      : `${fmtEx(minEx, letterMode)}–${fmtEx(maxEx, letterMode)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`}",
-    "      : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`}"
-)
-src = src.replace(
-    "      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`",
-    "      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? \"s\" : \"\"} · ${modeSummary}`"
-)
-
-# Letter mode popup: suppress when sharing
-src = src.replace(
-    '        setShowLetterModePopup(true);',
-    '        if (watchScreen !== "app") setShowLetterModePopup(true);'
+    '          setShowLetterModePopup(true);',
+    '          if (!watchScreen) setShowLetterModePopup(true);'
 )
 
 # Mute hint: suppress when sharing
@@ -1039,7 +1029,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.9</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.10</div>
           </div>
         )}
         {watchScreen === "share" && (
