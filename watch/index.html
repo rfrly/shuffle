@@ -1613,7 +1613,7 @@
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, setComplete,
-                            exMode, pickedNums }) {
+                            exMode, pickedNums, keepCtxAlive }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -1765,12 +1765,14 @@
           if (wasRunningRef.current) stoppedRef.current = true;
           clearInterval(schedulerRef.current);
           if (silentLoop.current) { try { silentLoop.current.stop(); } catch {} silentLoop.current = null; }
-          if (setComplete) {
-            setTimeout(() => {
+          if (!keepCtxAlive) {
+            if (setComplete) {
+              setTimeout(() => {
+                if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
+              }, 150);
+            } else {
               if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
-            }, 150);
-          } else {
-            if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }
+            }
           }
           setPhase("idle");
           setCurrentBeat(0); setCurrentBar(0); setCountInBeat(0); setIsResuming(false);
@@ -2455,7 +2457,7 @@
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
 
-      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({
+      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
         bpm,
         beatsPerBar: timeSig.beats,
         barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
@@ -2468,6 +2470,7 @@
         countInEveryRound: countInEvery,
         mode, volume, looping, setComplete,
         exMode, pickedNums,
+        keepCtxAlive: watchScreen === "app",
       });
 
       // ── Watch: manage silent loop to keep AudioContext alive while sharing ──
@@ -2784,7 +2787,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.0</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.1</div>
           </div>
         )}
         {watchScreen === "share" && (

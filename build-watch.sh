@@ -900,8 +900,49 @@ src = src.replace(
     "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
 )
 src = src.replace(
-    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
+    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({",
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
+)
+
+# ── 6c. Prevent AudioContext close when student is sharing ───────────────────
+# When the student is sharing (watchScreen === "app"), closing the AudioContext
+# on stop means the next teacher-triggered Start creates a new suspended context
+# that can't be resumed outside a user gesture. Keep it alive instead.
+src = src.replace(
+    "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            running, paused, resuming,\n"
+    "                            countInBars, countInEveryRound,\n"
+    "                            mode, volume, looping, setComplete,\n"
+    "                            exMode, pickedNums }) {",
+    "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            running, paused, resuming,\n"
+    "                            countInBars, countInEveryRound,\n"
+    "                            mode, volume, looping, setComplete,\n"
+    "                            exMode, pickedNums, keepCtxAlive }) {"
+)
+src = src.replace(
+    "          if (setComplete) {\n"
+    "            setTimeout(() => {\n"
+    "              if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }\n"
+    "            }, 150);\n"
+    "          } else {\n"
+    "            if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }\n"
+    "          }",
+    "          if (!keepCtxAlive) {\n"
+    "            if (setComplete) {\n"
+    "              setTimeout(() => {\n"
+    "                if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }\n"
+    "              }, 150);\n"
+    "            } else {\n"
+    "              if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }\n"
+    "            }\n"
+    "          }"
+)
+src = src.replace(
+    "        mode, volume, looping, setComplete,\n        exMode, pickedNums,\n      });",
+    "        mode, volume, looping, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
@@ -921,7 +962,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.0</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.1</div>
           </div>
         )}
         {watchScreen === "share" && (
