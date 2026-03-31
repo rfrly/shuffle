@@ -387,11 +387,11 @@ firebase_and_observer = r"""
       React.useEffect(() => { obsBpmRef.current = obsBpm; }, [obsBpm]);
       const incObsBpm = React.useCallback(() => {
         if (disabled) return;
-        onSendCmd({ bpm: Math.min(300, (obsBpmRef.current || 100) + 1) });
+        onSendCmd({ bpm: Math.min(300, (obsBpmRef.current || 80) + 1) });
       }, [disabled, onSendCmd]);
       const decObsBpm = React.useCallback(() => {
         if (disabled) return;
-        onSendCmd({ bpm: Math.max(30, (obsBpmRef.current || 100) - 1) });
+        onSendCmd({ bpm: Math.max(30, (obsBpmRef.current || 80) - 1) });
       }, [disabled, onSendCmd]);
       const bpmObsIncHandlers = useLongPress(incObsBpm);
       const bpmObsDecHandlers = useLongPress(decObsBpm);
@@ -474,10 +474,10 @@ firebase_and_observer = r"""
                       ? <><span className="next-label">resuming</span>{exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}</>
                       : obsLooping
                         ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
-                        : nextEx === -1
+                        : nextEx === -1 && phase === "playing"
                           ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase" }}>last exercise</span>
-                          : nextEx != null && nextEx !== -1
-                            ? <><span className="next-label">up next</span>{effectiveLm ? String.fromCharCode(64 + nextEx) : (nextEx < 10 ? "0" + nextEx : "" + nextEx)}</>
+                          : nextEx != null && (phase === "playing" || phase === "countin")
+                            ? <><span className="next-label">up next</span>{effectiveLm ? String.fromCharCode(64 + (nextEx === -1 ? exercise : nextEx)) : ((nextEx === -1 ? exercise : nextEx) < 10 ? "0" + (nextEx === -1 ? exercise : nextEx) : "" + (nextEx === -1 ? exercise : nextEx))}</>
                             : "\u00A0"}
                 </div>
               )
@@ -792,7 +792,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       // ── Watch: handlers ────────────────────────────────────────────────────
       const handleStartSharing = useCallback(() => {
         // Reset to defaults so each session starts clean
-        setBpm(100);
+        setBpm(80);
         setTimeSig(TIME_SIGS[2]);
         setBarsPerExercise(4);
         setExerciseLength(1);
@@ -991,7 +991,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.3</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.4</div>
           </div>
         )}
         {watchScreen === "share" && (
