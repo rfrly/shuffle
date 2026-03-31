@@ -135,6 +135,7 @@ watch_css = r"""
     /* Student controls: dimmed but readable while sharing */
     .control-group.watch-locked { opacity: 0.6; pointer-events: none; cursor: default; }
     /* Observer display */
+    .observer-app { user-select: none; }
     .observer-app {
       position: fixed; inset: 0; background: #0f0f0f; display: flex;
       flex-direction: column; align-items: center; justify-content: flex-start;
@@ -414,7 +415,7 @@ firebase_and_observer = r"""
       const modeLabel = { fullset: "Shuffle", sequential: "Sequential", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
 
       const handleTapBpm = () => {
-        if (disabled) return;
+        if (disabled || obsRunning) return;
         const now = Date.now();
         tapTimesObs.current = [...tapTimesObs.current.filter(t => now - t < 3000), now];
         if (tapTimesObs.current.length >= 2) {
@@ -534,11 +535,11 @@ firebase_and_observer = r"""
                 <div className="bpm-widget">
                   <button className="bpm-btn left" disabled={disabled} {...bpmObsDecHandlers}>−</button>
                   <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                    onClick={!disabled ? handleTapBpm : undefined}
-                    style={disabled ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    onClick={!disabled && !obsRunning ? handleTapBpm : undefined}
+                    style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                       <span>{obsBpm || "--"}</span>
-                      {!disabled && <span className="bpm-tap-label">tap to set</span>}
+                      {!disabled && !obsRunning && <span className="bpm-tap-label">tap to set</span>}
                     </div>
                   </div>
                   <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
