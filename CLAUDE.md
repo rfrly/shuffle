@@ -95,6 +95,11 @@ Test builds (test/index.html):
 - When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
 - test/index.html always uses shuffle-icon-beta.png — keep the apple-touch-icon and icon hrefs pointing to shuffle-icon-beta.png?v=N, incrementing N when the beta icon changes
 
+After shipping (copying test → index.html and removing the beta suffix):
+- Immediately bump test/index.html to the next beta version (e.g. if you just shipped v1.8.2, set test/index.html to v1.8.3.beta.1)
+- This keeps test/index.html ahead of the live version and ready for the next development cycle
+- At the start of any new session, check that test/index.html is already on a beta version ahead of index.html — if it isn't, bump it now before making any changes
+
 Commit message format:
 vX.X.X - Brief summary of main change
 
