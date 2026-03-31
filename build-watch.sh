@@ -774,6 +774,21 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         };
       }, []);
 
+      // ── Watch: resume AudioContext when app returns to foreground ───────────
+      // iOS suspends the AudioContext when the app goes to background. This
+      // visibilitychange handler resumes it when the student returns so the
+      // context is ready before the teacher triggers Start.
+      useEffect(() => {
+        if (watchScreen !== "app") return;
+        const onVisible = () => {
+          if (document.visibilityState === "visible") {
+            try { const ctx = getCtx(); ctx.resume().catch(() => {}); } catch(e) {}
+          }
+        };
+        document.addEventListener("visibilitychange", onVisible);
+        return () => document.removeEventListener("visibilitychange", onVisible);
+      }, [watchScreen]);
+
       // ── Watch: handlers ────────────────────────────────────────────────────
       const handleStartSharing = useCallback(() => {
         // Reset to defaults so each session starts clean
@@ -914,7 +929,7 @@ src = src.replace(
     "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
 )
 src = src.replace(
-    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({",
+    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
 
@@ -976,7 +991,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.2</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.3</div>
           </div>
         )}
         {watchScreen === "share" && (
