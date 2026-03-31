@@ -870,6 +870,20 @@
     .numpad-ok:active { background: #d4ac38; }
     .numpad-ok:disabled { opacity: 0.3; cursor: default; }
 
+    /* ── App toast ───────────────────────────────────────────────────────────── */
+    .app-toast {
+      position: fixed; bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
+      left: 50%; transform: translateX(-50%);
+      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; pointer-events: none; white-space: nowrap; z-index: 50;
+      animation: appToastFade 1.8s ease forwards;
+    }
+    @keyframes appToastFade {
+      0%   { opacity: 1; }
+      60%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+
     /* ── Letter mode popup ───────────────────────────────────────────────────── */
     .letter-mode-popup {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
@@ -1873,6 +1887,15 @@
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterLongPress = useRef(null);
+      const appToastTimer = useRef(null);
+      const [appToastMsg, setAppToastMsg] = useState(null);
+      const [appToastKey, setAppToastKey] = useState(0);
+      const showAppToast = (msg) => {
+        setAppToastMsg(msg);
+        setAppToastKey(k => k + 1);
+        if (appToastTimer.current) clearTimeout(appToastTimer.current);
+        appToastTimer.current = setTimeout(() => setAppToastMsg(null), 1800);
+      };
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -2434,10 +2457,10 @@
           </div>
 
           <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
+            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => { showAppToast(m ? "Number mode" : "Letter mode"); return !m; }); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.3.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.3.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -2465,6 +2488,8 @@
               letterMode={letterMode}
             />
           )}
+
+          {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
 
           {showLetterModePopup && ReactDOM.createPortal(
             <>
