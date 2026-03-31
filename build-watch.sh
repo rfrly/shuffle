@@ -476,7 +476,8 @@ firebase_and_observer = r"""
 
             {!sc && (
               isIdle ? (
-                <div className="idle-summary" style={{ userSelect: "none", cursor: "pointer" }}
+                <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none", cursor: "pointer" }}
+                  onTouchStart={(e) => e.preventDefault()}
                   onPointerDown={() => { copyLongPressObs.current = setTimeout(() => {
                     let parts = [modeLabel];
                     if (obsMode !== "clickonly") {
@@ -1032,7 +1033,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.13</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.14</div>
           </div>
         )}
         {watchScreen === "share" && (
