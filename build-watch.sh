@@ -175,10 +175,9 @@ watch_css = r"""
       color: #ff4500; text-align: center;
     }
     .obs-toast {
-      position: fixed; bottom: max(3.5rem, calc(env(safe-area-inset-bottom) + 2.5rem));
-      left: 50%; transform: translateX(-50%);
-      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
-      color: #f5c842; pointer-events: none; white-space: nowrap; z-index: 50;
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; pointer-events: none;
       animation: obsToastFade 1.8s ease forwards;
     }
     @keyframes obsToastFade {
@@ -457,7 +456,6 @@ firebase_and_observer = r"""
           </div>
 
           {disconnected && <div className="observer-offline">Session ended</div>}
-          {toastMsg && <div key={toastKey} className="obs-toast">{toastMsg}</div>}
 
           <div className="display" style={{ maxWidth: 440 }}>
             <div className="exercise-label">
@@ -547,6 +545,7 @@ firebase_and_observer = r"""
                 barFlash={false}
               />
             )}
+            {toastMsg && <div key={toastKey} className="obs-toast">{toastMsg}</div>}
           </div>
 
 
@@ -1033,7 +1032,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.12</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.13</div>
           </div>
         )}
         {watchScreen === "share" && (
