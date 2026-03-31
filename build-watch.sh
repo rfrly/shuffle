@@ -875,6 +875,18 @@ src = src.replace(
     1
 )
 
+# ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
+# getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
+# in App scope to create the silent loop that keeps the AudioContext alive.
+src = src.replace(
+    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };",
+    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
+)
+src = src.replace(
+    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
+    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
+)
+
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
 
 old_return_open = '      return (\n        <div className="app">'

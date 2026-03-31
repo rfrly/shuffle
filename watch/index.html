@@ -1999,7 +1999,7 @@
         return () => clearInterval(schedulerRef.current);
       }, [running, getCtx, pickNext]);
 
-      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };
+      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };
     }
 
     // ── Long press ─────────────────────────────────────────────────────────────
@@ -2455,7 +2455,7 @@
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
 
-      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
+      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({
         bpm,
         beatsPerBar: timeSig.beats,
         barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
