@@ -788,6 +788,12 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setMode(MODE_FULLSET);
         setExMode("range");
         setPickedNums([]);
+        setLetterMode(false);
+        // Clean up stale silent loop so a fresh one is created on "Open Shuffle" tap
+        if (watchSilentLoop.current) {
+          try { watchSilentLoop.current.stop(); } catch {}
+          watchSilentLoop.current = null;
+        }
         const code = generateWatchCode();
         setShareCode(code);
         const ref = _db.ref("sessions/" + code + "/state");
@@ -892,6 +898,14 @@ src = src.replace(
     1
 )
 
+# ── 6a-ii. Force letterMode to false in Watch — never load from localStorage ──
+# Watch always starts in Number Mode regardless of what the student's main app
+# had saved. Prevents Letter Mode from persisting into a watch session.
+src = src.replace(
+    "      const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);",
+    "      const [letterMode,          setLetterMode]          = useState(false);"
+)
+
 # ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
 # getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
 # in App scope to create the silent loop that keeps the AudioContext alive.
@@ -962,7 +976,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.1</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.2</div>
           </div>
         )}
         {watchScreen === "share" && (

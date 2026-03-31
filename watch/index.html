@@ -2382,7 +2382,7 @@
       const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
       const [pickerOpen,      setPickerOpen]      = useState(false);
       const [showMuteHint,    setShowMuteHint]    = useState(false);
-      const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
+      const [letterMode,          setLetterMode]          = useState(false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterLongPress = useRef(null);
       const tapTimes = useRef([]);
@@ -2538,6 +2538,12 @@
         setMode(MODE_FULLSET);
         setExMode("range");
         setPickedNums([]);
+        setLetterMode(false);
+        // Clean up stale silent loop so a fresh one is created on "Open Shuffle" tap
+        if (watchSilentLoop.current) {
+          try { watchSilentLoop.current.stop(); } catch {}
+          watchSilentLoop.current = null;
+        }
         const code = generateWatchCode();
         setShareCode(code);
         const ref = _db.ref("sessions/" + code + "/state");
@@ -2787,7 +2793,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.1 · watch 1.1</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.2</div>
           </div>
         )}
         {watchScreen === "share" && (
