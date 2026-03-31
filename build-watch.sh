@@ -496,7 +496,8 @@ firebase_and_observer = r"""
                     const ciLabel = `${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`;
                     parts.push(ciLabel);
                     const text = parts.join(", ");
-                    navigator.clipboard.writeText(text).then(() => showToast("Copied!")).catch(() => { const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.focus(); ta.select(); try { document.execCommand("copy"); showToast("Copied!"); } catch(err) {} document.body.removeChild(ta); });
+                    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0"; ta.setAttribute("readonly", ""); document.body.appendChild(ta); ta.focus(); ta.setSelectionRange(0, text.length); const ok = document.execCommand("copy"); document.body.removeChild(ta);
+                    if (ok) { showToast("Copied!"); } else { navigator.clipboard.writeText(text).then(() => showToast("Copied!")).catch(() => showToast("Copy failed")); }
                   }}
                   onPointerDown={() => { if ("ontouchstart" in window) return; copyLongPressObs.current = setTimeout(() => {
                     let parts = [modeLabel];
@@ -1053,7 +1054,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.15</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.16</div>
           </div>
         )}
         {watchScreen === "share" && (
