@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="https://shuffleclick.com/shuffle-icon.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/shuffle-icon.png" />
-  <link rel="icon" href="https://shuffleclick.com/shuffle-icon.png" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -869,6 +869,19 @@
     }
     .numpad-ok:active { background: #d4ac38; }
     .numpad-ok:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── App toast ───────────────────────────────────────────────────────────── */
+    .app-toast {
+      position: absolute; bottom: 0.5rem; left: 0; right: 0;
+      text-align: center; font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #f5c842; pointer-events: none;
+      animation: appToastFade 1.8s ease forwards;
+    }
+    @keyframes appToastFade {
+      0%   { opacity: 1; }
+      60%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
 
     /* ── Letter mode popup ───────────────────────────────────────────────────── */
     .letter-mode-popup {
@@ -1872,7 +1885,17 @@
       const [showMuteHint,    setShowMuteHint]    = useState(false);
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
+      const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
       const letterLongPress = useRef(null);
+      const appToastTimer = useRef(null);
+      const [appToastMsg, setAppToastMsg] = useState(null);
+      const [appToastKey, setAppToastKey] = useState(0);
+      const showAppToast = (msg) => {
+        setAppToastMsg(msg);
+        setAppToastKey(k => k + 1);
+        if (appToastTimer.current) clearTimeout(appToastTimer.current);
+        appToastTimer.current = setTimeout(() => setAppToastMsg(null), 1800);
+      };
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
 
@@ -1887,7 +1910,11 @@
         if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
         if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
-        setShowLetterModePopup(true);
+        if (!letterModeSeenRef.current) {
+          letterModeSeenRef.current = true;
+          localStorage.setItem('shuffle_lm_seen', '1');
+          setShowLetterModePopup(true);
+        }
       }, [letterMode]);
 
       useEffect(() => {
@@ -2197,8 +2224,8 @@
                   {mode === MODE_CLICKONLY
                     ? `${bpm} bpm · ${timeSig.label} · metronome`
                     : exMode === 'pick'
-                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                      : `${fmtEx(minEx, letterMode)}–${fmtEx(maxEx, letterMode)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+                      ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                      : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
                 </div>
               )
             ) : mode === MODE_CLICKONLY ? (
@@ -2249,6 +2276,7 @@
             {showMuteHint && phase !== "idle" && (
               <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
             )}
+            {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
           </div>
 
           <div className="controls">
@@ -2434,10 +2462,10 @@
           </div>
 
           <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); letterLongPress.current = null; }, 800); }}
+            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
