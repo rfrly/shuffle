@@ -73,7 +73,8 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
-- Letter mode is a hidden feature that displays exercises as A–Z instead of numbers; activated by long-pressing the version footer (800ms); limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
+- A `···` menu button sits in the header (left side, balancing the `?` button); opens a dropdown with two items: **Turn letter mode on/off** and **Reset to defaults**. Reset stops the player and restores all settings to defaults. Hidden when student is sharing in Watch mode.
+- Letter mode displays exercises as A–Z instead of numbers; toggled via the `···` menu; limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
 - Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
 - useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app
 
@@ -119,7 +120,7 @@ A private teacher/student session observation tool. Not part of the public app �
 - Student opens `shuffleclick.com/watch/` → taps "Share my session" → gets a two-word code (e.g. `BIRD-BOAT`) → share screen shows code and waits
 - When teacher connects, student's share screen shows green "Teacher connected" message → student taps "Open Shuffle" → this tap unlocks the iOS Web Audio context (required by iOS before any audio can play) and transitions to the app; controls are dimmed and non-interactive while sharing
 - Teacher opens `shuffleclick.com/watch/` on their device → taps "Watch a session" → enters the code → sees a live view of the student's session and can control all settings and transport (BPM, mode, time sig, count-in, exercise length, exercises, rounds, start/pause/loop/stop)
-- In the teacher view: a `···` menu button in the watching banner (left side) opens a menu with three items: **Copy summary** (copies a compact settings string to the clipboard, e.g. `Shuffle, 01–10, 4 rounds`); **Turn letter mode on/off** (toggles letter mode and sends the change to the student); **Share link** (copies a `shuffleclick.com/?bpm=...` URL encoding all current settings). All menu actions use direct `onClick` handlers for iOS clipboard compatibility — no long-press.
+- In the teacher view: a `···` menu button in the watching banner (left side) opens a menu with four items: **Copy summary** (copies a compact settings string to the clipboard, e.g. `Shuffle, 01–10, 4 rounds`); **Turn letter mode on/off** (toggles letter mode and sends the change to the student); **Share link** (copies a `shuffleclick.com/?bpm=...` URL encoding all current settings); **Reset to defaults** (sends `tcmd: "stop"` plus all default values to the student). All menu actions use direct `onClick` handlers for iOS clipboard compatibility — no long-press.
 - When the student taps "Share my session", settings reset to defaults (BPM 80, 4/4, 1-bar count-in, exercises 1–4, shuffle mode, range mode) so each session starts clean
 - Sessions auto-delete from Firebase when the student closes or navigates away
 - Teacher session auto-disconnects after 30 minutes of inactivity
