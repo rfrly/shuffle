@@ -138,6 +138,8 @@ watch_css = r"""
     .watch-active .controls { display: none; }
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
+    .watch-active .idle-summary { display: none; }
+    .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
     .watch-student-status {
       display: flex; align-items: center; justify-content: center; gap: 0.5rem;
       width: 100%; max-width: 440px;
@@ -362,12 +364,20 @@ src = src.replace(
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
-# Status strip: show BPM + mode above btn-row when student is sharing
+# Status strip: show exercises, time sig, rounds, mode above btn-row when student is sharing
 src = src.replace(
     '          <div className="btn-row">',
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
-    '              <span className="watch-student-status-item">{bpm} BPM</span>\n'
+    '              <span className="watch-student-status-item">\n'
+    '                {exMode === "pick"\n'
+    '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : pickedNums.map(n => letterMode ? numToLetter(n) : fmt(n)).join(", "))\n'
+    '                  : `${letterMode ? numToLetter(minEx) : fmt(minEx)}\u2013${letterMode ? numToLetter(maxEx) : fmt(maxEx)}`}\n'
+    '              </span>\n'
+    '              <span className="watch-student-status-sep">\u00b7</span>\n'
+    '              <span className="watch-student-status-item">{timeSig.label}</span>\n'
+    '              <span className="watch-student-status-sep">\u00b7</span>\n'
+    '              <span className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</span>\n'
     '              <span className="watch-student-status-sep">\u00b7</span>\n'
     '              <span className="watch-student-status-item">\n'
     '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : mode === MODE_RANDOM ? "Random" : "Metronome"}\n'
@@ -1160,7 +1170,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.3</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.4</div>
           </div>
         )}
         {watchScreen === "share" && (
