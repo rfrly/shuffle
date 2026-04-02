@@ -74,7 +74,7 @@ watch_css = r"""
       text-transform: uppercase; color: #f5c842; text-align: center;
     }
     .watch-overlay-subtitle {
-      font-family: var(--font-mono); font-size: 0.55rem; letter-spacing: 0.1em;
+      font-family: var(--font-mono); font-size: 0.9rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #888; text-align: center; margin-top: -0.75rem;
     }
     .watch-btn {
@@ -164,8 +164,8 @@ watch_css = r"""
     .watching-banner-right { display: flex; align-items: center; gap: 0.5rem; }
     .obs-menu-btn {
       background: none; border: 1px solid #333; border-radius: 4px; color: #888;
-      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;
-      padding: 0.3rem 0.5rem; cursor: pointer; line-height: 1; flex-shrink: 0;
+      font-family: var(--font-body); font-size: 1rem; letter-spacing: 0;
+      padding: 0.1rem 0.3rem; cursor: pointer; line-height: 1; flex-shrink: 0;
     }
     .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; border-color: #f5c842; }
     .obs-menu-panel {
@@ -528,7 +528,7 @@ firebase_and_observer = r"""
         <div className="observer-app">
           <div className="watching-banner">
             <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
-              onClick={() => setMenuOpen(v => !v)}>···</button>
+              onClick={() => setMenuOpen(v => !v)}>☰</button>
             {menuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
@@ -1126,7 +1126,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.22</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.23</div>
           </div>
         )}
         {watchScreen === "share" && (
