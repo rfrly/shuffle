@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
-  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
-  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
+  <link rel="icon" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -98,7 +98,7 @@
 
     .app-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
       max-width: 440px;
       margin-bottom: 0.1rem;
@@ -674,11 +674,36 @@
       font-family: var(--font-mono);
       font-size: 0.75rem;
       cursor: pointer;
-      padding: 0.2rem 0.5rem;
+      padding: 0;
       letter-spacing: 0.1em;
       border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      height: 28px; width: 28px; box-sizing: border-box;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
+
+    .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
+    .settings-menu-btn {
+      background: none; border: 1px solid #444; color: #666;
+      font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
+      padding: 0; letter-spacing: 0; border-radius: 4px;
+      width: 28px; height: 28px; box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .settings-menu-btn:active { color: #aaa; border-color: #666; }
+    .settings-menu-panel {
+      position: absolute; top: calc(100% + 0.4rem); left: 0;
+      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+      min-width: 175px; z-index: 50; overflow: hidden;
+    }
+    .settings-menu-item {
+      display: block; width: 100%; padding: 0.65rem 0.85rem;
+      background: none; border: none; border-bottom: 1px solid #222;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
+    }
+    .settings-menu-item:last-child { border-bottom: none; }
+    .settings-menu-item:active { background: #222; }
 
     @keyframes pulse-amber {
       0%, 100% { border-color: #444; color: #666; box-shadow: none; }
@@ -1906,7 +1931,7 @@
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
-      const letterLongPress = useRef(null);
+      const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
       const [appToastKey, setAppToastKey] = useState(0);
@@ -2145,7 +2170,47 @@
           </div>
 
           <div className="app-header">
-            <div className="app-header-spacer" />
+            <div className="settings-menu-wrap app-header-spacer">
+              <button className="settings-menu-btn"
+                onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
+              {settingsMenuOpen && (
+                <>
+                  <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                       onClick={() => setSettingsMenuOpen(false)} />
+                  <div className="settings-menu-panel">
+                    <button className="settings-menu-item" onClick={() => {
+                      setSettingsMenuOpen(false);
+                      const next = !letterMode;
+                      setLetterMode(next);
+                      showAppToast(next ? "Letter mode" : "Number mode");
+                      if (next && !letterModeSeenRef.current) {
+                        letterModeSeenRef.current = true;
+                        try { localStorage.setItem('shuffle_lm_seen', '1'); } catch {}
+                        setShowLetterModePopup(true);
+                      }
+                    }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                    <button className="settings-menu-item" onClick={() => {
+                      setSettingsMenuOpen(false);
+                      handleStop();
+                      setBpm(80);
+                      setTimeSig(TIME_SIGS[2]);
+                      setBarsPerExercise(4);
+                      setExerciseLength(1);
+                      setMinEx(1);
+                      setMaxEx(4);
+                      setCountInBars(1);
+                      setCountInEvery(true);
+                      setMode(MODE_FULLSET);
+                      setVolume(1.0);
+                      setExMode('range');
+                      setPickedNums([]);
+                      setLetterMode(false);
+                      showAppToast("Settings reset");
+                    }}>Reset to defaults</button>
+                  </div>
+                </>
+              )}
+            </div>
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
               <div className="app-subtitle">practice randomiser and metronome for musicians</div>
@@ -2204,7 +2269,7 @@
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
                     <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
-
+                    <li>Tap <strong>☰</strong> to switch to letter mode or reset all settings to defaults.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2485,11 +2550,7 @@
             )}
           </div>
 
-          <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
-            onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-            onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
