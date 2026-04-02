@@ -160,6 +160,28 @@ watch_css = r"""
       text-transform: uppercase; padding: 0.3rem 0.6rem; cursor: pointer;
     }
     .watching-disconnect-btn:active { color: #ccc; border-color: #555; }
+    .watching-banner { position: relative; }
+    .watching-banner-right { display: flex; align-items: center; gap: 0.5rem; }
+    .obs-menu-btn {
+      background: none; border: 1px solid #333; border-radius: 4px; color: #888;
+      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.05em;
+      padding: 0.3rem 0.5rem; cursor: pointer; line-height: 1; flex-shrink: 0;
+    }
+    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; border-color: #f5c842; }
+    .obs-menu-panel {
+      position: absolute; top: calc(100% + 0.4rem); left: 0;
+      background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
+      min-width: 200px; z-index: 50; overflow: hidden;
+    }
+    .obs-menu-item {
+      display: block; width: 100%; padding: 0.65rem 0.85rem;
+      background: none; border: none; border-bottom: 1px solid #222;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
+    }
+    .obs-menu-item:last-child { border-bottom: none; }
+    .obs-menu-item:active { background: #222; }
+    .obs-menu-item.active { color: #f5c842; }
     .observer-info-strip {
       display: flex; gap: 1.5rem; align-items: center; justify-content: center;
       width: 100%; max-width: 440px;
@@ -387,12 +409,11 @@ firebase_and_observer = r"""
       const tapTimesObs = React.useRef([]);
       const [tapped, setTapped] = React.useState(false);
       const [letterModeOverride, setLetterModeOverride] = React.useState(null);
-      const letterLongPressObs = React.useRef(null);
-      const copyLongPressObs = React.useRef(null);
       const effectiveLm = letterModeOverride !== null ? letterModeOverride : !!obsLm;
       const [toastMsg, setToastMsg] = React.useState(null);
       const [toastKey, setToastKey] = React.useState(0);
       const toastTimer = React.useRef(null);
+      const [menuOpen, setMenuOpen] = React.useState(false);
       const showToast = (msg) => {
         setToastMsg(msg);
         setToastKey(k => k + 1);
@@ -430,6 +451,42 @@ firebase_and_observer = r"""
 
       const modeLabel = { fullset: "Shuffle", sequential: "Sequential", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
 
+      const buildSettingsSummary = () => {
+        let parts = [modeLabel];
+        if (obsMode !== "clickonly") {
+          if (exMode === "pick") {
+            if (pickedNums.length === 0) parts.push("no exercises");
+            else parts.push(...pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)));
+          } else {
+            const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
+            const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
+            parts.push(`${lo}\u2013${hi}`);
+          }
+          const rds = obsBpe || 1;
+          parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
+        }
+        const cib = obsCib || 1;
+        parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
+        return parts.join(", ");
+      };
+
+      const buildShareUrl = () => {
+        const p = new URLSearchParams();
+        if (obsBpm)           p.set("bpm",    String(obsBpm));
+        if (obsTimeSigLabel)  p.set("sig",    obsTimeSigLabel);
+        if (obsExLen)         p.set("exlen",  String(obsExLen));
+        if (obsMinEx != null) p.set("min",    String(obsMinEx));
+        if (obsMaxEx != null) p.set("max",    String(obsMaxEx));
+        if (obsCib)           p.set("cib",    String(obsCib));
+        if (obsCountInEvery)  p.set("cie",    "1");
+        if (obsMode)          p.set("mode",   obsMode);
+        if (obsBpe)           p.set("rounds", String(obsBpe));
+        if (obsExMode && obsExMode !== "range") p.set("exmode", obsExMode);
+        if (obsExMode === "pick" && pickedNums.length > 0) p.set("picks", pickedNums.join(","));
+        if (effectiveLm)      p.set("lm",     "1");
+        return "https://shuffleclick.com/?" + p.toString();
+      };
+
       const handleTapBpm = () => {
         if (disabled || obsRunning) return;
         const now = Date.now();
@@ -447,12 +504,39 @@ firebase_and_observer = r"""
       return (
         <div className="observer-app">
           <div className="watching-banner">
-            <span className="watching-code-text"
-              onPointerDown={() => { letterLongPressObs.current = setTimeout(() => { const next = !effectiveLm; setLetterModeOverride(next); onSendCmd({ letterMode: next }); showToast(next ? "Letter mode on" : "Letter mode off"); letterLongPressObs.current = null; }, 800); }}
-              onPointerUp={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
-              onPointerLeave={() => { if (letterLongPressObs.current) { clearTimeout(letterLongPressObs.current); letterLongPressObs.current = null; } }}
-              >watching <span>{code}</span></span>
-            <button className="watching-disconnect-btn" onClick={onDisconnect}>stop</button>
+            <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
+              onClick={() => setMenuOpen(v => !v)}>···</button>
+            {menuOpen && (
+              <>
+                <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                     onClick={() => setMenuOpen(false)} />
+                <div className="obs-menu-panel">
+                  <button className="obs-menu-item" onClick={() => {
+                    setMenuOpen(false);
+                    navigator.clipboard.writeText(buildSettingsSummary())
+                      .then(() => showToast("Copied!"))
+                      .catch(() => showToast("Copy failed"));
+                  }}>Copy settings</button>
+                  <button className={`obs-menu-item${effectiveLm ? " active" : ""}`} onClick={() => {
+                    setMenuOpen(false);
+                    const next = !effectiveLm;
+                    setLetterModeOverride(next);
+                    onSendCmd({ letterMode: next });
+                    showToast(next ? "Letter mode on" : "Letter mode off");
+                  }}>Letter mode {effectiveLm ? "on" : "off"}</button>
+                  <button className="obs-menu-item" onClick={() => {
+                    setMenuOpen(false);
+                    navigator.clipboard.writeText(buildShareUrl())
+                      .then(() => showToast("Link copied!"))
+                      .catch(() => showToast("Copy failed"));
+                  }}>Share link</button>
+                </div>
+              </>
+            )}
+            <div className="watching-banner-right">
+              <span className="watching-code-text">watching <span>{code}</span></span>
+              <button className="watching-disconnect-btn" onClick={onDisconnect}>stop</button>
+            </div>
           </div>
 
           {disconnected && <div className="observer-offline">Session ended</div>}
@@ -476,51 +560,7 @@ firebase_and_observer = r"""
 
             {!sc && (
               isIdle ? (
-                <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none", cursor: "pointer" }}
-                  onTouchStart={(e) => { e.preventDefault(); copyLongPressObs.current = Date.now(); }}
-                  onTouchEnd={(e) => { e.preventDefault(); if (!copyLongPressObs.current) return; const elapsed = Date.now() - copyLongPressObs.current; copyLongPressObs.current = null; if (elapsed < 800) return;
-                    let parts = [modeLabel];
-                    if (obsMode !== "clickonly") {
-                      if (exMode === "pick") {
-                        if (pickedNums.length === 0) parts.push("no exercises");
-                        else parts.push(...pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)));
-                      } else {
-                        const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
-                        const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
-                        parts.push(`${lo}\u2013${hi}`);
-                      }
-                      const rds = obsBpe || 1;
-                      parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
-                    }
-                    const cib = obsCib || 1;
-                    const ciLabel = `${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`;
-                    parts.push(ciLabel);
-                    const text = parts.join(", ");
-                    const ta = document.createElement("textarea"); ta.value = text; ta.style.position = "fixed"; ta.style.top = "0"; ta.style.left = "0"; ta.style.opacity = "0"; ta.setAttribute("readonly", ""); document.body.appendChild(ta); ta.focus(); ta.setSelectionRange(0, text.length); const ok = document.execCommand("copy"); document.body.removeChild(ta);
-                    if (ok) { showToast("Copied!"); } else { navigator.clipboard.writeText(text).then(() => showToast("Copied!")).catch(() => showToast("Copy failed")); }
-                  }}
-                  onPointerDown={() => { if ("ontouchstart" in window) return; copyLongPressObs.current = setTimeout(() => {
-                    let parts = [modeLabel];
-                    if (obsMode !== "clickonly") {
-                      if (exMode === "pick") {
-                        if (pickedNums.length === 0) parts.push("no exercises");
-                        else parts.push(...pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)));
-                      } else {
-                        const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
-                        const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
-                        parts.push(`${lo}\u2013${hi}`);
-                      }
-                      const rds = obsBpe || 1;
-                      parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
-                    }
-                    const cib = obsCib || 1;
-                    const ciLabel = `${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`;
-                    parts.push(ciLabel);
-                    navigator.clipboard.writeText(parts.join(", ")).then(() => showToast("Copied!")).catch(() => showToast("Copied!"));
-                    copyLongPressObs.current = null;
-                  }, 800); }}
-                  onPointerUp={() => { if ("ontouchstart" in window) return; if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
-                  onPointerLeave={() => { if ("ontouchstart" in window) return; if (copyLongPressObs.current) { clearTimeout(copyLongPressObs.current); copyLongPressObs.current = null; } }}
+                <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}
                 >
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
@@ -1054,7 +1094,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.16</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.17</div>
           </div>
         )}
         {watchScreen === "share" && (

@@ -1034,6 +1034,26 @@
     function saveSettings(s) {
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(s)); } catch {}
     }
+    function loadUrlParams() {
+      try {
+        const p = new URLSearchParams(window.location.search);
+        if (!p.toString()) return null;
+        const r = {};
+        if (p.has("bpm"))    { const v = parseInt(p.get("bpm"));    if (v >= 30 && v <= 300) r.bpm = v; }
+        if (p.has("sig"))    { const v = p.get("sig");               if (TIME_SIGS.some(t => t.label === v)) r.timeSig = v; }
+        if (p.has("exlen"))  { const v = parseInt(p.get("exlen"));   if ([1,2,4].includes(v)) r.exerciseLength = v; }
+        if (p.has("min"))    { const v = parseInt(p.get("min"));     if (v >= 1 && v <= 200) r.minEx = v; }
+        if (p.has("max"))    { const v = parseInt(p.get("max"));     if (v >= 1 && v <= 200) r.maxEx = v; }
+        if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
+        if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
+        if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","random","clickonly"].includes(v)) r.mode = v; }
+        if (p.has("rounds")) { const v = parseInt(p.get("rounds"));  if (v >= 1 && v <= 32) r.barsPerExercise = v; }
+        if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
+        if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
+        if (p.has("lm"))     r.letterMode = p.get("lm") === "1";
+        return Object.keys(r).length > 0 ? r : null;
+      } catch { return null; }
+    }
 
     // ── Audio ──────────────────────────────────────────────────────────────────
 
@@ -1844,7 +1864,7 @@
     }
 
     function App() {
-      const [saved] = useState(() => loadSettings());
+      const [saved] = useState(() => ({ ...(loadSettings() || {}), ...(loadUrlParams() || {}) }));
 
       const [running,         setRunning]         = useState(false);
       const [paused,          setPaused]          = useState(false);
@@ -1904,6 +1924,10 @@
                        minEx, maxEx, countInBars, countInEvery, mode, volume,
                        exMode, pickedNums, letterMode });
       }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums, letterMode]);
+
+      useEffect(() => {
+        if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
+      }, []);
 
       useEffect(() => {
         if (!letterMode) return;
@@ -2465,7 +2489,7 @@
             onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
             onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
             onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.4.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          >v1.8.4.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
