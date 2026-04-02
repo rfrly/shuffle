@@ -98,12 +98,17 @@
 
     .app-header {
       display: flex;
+      flex-direction: column;
       align-items: center;
       width: 100%;
       max-width: 440px;
       margin-bottom: 0.1rem;
     }
-
+    .app-header-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
     .app-header-text { flex: 1; text-align: center; }
     .app-header-spacer { width: 28px; flex-shrink: 0; }
 
@@ -2169,6 +2174,7 @@
           </div>
 
           <div className="app-header">
+          <div className="app-header-row">
             <div className="settings-menu-wrap app-header-spacer">
               <button className="settings-menu-btn"
                 onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
@@ -2212,7 +2218,6 @@
             </div>
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
-              <div className="app-subtitle">practice randomiser and metronome for musicians</div>
             </div>
             <button className={`help-btn app-header-spacer${helpPulse ? ' help-btn-pulse' : ''}`} onClick={() => {
               setShowHelp(true); setHelpScrolledToEnd(false);
@@ -2222,6 +2227,8 @@
                 try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
               }
             }}>?</button>
+          </div>
+          <div className="app-subtitle">practice randomiser and metronome for musicians</div>
           </div>
 
           {showHelp && (
@@ -2549,7 +2556,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.5.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.5.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

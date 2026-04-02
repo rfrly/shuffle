@@ -100,12 +100,17 @@
 
     .app-header {
       display: flex;
+      flex-direction: column;
       align-items: center;
       width: 100%;
       max-width: 440px;
       margin-bottom: 0.1rem;
     }
-
+    .app-header-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
     .app-header-text { flex: 1; text-align: center; }
     .app-header-spacer { width: 28px; flex-shrink: 0; }
 
@@ -1154,11 +1159,11 @@
     .watching-banner { position: relative; }
     .watching-banner-right { display: flex; align-items: center; gap: 0.5rem; }
     .obs-menu-btn {
-      background: none; border: 1px solid #333; border-radius: 4px; color: #888;
-      font-family: var(--font-body); font-size: 1rem; letter-spacing: 0;
-      padding: 0.1rem 0.3rem; cursor: pointer; line-height: 1; flex-shrink: 0;
+      background: none; border: none; color: #888;
+      font-family: var(--font-body); font-size: 1.1rem; letter-spacing: 0;
+      padding: 0; cursor: pointer; line-height: 1; flex-shrink: 0;
     }
-    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; border-color: #f5c842; }
+    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; }
     .obs-menu-panel {
       position: absolute; top: calc(100% + 0.4rem); left: 0;
       background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
@@ -3109,6 +3114,7 @@
           </div>
 
           <div className="app-header">
+          <div className="app-header-row">
             <div className="settings-menu-wrap app-header-spacer" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>
               <button className="settings-menu-btn"
                 onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
@@ -3152,7 +3158,6 @@
             </div>
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
-              <div className="app-subtitle">practice randomiser and metronome for musicians</div>
             </div>
             {watchScreen === "app"
               ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">
@@ -3166,6 +3171,8 @@
                 try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
               }
             }}>?</button>}
+          </div>
+          <div className="app-subtitle">practice randomiser and metronome for musicians</div>
           </div>
 
           {showHelp && (

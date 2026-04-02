@@ -205,11 +205,11 @@ watch_css = r"""
     .watching-banner { position: relative; }
     .watching-banner-right { display: flex; align-items: center; gap: 0.5rem; }
     .obs-menu-btn {
-      background: none; border: 1px solid #333; border-radius: 4px; color: #888;
-      font-family: var(--font-body); font-size: 1rem; letter-spacing: 0;
-      padding: 0.1rem 0.3rem; cursor: pointer; line-height: 1; flex-shrink: 0;
+      background: none; border: none; color: #888;
+      font-family: var(--font-body); font-size: 1.1rem; letter-spacing: 0;
+      padding: 0; cursor: pointer; line-height: 1; flex-shrink: 0;
     }
-    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; border-color: #f5c842; }
+    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; }
     .obs-menu-panel {
       position: absolute; top: calc(100% + 0.4rem); left: 0;
       background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
