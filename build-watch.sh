@@ -547,6 +547,15 @@ firebase_and_observer = r"""
                       .then(() => showToast("Link copied!"))
                       .catch(() => showToast("Copy failed"));
                   }}>Share link</button>
+                  <button className="obs-menu-item" onClick={() => {
+                    setMenuOpen(false);
+                    onSendCmd({ tcmd: "stop", tseq: Date.now(),
+                      bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
+                      minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
+                      mode: "fullset", exMode: "range", pickedNums: [], letterMode: false });
+                    setLetterModeOverride(false);
+                    showToast("Settings reset");
+                  }}>Reset to defaults</button>
                 </div>
               </>
             )}
@@ -1111,7 +1120,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.20</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.21</div>
           </div>
         )}
         {watchScreen === "share" && (

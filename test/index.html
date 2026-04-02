@@ -680,6 +680,22 @@
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
+    .settings-menu-wrap { position: relative; display: flex; align-items: center; justify-content: center; }
+    .settings-menu-btn.active { color: #f5c842; border-color: #f5c842; }
+    .settings-menu-panel {
+      position: absolute; top: calc(100% + 0.4rem); left: 0;
+      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+      min-width: 175px; z-index: 50; overflow: hidden;
+    }
+    .settings-menu-item {
+      display: block; width: 100%; padding: 0.65rem 0.85rem;
+      background: none; border: none; border-bottom: 1px solid #222;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
+    }
+    .settings-menu-item:last-child { border-bottom: none; }
+    .settings-menu-item:active { background: #222; }
+
     @keyframes pulse-amber {
       0%, 100% { border-color: #444; color: #666; box-shadow: none; }
       50% { border-color: #f5c842; color: #f5c842; box-shadow: 0 0 8px rgba(245,200,66,0.4); }
@@ -1906,7 +1922,7 @@
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
-      const letterLongPress = useRef(null);
+      const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
       const [appToastKey, setAppToastKey] = useState(0);
@@ -2145,7 +2161,47 @@
           </div>
 
           <div className="app-header">
-            <div className="app-header-spacer" />
+            <div className="settings-menu-wrap app-header-spacer">
+              <button className={`help-btn settings-menu-btn${letterMode ? " active" : ""}`}
+                onClick={() => setSettingsMenuOpen(v => !v)}>···</button>
+              {settingsMenuOpen && (
+                <>
+                  <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                       onClick={() => setSettingsMenuOpen(false)} />
+                  <div className="settings-menu-panel">
+                    <button className="settings-menu-item" onClick={() => {
+                      setSettingsMenuOpen(false);
+                      const next = !letterMode;
+                      setLetterMode(next);
+                      showAppToast(next ? "Letter mode" : "Number mode");
+                      if (next && !letterModeSeenRef.current) {
+                        letterModeSeenRef.current = true;
+                        try { localStorage.setItem('shuffle_lm_seen', '1'); } catch {}
+                        setShowLetterModePopup(true);
+                      }
+                    }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                    <button className="settings-menu-item" onClick={() => {
+                      setSettingsMenuOpen(false);
+                      handleStop();
+                      setBpm(80);
+                      setTimeSig(TIME_SIGS[2]);
+                      setBarsPerExercise(4);
+                      setExerciseLength(1);
+                      setMinEx(1);
+                      setMaxEx(4);
+                      setCountInBars(1);
+                      setCountInEvery(true);
+                      setMode(MODE_FULLSET);
+                      setVolume(1.0);
+                      setExMode('range');
+                      setPickedNums([]);
+                      setLetterMode(false);
+                      showAppToast("Settings reset");
+                    }}>Reset to defaults</button>
+                  </div>
+                </>
+              )}
+            </div>
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
               <div className="app-subtitle">practice randomiser and metronome for musicians</div>
@@ -2485,11 +2541,7 @@
             )}
           </div>
 
-          <div className="version-footer"
-            onPointerDown={() => { letterLongPress.current = setTimeout(() => { setLetterMode(m => !m); showAppToast(letterMode ? "Number mode" : "Letter mode"); letterLongPress.current = null; }, 800); }}
-            onPointerUp={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-            onPointerLeave={() => { if (letterLongPress.current) { clearTimeout(letterLongPress.current); letterLongPress.current = null; } }}
-          >v1.8.4.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
