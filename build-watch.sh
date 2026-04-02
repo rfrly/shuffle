@@ -170,6 +170,7 @@ watch_css = r"""
     }
     /* watch 1.12: enhanced student glanceable view */
     .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
+    .watch-active .next-exercise { font-size: clamp(1.8rem, 7vw, 2.8rem); }
     .watch-active .beat-dot { width: 14px; height: 14px; }
     .watch-active .beat-dots { gap: 0.9rem; }
     .watch-active .bar-block { height: 9px; border-radius: 3px; }
@@ -1201,7 +1202,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.16</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.17</div>
           </div>
         )}
         {watchScreen === "share" && (
