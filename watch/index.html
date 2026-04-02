@@ -1060,14 +1060,18 @@
       font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; padding: 0.5rem;
     }
     .watch-back-btn:active { color: #aaa; }
-    .share-session-code {
-      font-family: var(--font-mono); font-size: clamp(2rem, 8vw, 3rem);
-      letter-spacing: 0.25em; color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3);
-      text-align: center;
+    .share-code-box {
+      background: #1a1a1a; border-radius: 12px; padding: 1.5rem 2.5rem;
+      display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
     }
     .share-session-label {
       font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.25em;
       text-transform: uppercase; color: #888; text-align: center;
+    }
+    .share-session-code {
+      font-family: var(--font-mono); font-size: clamp(1.6rem, 6vw, 2.2rem);
+      letter-spacing: 0.2em; color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3);
+      text-align: center;
     }
     .share-session-hint {
       font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.08em;
@@ -3030,15 +3034,16 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.5</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.6</div>
           </div>
         )}
         {watchScreen === "share" && (
           <div className="watch-overlay">
-            <div className="watch-overlay-title">Shuffle</div>
-            <div className="watch-overlay-subtitle">Sharing</div>
-            <div className="share-session-label">Your session code</div>
-            <div className="share-session-code">{shareCode}</div>
+            <div className="watch-overlay-title">Sharing</div>
+            <div className="share-code-box">
+              <div className="share-session-label">Your session code</div>
+              <div className="share-session-code">{shareCode}</div>
+            </div>
             {teacherConnected
               ? <div className="share-session-hint" style={{ color: "#4caf50" }}>Teacher connected — tap Open Shuffle to begin.</div>
               : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
