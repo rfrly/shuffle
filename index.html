@@ -2196,6 +2196,30 @@
                     }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
                     <button className="settings-menu-item" onClick={() => {
                       setSettingsMenuOpen(false);
+                      const p = new URLSearchParams();
+                      p.set("bpm",    String(bpm));
+                      p.set("sig",    timeSig.label);
+                      p.set("exlen",  String(exerciseLength));
+                      if (mode !== MODE_CLICKONLY) {
+                        if (exMode === "pick" && pickedNums.length > 0) {
+                          p.set("picks", pickedNums.join(","));
+                        } else {
+                          p.set("min", String(minEx));
+                          p.set("max", String(maxEx));
+                        }
+                        p.set("rounds", String(barsPerExercise));
+                      }
+                      p.set("cib",  String(countInBars));
+                      if (countInEvery) p.set("cie", "1");
+                      p.set("mode", mode);
+                      if (letterMode) p.set("lm", "1");
+                      const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
+                      navigator.clipboard.writeText(url)
+                        .then(() => showAppToast("Link copied!"))
+                        .catch(() => showAppToast("Copy failed"));
+                    }}>Share settings</button>
+                    <button className="settings-menu-item" onClick={() => {
+                      setSettingsMenuOpen(false);
                       handleStop();
                       setBpm(80);
                       setTimeSig(TIME_SIGS[2]);
@@ -2556,7 +2580,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
