@@ -338,6 +338,12 @@ src = src.replace(
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
 )
 
+# Settings menu (···): hide when student is sharing
+src = src.replace(
+    '<div className="settings-menu-wrap app-header-spacer">',
+    '<div className="settings-menu-wrap app-header-spacer" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>'
+)
+
 # Letter mode popup: suppress entirely in watch build
 src = src.replace(
     "        if (!letterModeSeenRef.current) {\n"
@@ -1120,7 +1126,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.21</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.22</div>
           </div>
         )}
         {watchScreen === "share" && (
