@@ -691,7 +691,6 @@
       display: flex; align-items: center; justify-content: center;
     }
     .settings-menu-btn:active { color: #aaa; border-color: #666; }
-    .settings-menu-btn.active { color: #f5c842; border-color: #f5c842; }
     .settings-menu-panel {
       position: absolute; top: calc(100% + 0.4rem); left: 0;
       background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
@@ -2172,7 +2171,7 @@
 
           <div className="app-header">
             <div className="settings-menu-wrap app-header-spacer">
-              <button className={`settings-menu-btn${letterMode ? " active" : ""}`}
+              <button className="settings-menu-btn"
                 onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
               {settingsMenuOpen && (
                 <>
@@ -2551,7 +2550,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.4.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
