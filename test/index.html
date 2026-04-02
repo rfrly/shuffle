@@ -680,7 +680,7 @@
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
-    .settings-menu-wrap { position: relative; }
+    .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
     .settings-menu-btn {
       background: none; border: 1px solid #444; color: #666;
       font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer;
@@ -2168,8 +2168,8 @@
           </div>
 
           <div className="app-header">
-            <div className="settings-menu-wrap">
-              <button className={`settings-menu-btn app-header-spacer${letterMode ? " active" : ""}`}
+            <div className="settings-menu-wrap app-header-spacer">
+              <button className={`settings-menu-btn${letterMode ? " active" : ""}`}
                 onClick={() => setSettingsMenuOpen(v => !v)}>···</button>
               {settingsMenuOpen && (
                 <>
@@ -2548,7 +2548,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.4.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
