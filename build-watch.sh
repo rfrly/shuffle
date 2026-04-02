@@ -124,7 +124,7 @@ watch_css = r"""
       color: #555; text-align: center; line-height: 1.7; max-width: 320px;
     }
     .sharing-indicator {
-      width: 28px; display: flex; align-items: center; justify-content: center;
+      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0;
     }
     .sharing-indicator-dot {
@@ -134,6 +134,18 @@ watch_css = r"""
     @keyframes sharing-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
     /* Student controls: dimmed but readable while sharing */
     .control-group.watch-locked { opacity: 0.6; pointer-events: none; cursor: default; }
+    /* Student minimal view when sharing */
+    .watch-active .controls { display: none; }
+    .watch-active .version-footer { display: none; }
+    .watch-active .vol-wrap { display: none; }
+    .watch-student-status {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; max-width: 440px;
+      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
+      color: #555; text-transform: uppercase;
+    }
+    .watch-student-status-item { color: #888; }
+    .watch-student-status-sep { color: #444; }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -342,6 +354,28 @@ src = src.replace(
 src = src.replace(
     '<div className="settings-menu-wrap app-header-spacer">',
     '<div className="settings-menu-wrap app-header-spacer" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>'
+)
+
+# Stop button: hide from student when sharing (teacher controls Stop)
+src = src.replace(
+    '                <div className="btn-group-stop">',
+    '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
+)
+
+# Status strip: show BPM + mode above btn-row when student is sharing
+src = src.replace(
+    '          <div className="btn-row">',
+    '          {watchScreen === "app" && (\n'
+    '            <div className="watch-student-status">\n'
+    '              <span className="watch-student-status-item">{bpm} BPM</span>\n'
+    '              <span className="watch-student-status-sep">\u00b7</span>\n'
+    '              <span className="watch-student-status-item">\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : mode === MODE_RANDOM ? "Random" : "Metronome"}\n'
+    '              </span>\n'
+    '            </div>\n'
+    '          )}\n'
+    '          <div className="btn-row">',
+    1
 )
 
 # Letter mode popup: suppress entirely in watch build
@@ -1126,7 +1160,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.23</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.3</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1166,7 +1200,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <button className="watch-back-btn" onClick={() => { setWatchScreen("home"); setWatchEntryCode(""); setWatchEntryError(""); }}>← back</button>
           </div>
         )}
-        <div className="app" style={watchScreen === "app" || watchScreen === "share" ? {} : { display: "none" }}>"""
+        <div className={`app${watchScreen === "app" ? " watch-active" : ""}`} style={watchScreen === "app" || watchScreen === "share" ? {} : { display: "none" }}>"""
 
 src = src.replace(old_return_open, watch_jsx, 1)
 

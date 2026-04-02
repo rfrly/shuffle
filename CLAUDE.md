@@ -118,7 +118,7 @@ A private teacher/student session observation tool. Not part of the public app �
 
 ### What it does
 - Student opens `shuffleclick.com/watch/` → taps "Share my session" → gets a two-word code (e.g. `BIRD-BOAT`) → share screen shows code and waits
-- When teacher connects, student's share screen shows green "Teacher connected" message → student taps "Open Shuffle" → this tap unlocks the iOS Web Audio context (required by iOS before any audio can play) and transitions to the app; controls are dimmed and non-interactive while sharing
+- When teacher connects, student's share screen shows green "Teacher connected" message → student taps "Open Shuffle" → this tap unlocks the iOS Web Audio context (required by iOS before any audio can play) and transitions to the app; the settings controls grid is hidden while sharing (minimal glanceable view: exercise number, beat dots, bar progress, BPM/mode status strip, Pause/Loop buttons only — Stop is hidden, teacher controls stopping)
 - Teacher opens `shuffleclick.com/watch/` on their device → taps "Watch a session" → enters the code → sees a live view of the student's session and can control all settings and transport (BPM, mode, time sig, count-in, exercise length, exercises, rounds, start/pause/loop/stop)
 - In the teacher view: a `☰` menu button in the watching banner (left side) opens a menu with four items: **Copy summary** (copies a compact settings string to the clipboard, e.g. `Shuffle, 01–10, 4 rounds`); **Turn letter mode on/off** (toggles letter mode and sends the change to the student); **Share link** (copies a `shuffleclick.com/?bpm=...` URL encoding all current settings); **Reset to defaults** (sends `tcmd: "stop"` plus all default values to the student). All menu actions use direct `onClick` handlers for iOS clipboard compatibility — no long-press.
 - When the student taps "Share my session", settings reset to defaults (BPM 80, 4/4, 1-bar count-in, exercises 1–4, shuffle mode, range mode) so each session starts clean
@@ -139,8 +139,8 @@ The watch app has its own version number displayed on the home screen (e.g. `v1.
 ### How it's built
 `watch/index.html` is the full Shuffle app (copied from `test/index.html`) with the following injected by `build-watch.sh`:
 1. Firebase SDK script tags (compat library, Realtime Database)
-2. Watch-specific CSS (home/share/watch-entry/observer screens; student control dimming)
-3. `src.replace()` patches on student controls — adds `watch-locked` class to control groups and guards on `handleTap`, `incBpm`, `decBpm`, `incBars`, `decBars` to block interaction when `watchScreen === "app"`
+2. Watch-specific CSS (home/share/watch-entry/observer screens; student minimal view: `.watch-active .controls { display: none }`, status strip, sharing indicator sizing)
+3. `src.replace()` patches on student controls — adds `watch-locked` class to control groups and guards on `handleTap`, `incBpm`, `decBpm`, `incBars`, `decBars` to block interaction when `watchScreen === "app"`; hides Stop button and adds BPM/mode status strip when sharing
 4. Firebase init + `ObserverDisplay` React component (teacher's interactive view)
 5. Watch mode state variables in `App` (`watchScreen`, `shareCode`, `observedState`, etc.) and `watchSilentLoop` ref
 6. `useEffect` that broadcasts live playback state (including `isResuming`) to Firebase at `sessions/{CODE}/state`
