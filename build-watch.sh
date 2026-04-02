@@ -207,7 +207,8 @@ watch_css = r"""
     .obs-menu-btn {
       background: none; border: none; color: #888;
       font-family: var(--font-body); font-size: 1.1rem; letter-spacing: 0;
-      padding: 0; cursor: pointer; line-height: 1; flex-shrink: 0;
+      padding: 0; cursor: pointer; flex-shrink: 0;
+      display: flex; align-items: center; height: 1.5rem;
     }
     .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; }
     .obs-menu-panel {
