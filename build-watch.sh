@@ -449,7 +449,7 @@ firebase_and_observer = r"""
         : exMode === "pick" ? pickedNums.length >= 1
         : (obsMinEx || 1) <= (obsMaxEx || 1);
 
-      const modeLabel = { fullset: "Shuffle", sequential: "Sequential", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
+      const modeLabel = { fullset: "Shuffle", sequential: "Sequence", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
 
       const buildSettingsSummary = () => {
         let parts = [modeLabel];
@@ -565,8 +565,8 @@ firebase_and_observer = r"""
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
                     : exMode === "pick"
-                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`
-                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`}
+                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`
+                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`}
                 </div>
               ) : (
                 <div className="next-exercise">
@@ -619,7 +619,7 @@ firebase_and_observer = r"""
                 <div className="selector-row">
                   {[
                     { label: "Shuffle",    value: "fullset" },
-                    { label: "Sequential", value: "sequential" },
+                    { label: "Sequence",   value: "sequential" },
                     { label: "Random",     value: "random" },
                     { label: "Metronome",  value: "clickonly" },
                   ].map(m => (
@@ -1094,7 +1094,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.18</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.19</div>
           </div>
         )}
         {watchScreen === "share" && (

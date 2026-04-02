@@ -49,7 +49,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 ## Modes
 
 - Shuffle — plays every exercise once in random order, then stops
-- Sequential — plays exercises in order, then stops
+- Sequence — plays exercises in order, then stops
 - Random — picks randomly and runs until stopped
 - Metronome — bar counter, runs until stopped
 

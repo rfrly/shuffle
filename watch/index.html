@@ -1266,7 +1266,7 @@
         : exMode === "pick" ? pickedNums.length >= 1
         : (obsMinEx || 1) <= (obsMaxEx || 1);
 
-      const modeLabel = { fullset: "Shuffle", sequential: "Sequential", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
+      const modeLabel = { fullset: "Shuffle", sequential: "Sequence", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
 
       const buildSettingsSummary = () => {
         let parts = [modeLabel];
@@ -1382,8 +1382,8 @@
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
                     : exMode === "pick"
-                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`
-                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequential" : obsMode || "--"}`}
+                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`
+                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`}
                 </div>
               ) : (
                 <div className="next-exercise">
@@ -1436,7 +1436,7 @@
                 <div className="selector-row">
                   {[
                     { label: "Shuffle",    value: "fullset" },
-                    { label: "Sequential", value: "sequential" },
+                    { label: "Sequence",   value: "sequential" },
                     { label: "Random",     value: "random" },
                     { label: "Metronome",  value: "clickonly" },
                   ].map(m => (
@@ -2947,7 +2947,7 @@
         </svg>
       );
 
-      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "metronome";
+      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome";
 
 
       // If watching someone else, show observer view entirely
@@ -2964,7 +2964,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.18</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.19</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3060,7 +3060,7 @@
                   <h3>Modes</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>Shuffle — plays every exercise in random order, then stops.</li>
-                    <li>Sequential — plays exercises in order, then stops.</li>
+                    <li>Sequence — plays exercises in order, then stops.</li>
                     <li>Random — picks randomly and runs until you stop it.</li>
                     <li>Metronome — bar counter, runs until you stop it.</li>
                   </ul>
@@ -3187,7 +3187,7 @@
                 <div className="selector-row">
                   {[
                     { label: "Shuffle",    value: MODE_FULLSET },
-                    { label: "Sequential", value: MODE_SEQUENTIAL },
+                    { label: "Sequence",   value: MODE_SEQUENTIAL },
                     { label: "Random",     value: MODE_RANDOM },
                     { label: "Metronome", value: MODE_CLICKONLY },
                   ].map(m => (

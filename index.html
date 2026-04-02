@@ -2129,7 +2129,7 @@
         </svg>
       );
 
-      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequential" : "metronome";
+      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome";
 
 
       return (
@@ -2185,7 +2185,7 @@
                   <h3>Modes</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>Shuffle — plays every exercise in random order, then stops.</li>
-                    <li>Sequential — plays exercises in order, then stops.</li>
+                    <li>Sequence — plays exercises in order, then stops.</li>
                     <li>Random — picks randomly and runs until you stop it.</li>
                     <li>Metronome — bar counter, runs until you stop it.</li>
                   </ul>
@@ -2312,7 +2312,7 @@
                 <div className="selector-row">
                   {[
                     { label: "Shuffle",    value: MODE_FULLSET },
-                    { label: "Sequential", value: MODE_SEQUENTIAL },
+                    { label: "Sequence",   value: MODE_SEQUENTIAL },
                     { label: "Random",     value: MODE_RANDOM },
                     { label: "Metronome", value: MODE_CLICKONLY },
                   ].map(m => (
