@@ -1333,14 +1333,14 @@
                     navigator.clipboard.writeText(buildSettingsSummary())
                       .then(() => showToast("Copied!"))
                       .catch(() => showToast("Copy failed"));
-                  }}>Copy settings</button>
-                  <button className={`obs-menu-item${effectiveLm ? " active" : ""}`} onClick={() => {
+                  }}>Copy summary</button>
+                  <button className="obs-menu-item" onClick={() => {
                     setMenuOpen(false);
                     const next = !effectiveLm;
                     setLetterModeOverride(next);
                     onSendCmd({ letterMode: next });
                     showToast(next ? "Letter mode on" : "Letter mode off");
-                  }}>Letter mode {effectiveLm ? "on" : "off"}</button>
+                  }}>{effectiveLm ? "Turn letter mode off" : "Turn letter mode on"}</button>
                   <button className="obs-menu-item" onClick={() => {
                     setMenuOpen(false);
                     navigator.clipboard.writeText(buildShareUrl())
@@ -2964,7 +2964,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.17</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.18</div>
           </div>
         )}
         {watchScreen === "share" && (
