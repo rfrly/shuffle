@@ -147,21 +147,20 @@ watch_css = r"""
     .watch-active .display { max-width: none; width: 100%; }
     .watch-active { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
-      display: flex; flex-wrap: nowrap; align-items: center; justify-content: center; gap: 0.6rem;
-      width: 100%;
-      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em;
-      color: #666; text-transform: uppercase;
+      display: flex; align-items: stretch;
+      width: 100%; background: #1a1a1a; border-radius: 10px;
+      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
+      text-transform: uppercase; overflow: hidden;
     }
-    .watch-student-status-item { color: #aaa; }
-    .watch-student-status-sep { color: #555; }
-    @media (max-width: 767px) {
-      .watch-student-status { flex-direction: column; gap: 0.35rem; }
-      .watch-student-status-row { display: flex; align-items: center; justify-content: center; gap: 0.6rem; width: 100%; }
-      .watch-student-status-sep-between { display: none; }
+    .watch-student-status-item {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      padding: 0.6rem 0.4rem; color: #aaa; text-align: center; line-height: 1.2;
+      border-left: 1px solid #2a2a2a;
     }
-    @media (min-width: 768px) {
-      .watch-student-status-row { display: contents; }
-      .watch-student-status-sep-between { display: inline; }
+    .watch-student-status-item:first-child { border-left: none; }
+    @media (max-width: 380px) {
+      .watch-student-status { font-size: 0.58rem; letter-spacing: 0.03em; }
+      .watch-student-status-item { padding: 0.5rem 0.2rem; }
     }
     /* Observer display */
     .observer-app { user-select: none; }
@@ -379,31 +378,21 @@ src = src.replace(
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
-# Status strip: show exercises, time sig, rounds, mode above btn-row when student is sharing
+# Status bar: segmented pill below display, matching its width
 src = src.replace(
     '          <div className="btn-row">',
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
-    '              <div className="watch-student-status-row">\n'
-    '                <span className="watch-student-status-item">{bpm} BPM</span>\n'
-    '                <span className="watch-student-status-sep">\u00b7</span>\n'
-    '                <span className="watch-student-status-item">{timeSig.label}</span>\n'
-    '                <span className="watch-student-status-sep">\u00b7</span>\n'
-    '                <span className="watch-student-status-item">{countInBars}-bar count in</span>\n'
+    '              <div className="watch-student-status-item">{bpm} BPM</div>\n'
+    '              <div className="watch-student-status-item">{countInBars}-bar count in</div>\n'
+    '              <div className="watch-student-status-item">\n'
+    '                {exMode === "pick"\n'
+    '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : `ex ${pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", ")}`)\n'
+    '                  : `ex ${letterMode ? numToLetter(minEx) : String(minEx)}\u2013${letterMode ? numToLetter(maxEx) : String(maxEx)}`}\n'
     '              </div>\n'
-    '              <span className="watch-student-status-sep watch-student-status-sep-between">\u00b7</span>\n'
-    '              <div className="watch-student-status-row">\n'
-    '                <span className="watch-student-status-item">\n'
-    '                  {exMode === "pick"\n'
-    '                    ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : `ex ${pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", ")}`)\n'
-    '                    : `ex ${letterMode ? numToLetter(minEx) : String(minEx)}\u2013${letterMode ? numToLetter(maxEx) : String(maxEx)}`}\n'
-    '                </span>\n'
-    '                <span className="watch-student-status-sep">\u00b7</span>\n'
-    '                <span className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</span>\n'
-    '                <span className="watch-student-status-sep">\u00b7</span>\n'
-    '                <span className="watch-student-status-item">\n'
-    '                  {mode === MODE_FULLSET ? "Shuffle mode" : mode === MODE_SEQUENTIAL ? "Sequence mode" : mode === MODE_RANDOM ? "Random mode" : "Metronome mode"}\n'
-    '                </span>\n'
+    '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
+    '              <div className="watch-student-status-item">\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : mode === MODE_RANDOM ? "Random" : "Metronome"}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -1193,7 +1182,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.9</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.10</div>
           </div>
         )}
         {watchScreen === "share" && (
