@@ -147,20 +147,19 @@ watch_css = r"""
     .watch-active .display { max-width: none; width: 100%; }
     .watch-active { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
-      display: flex; align-items: stretch;
-      width: 100%; background: #1a1a1a; border-radius: 10px;
-      font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
-      text-transform: uppercase; overflow: hidden;
+      display: flex; align-items: center;
+      width: 100%;
+      font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.06em;
+      text-transform: uppercase;
     }
     .watch-student-status-item {
       flex: 1; display: flex; align-items: center; justify-content: center;
-      padding: 0.6rem 0.4rem; color: #aaa; text-align: center; line-height: 1.2;
+      padding: 0.35rem 0.3rem; color: #666; text-align: center; white-space: nowrap;
       border-left: 1px solid #2a2a2a;
     }
     .watch-student-status-item:first-child { border-left: none; }
     @media (max-width: 380px) {
-      .watch-student-status { font-size: 0.58rem; letter-spacing: 0.03em; }
-      .watch-student-status-item { padding: 0.5rem 0.2rem; }
+      .watch-student-status { font-size: 0.52rem; }
     }
     /* Observer display */
     .observer-app { user-select: none; }
@@ -1182,7 +1181,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.10</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.11</div>
           </div>
         )}
         {watchScreen === "share" && (
