@@ -98,7 +98,7 @@
 
     .app-header {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       width: 100%;
       max-width: 440px;
       margin-bottom: 0.1rem;
@@ -677,10 +677,11 @@
       padding: 0.2rem 0.5rem;
       letter-spacing: 0.1em;
       border-radius: 4px;
+      margin-top: 0.15rem;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
-    .settings-menu-wrap { position: relative; display: flex; align-items: center; justify-content: flex-start; }
+    .settings-menu-wrap { position: relative; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 0.15rem; }
     .settings-menu-btn {
       background: none; border: 1px solid #444; color: #666;
       font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer;
@@ -2547,7 +2548,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.4.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
