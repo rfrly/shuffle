@@ -140,13 +140,14 @@ watch_css = r"""
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
     .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
+    .watch-active .display { max-width: none; width: 100%; }
     .watch-student-status {
-      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-      width: 100%; max-width: 440px;
-      font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
-      color: #555; text-transform: uppercase;
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 0.5rem;
+      width: 100%; max-width: none;
+      font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.1em;
+      color: #666; text-transform: uppercase;
     }
-    .watch-student-status-item { color: #888; }
+    .watch-student-status-item { color: #aaa; }
     .watch-student-status-sep { color: #444; }
     /* Observer display */
     .observer-app { user-select: none; }
@@ -369,13 +370,17 @@ src = src.replace(
     '          <div className="btn-row">',
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
-    '              <span className="watch-student-status-item">\n'
-    '                {exMode === "pick"\n'
-    '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : pickedNums.map(n => letterMode ? numToLetter(n) : fmt(n)).join(", "))\n'
-    '                  : `${letterMode ? numToLetter(minEx) : fmt(minEx)}\u2013${letterMode ? numToLetter(maxEx) : fmt(maxEx)}`}\n'
-    '              </span>\n'
+    '              <span className="watch-student-status-item">{bpm} BPM</span>\n'
     '              <span className="watch-student-status-sep">\u00b7</span>\n'
     '              <span className="watch-student-status-item">{timeSig.label}</span>\n'
+    '              <span className="watch-student-status-sep">\u00b7</span>\n'
+    '              <span className="watch-student-status-item">{countInBars}-bar count in</span>\n'
+    '              <span className="watch-student-status-sep">\u00b7</span>\n'
+    '              <span className="watch-student-status-item">\n'
+    '                {exMode === "pick"\n'
+    '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", "))\n'
+    '                  : `${letterMode ? numToLetter(minEx) : String(minEx)}\u2013${letterMode ? numToLetter(maxEx) : String(maxEx)}`}\n'
+    '              </span>\n'
     '              <span className="watch-student-status-sep">\u00b7</span>\n'
     '              <span className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</span>\n'
     '              <span className="watch-student-status-sep">\u00b7</span>\n'
@@ -1170,7 +1175,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.4</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.5</div>
           </div>
         )}
         {watchScreen === "share" && (
