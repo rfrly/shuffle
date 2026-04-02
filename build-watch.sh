@@ -340,8 +340,8 @@ src = src.replace(
 
 # Settings menu (···): hide when student is sharing
 src = src.replace(
-    '<div className="settings-menu-wrap app-header-spacer">',
-    '<div className="settings-menu-wrap app-header-spacer" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>'
+    '<div className="settings-menu-wrap">',
+    '<div className="settings-menu-wrap" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>'
 )
 
 # Letter mode popup: suppress entirely in watch build

@@ -677,15 +677,15 @@
       padding: 0.2rem 0.5rem;
       letter-spacing: 0.1em;
       border-radius: 4px;
-      margin-top: 0.15rem;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
-    .settings-menu-wrap { position: relative; display: flex; align-items: flex-start; justify-content: flex-start; padding-top: 0.15rem; }
+    .settings-menu-wrap { position: relative; }
     .settings-menu-btn {
       background: none; border: 1px solid #444; color: #666;
       font-family: var(--font-mono); font-size: 0.75rem; cursor: pointer;
       padding: 0.2rem 0.5rem; letter-spacing: 0.1em; border-radius: 4px;
+      width: 100%; box-sizing: border-box;
     }
     .settings-menu-btn:active { color: #aaa; border-color: #666; }
     .settings-menu-btn.active { color: #f5c842; border-color: #f5c842; }
@@ -2168,8 +2168,8 @@
           </div>
 
           <div className="app-header">
-            <div className="settings-menu-wrap app-header-spacer">
-              <button className={`settings-menu-btn${letterMode ? " active" : ""}`}
+            <div className="settings-menu-wrap">
+              <button className={`settings-menu-btn app-header-spacer${letterMode ? " active" : ""}`}
                 onClick={() => setSettingsMenuOpen(v => !v)}>···</button>
               {settingsMenuOpen && (
                 <>
@@ -2548,7 +2548,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.4.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.4.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
