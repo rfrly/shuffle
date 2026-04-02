@@ -676,18 +676,21 @@
       font-family: var(--font-mono);
       font-size: 0.75rem;
       cursor: pointer;
-      padding: 0.2rem 0.5rem;
+      padding: 0;
       letter-spacing: 0.1em;
       border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      height: 28px; width: 28px; box-sizing: border-box;
     }
     .help-btn:active { color: #aaa; border-color: #666; }
 
     .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
     .settings-menu-btn {
       background: none; border: 1px solid #444; color: #666;
-      font-family: var(--font-body); font-size: 1rem; cursor: pointer;
-      padding: 0.1rem 0.3rem; letter-spacing: 0; border-radius: 4px;
-      width: 100%; box-sizing: border-box;
+      font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
+      padding: 0; letter-spacing: 0; border-radius: 4px;
+      width: 28px; height: 28px; box-sizing: border-box;
+      display: flex; align-items: center; justify-content: center;
     }
     .settings-menu-btn:active { color: #aaa; border-color: #666; }
     .settings-menu-btn.active { color: #f5c842; border-color: #f5c842; }
