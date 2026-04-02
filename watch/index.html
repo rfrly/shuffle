@@ -671,28 +671,27 @@
 
     .help-btn {
       background: none;
-      border: 1px solid #444;
+      border: none;
       color: #666;
       font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-size: 1.1rem;
       cursor: pointer;
       padding: 0;
-      letter-spacing: 0.1em;
-      border-radius: 4px;
+      letter-spacing: 0;
       display: flex; align-items: center; justify-content: center;
-      height: 28px; width: 28px; box-sizing: border-box;
+      height: 28px; width: 28px;
     }
-    .help-btn:active { color: #aaa; border-color: #666; }
+    .help-btn:active { color: #aaa; }
 
     .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
     .settings-menu-btn {
-      background: none; border: 1px solid #444; color: #666;
-      font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
-      padding: 0; letter-spacing: 0; border-radius: 4px;
-      width: 28px; height: 28px; box-sizing: border-box;
+      background: none; border: none; color: #666;
+      font-family: var(--font-body); font-size: 1.1rem; cursor: pointer;
+      padding: 0; letter-spacing: 0;
+      width: 28px; height: 28px;
       display: flex; align-items: center; justify-content: center;
     }
-    .settings-menu-btn:active { color: #aaa; border-color: #666; }
+    .settings-menu-btn:active { color: #aaa; }
     .settings-menu-panel {
       position: absolute; top: calc(100% + 0.4rem); left: 0;
       background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
@@ -708,8 +707,8 @@
     .settings-menu-item:active { background: #222; }
 
     @keyframes pulse-amber {
-      0%, 100% { border-color: #444; color: #666; box-shadow: none; }
-      50% { border-color: #f5c842; color: #f5c842; box-shadow: 0 0 8px rgba(245,200,66,0.4); }
+      0%, 100% { color: #666; }
+      50% { color: #f5c842; }
     }
     .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
