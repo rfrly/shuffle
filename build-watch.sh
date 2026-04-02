@@ -161,6 +161,14 @@ watch_css = r"""
     @media (max-width: 380px) {
       .watch-student-status { font-size: 0.52rem; }
     }
+    /* watch 1.12: enhanced student glanceable view */
+    .watch-active .exercise-label { font-size: 1rem; color: #ccc; letter-spacing: 0.2em; }
+    .watch-active .next-exercise { font-size: clamp(2rem, 8vw, 3.5rem); }
+    .watch-active .beat-dot { width: 14px; height: 14px; }
+    .watch-active .beat-dots { gap: 0.9rem; }
+    .watch-active .bar-block { height: 9px; border-radius: 3px; }
+    .watch-active .bar-progress-track { height: 9px; border-radius: 3px; }
+    .watch-active .bar-progress-fill { height: 9px; }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -375,6 +383,12 @@ src = src.replace(
 src = src.replace(
     '                <div className="btn-group-stop">',
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
+)
+
+# Paused state: make "paused" text amber in watch student view (inline color can't be overridden by CSS)
+src = src.replace(
+    '<span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>',
+    '<span style={{ fontSize: "0.6em", color: watchScreen === "app" ? "#f5c842" : "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>'
 )
 
 # Status bar: segmented pill below display, matching its width
@@ -1181,7 +1195,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.11</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.12</div>
           </div>
         )}
         {watchScreen === "share" && (
