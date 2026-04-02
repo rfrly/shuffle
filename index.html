@@ -16,9 +16,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
-  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
-  <link rel="icon" href="https://shuffleclick.com/shuffle-icon.png?v=9" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -98,12 +98,17 @@
 
     .app-header {
       display: flex;
-      align-items: flex-start;
+      flex-direction: column;
+      align-items: center;
       width: 100%;
       max-width: 440px;
       margin-bottom: 0.1rem;
     }
-
+    .app-header-row {
+      display: flex;
+      align-items: center;
+      width: 100%;
+    }
     .app-header-text { flex: 1; text-align: center; }
     .app-header-spacer { width: 28px; flex-shrink: 0; }
 
@@ -669,28 +674,27 @@
 
     .help-btn {
       background: none;
-      border: 1px solid #444;
+      border: none;
       color: #666;
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
+      font-family: var(--font-body);
+      font-size: 1.1rem;
       cursor: pointer;
       padding: 0;
-      letter-spacing: 0.1em;
-      border-radius: 4px;
+      letter-spacing: 0;
       display: flex; align-items: center; justify-content: center;
-      height: 28px; width: 28px; box-sizing: border-box;
+      height: 28px; width: 28px;
     }
-    .help-btn:active { color: #aaa; border-color: #666; }
+    .help-btn:active { color: #aaa; }
 
     .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
     .settings-menu-btn {
-      background: none; border: 1px solid #444; color: #666;
-      font-family: var(--font-body); font-size: 0.9rem; cursor: pointer;
-      padding: 0; letter-spacing: 0; border-radius: 4px;
-      width: 28px; height: 28px; box-sizing: border-box;
+      background: none; border: none; color: #666;
+      font-family: var(--font-body); font-size: 1.1rem; cursor: pointer;
+      padding: 0; letter-spacing: 0;
+      width: 28px; height: 28px;
       display: flex; align-items: center; justify-content: center;
     }
-    .settings-menu-btn:active { color: #aaa; border-color: #666; }
+    .settings-menu-btn:active { color: #aaa; }
     .settings-menu-panel {
       position: absolute; top: calc(100% + 0.4rem); left: 0;
       background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
@@ -706,8 +710,8 @@
     .settings-menu-item:active { background: #222; }
 
     @keyframes pulse-amber {
-      0%, 100% { border-color: #444; color: #666; box-shadow: none; }
-      50% { border-color: #f5c842; color: #f5c842; box-shadow: 0 0 8px rgba(245,200,66,0.4); }
+      0%, 100% { color: #666; }
+      50% { color: #f5c842; }
     }
     .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
@@ -2170,6 +2174,7 @@
           </div>
 
           <div className="app-header">
+          <div className="app-header-row">
             <div className="settings-menu-wrap app-header-spacer">
               <button className="settings-menu-btn"
                 onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
@@ -2213,7 +2218,6 @@
             </div>
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
-              <div className="app-subtitle">practice randomiser and metronome for musicians</div>
             </div>
             <button className={`help-btn app-header-spacer${helpPulse ? ' help-btn-pulse' : ''}`} onClick={() => {
               setShowHelp(true); setHelpScrolledToEnd(false);
@@ -2223,6 +2227,8 @@
                 try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
               }
             }}>?</button>
+          </div>
+          <div className="app-subtitle">practice randomiser and metronome for musicians</div>
           </div>
 
           {showHelp && (
@@ -2550,7 +2556,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
