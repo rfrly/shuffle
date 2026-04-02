@@ -214,6 +214,7 @@ watch_css = r"""
     }
     /* Observer display layout */
     .observer-app .display { min-height: clamp(178px, 30dvh, 320px); }
+    .observer-app .display { max-width: 440px; }
     .observer-app .bpm-tap { user-select: none; }
     .observer-app .btn-row { width: 100%; max-width: 440px; }
     /* Observer controls panel */
@@ -227,6 +228,22 @@ watch_css = r"""
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .observer-controls { max-width: 700px; }
       .observer-divider  { max-width: 700px; }
+    }
+    @media (hover: hover) and (min-width: 1024px) {
+      .watching-banner    { max-width: 560px; }
+      .observer-info-strip { max-width: 560px; }
+      .observer-app .display { max-width: 560px; }
+      .observer-app .btn-row { max-width: 560px; }
+      .observer-controls  { max-width: 560px; }
+      .observer-divider   { max-width: 560px; }
+    }
+    @media (hover: hover) and (min-width: 1440px) {
+      .watching-banner    { max-width: 700px; }
+      .observer-info-strip { max-width: 700px; }
+      .observer-app .display { max-width: 700px; }
+      .observer-app .btn-row { max-width: 700px; }
+      .observer-controls  { max-width: 700px; }
+      .observer-divider   { max-width: 700px; }
     }
 """
 src = src.replace("  </style>", watch_css + "  </style>")
@@ -541,7 +558,7 @@ firebase_and_observer = r"""
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className="display" style={{ maxWidth: 440 }}>
+          <div className="display">
             <div className="exercise-label">
               {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? "bar" : "exercise"}
             </div>
@@ -750,7 +767,7 @@ firebase_and_observer = r"""
             </div>
           </div>
 
-          <div className="btn-row" style={{ width: "100%", maxWidth: 440 }}>
+          <div className="btn-row" style={{ width: "100%" }}>
             {!obsRunning ? (
               <button className="action-btn" disabled={disabled || !validRange}
                 onClick={() => onSendCmd({ tcmd: "start", tseq: Date.now() })}>Start</button>
@@ -1094,7 +1111,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.19</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.2 · watch 1.20</div>
           </div>
         )}
         {watchScreen === "share" && (
