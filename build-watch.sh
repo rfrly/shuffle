@@ -144,6 +144,7 @@ watch_css = r"""
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
     .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
+    .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
     .watch-active .display { max-width: none; width: 100%; }
     .watch-active { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -161,9 +162,14 @@ watch_css = r"""
     @media (max-width: 380px) {
       .watch-student-status { font-size: 0.52rem; }
     }
+    @media (min-width: 600px) {
+      .watch-student-status { font-size: 0.75rem; }
+    }
+    @media (min-width: 900px) {
+      .watch-student-status { font-size: 0.9rem; }
+    }
     /* watch 1.12: enhanced student glanceable view */
-    .watch-active .exercise-label { font-size: 1rem; color: #ccc; letter-spacing: 0.2em; }
-    .watch-active .next-exercise { font-size: clamp(2rem, 8vw, 3.5rem); }
+    .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
     .watch-active .beat-dot { width: 14px; height: 14px; }
     .watch-active .beat-dots { gap: 0.9rem; }
     .watch-active .bar-block { height: 9px; border-radius: 3px; }
@@ -1195,7 +1201,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.12</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.16</div>
           </div>
         )}
         {watchScreen === "share" && (
