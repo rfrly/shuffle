@@ -2499,7 +2499,7 @@
                           className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running && mode !== MODE_CLICKONLY ? ' invalid' : ''}`}
                           disabled={running || mode === MODE_CLICKONLY}
                           onClick={() => setPickerOpen(true)}>
-                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.map(n => fmtEx(n, letterMode)).join(', ')}
+                          {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')}
                         </button>
                       )}
                       <div className="ex-mode-toggle">
@@ -2571,7 +2571,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
