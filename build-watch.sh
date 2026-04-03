@@ -128,7 +128,7 @@ watch_css = r"""
       color: #555; text-align: center; line-height: 1.7; max-width: 320px;
     }
     .sharing-indicator {
-      width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;
       cursor: pointer; flex-shrink: 0; background: none; border: none; padding: 0;
     }
     .sharing-indicator-dot {
@@ -145,11 +145,11 @@ watch_css = r"""
     .watch-active .idle-summary { display: none; }
     .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
     .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
-    .watch-active .display { max-width: none; width: 100%; }
-    .watch-active { padding-bottom: max(1.25rem, env(safe-area-inset-bottom)) !important; }
+    .watch-active .display { width: 100%; }
+    .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
       display: flex; align-items: center;
-      width: 100%;
+      width: 100%; max-width: 440px;
       font-family: var(--font-mono); font-size: 0.6rem; letter-spacing: 0.06em;
       text-transform: uppercase;
     }
@@ -163,10 +163,10 @@ watch_css = r"""
       .watch-student-status { font-size: 0.52rem; }
     }
     @media (min-width: 600px) {
-      .watch-student-status { font-size: 0.75rem; }
+      .watch-student-status { font-size: 0.75rem; max-width: 560px; }
     }
     @media (min-width: 900px) {
-      .watch-student-status { font-size: 0.9rem; }
+      .watch-student-status { font-size: 0.9rem; max-width: 700px; }
     }
     /* watch 1.12: enhanced student glanceable view */
     .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
@@ -191,9 +191,7 @@ watch_css = r"""
       width: 100%; max-width: 440px; flex-shrink: 0;
       padding: 0.5rem 0.75rem; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
     }
-    @media (max-width: 420px) {
-      .watching-banner { margin-top: 1.5rem; }
-    }
+
     .watching-code-text {
       font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; color: #888;
       user-select: none; -webkit-user-select: none;
@@ -213,9 +211,9 @@ watch_css = r"""
       padding: 0; cursor: pointer; flex-shrink: 0;
       display: flex; align-items: center; margin-top: -2px;
     }
-    .obs-menu-btn:active, .obs-menu-btn.open { color: #f5c842; }
+    .obs-menu-btn:active { color: #aaa; }
     .obs-menu-panel {
-      position: absolute; top: calc(100% + 0.4rem); left: 0;
+      position: absolute; top: calc(100% + 0.4rem); right: 0;
       background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
       min-width: 200px; z-index: 50; overflow: hidden;
     }
@@ -384,10 +382,25 @@ src = src.replace(
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
 )
 
-# Settings menu (···): hide when student is sharing
+# Settings menu: replace with sharing indicator when student is sharing
 src = src.replace(
-    '<div className="settings-menu-wrap app-header-spacer">',
-    '<div className="settings-menu-wrap app-header-spacer" style={watchScreen === "app" ? { visibility: "hidden", pointerEvents: "none" } : {}}>'
+    '            <div className="settings-menu-wrap app-header-spacer">',
+    '            {watchScreen === "app"\n'
+    '              ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">\n'
+    '                  <div className="sharing-indicator-dot" style={{ animationDuration: `${Math.round(120000 / bpm)}ms` }} />\n'
+    '                </div>\n'
+    '              : <div className="settings-menu-wrap app-header-spacer">',
+    1
+)
+# Close the conditional after the closing </div> of the settings-menu-wrap
+src = src.replace(
+    '            </div>\n'
+    '          </div>\n'
+    '          <div className="app-subtitle">',
+    '            </div>}\n'
+    '          </div>\n'
+    '          <div className="app-subtitle">',
+    1
 )
 
 # Stop button: hide from student when sharing (teacher controls Stop)
@@ -607,6 +620,10 @@ firebase_and_observer = r"""
       return (
         <div className="observer-app">
           <div className="watching-banner">
+            <div className="watching-banner-right">
+              <span className="watching-code-text">watching <span>{code}</span></span>
+              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); onDisconnect(); }}>stop</button>
+            </div>
             <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
               onClick={() => setMenuOpen(v => !v)}>☰</button>
             {menuOpen && (
@@ -645,10 +662,6 @@ firebase_and_observer = r"""
                 </div>
               </>
             )}
-            <div className="watching-banner-right">
-              <span className="watching-code-text">watching <span>{code}</span></span>
-              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); onDisconnect(); }}>stop</button>
-            </div>
           </div>
 
           {disconnected && <div className="observer-offline">Session ended</div>}
@@ -1216,7 +1229,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.20</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.27</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1266,30 +1279,7 @@ new_close = '\n        </div>\n        </>\n      );'
 last_idx = src.rfind(old_close)
 src = src[:last_idx] + new_close + src[last_idx + len(old_close):]
 
-# ── 8. Replace left header spacer with sharing indicator ────────────────────
-
-src = src.replace(
-    '            <div className="app-header-spacer" />',
-    '            <div className="app-header-spacer" />',
-    1
-)
-
-# Replace help button with sharing indicator when sharing, hide help entirely
-src = src.replace(
-    '            <button className={`help-btn app-header-spacer${helpPulse ? \' help-btn-pulse\' : \'\'}`}',
-    '            {watchScreen === "app"\n'
-    '              ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">\n'
-    '                  <div className="sharing-indicator-dot" style={{ animationDuration: `${Math.round(120000 / bpm)}ms` }} />\n'
-    '                </div>\n'
-    '              : <button className={`help-btn app-header-spacer${helpPulse ? \' help-btn-pulse\' : \'\'}`}',
-    1
-)
-# Close the conditional — find the end of the help button JSX and add the closing brace
-src = src.replace(
-    '            }}>?</button>',
-    '            }}>?</button>}',
-    1
-)
+# ── 8. (sharing indicator patch moved to section 3b) ────────────────────────
 
 # ── 9. Strip beta suffix from footer version string ─────────────────────────
 
