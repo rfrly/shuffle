@@ -421,10 +421,10 @@ src = patch(src,
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
-# Paused state: make "paused" text amber in watch student view (inline color can't be overridden by CSS)
-src = patch(src, 
-    '<span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>',
-    '<span style={{ fontSize: "0.6em", color: watchScreen === "app" ? "#f5c842" : "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>'
+# Paused state: make "paused" text amber in watch student view (inline color overrides CSS class)
+src = patch(src,
+    '<span className="status-label">paused</span>',
+    '<span className="status-label" style={{ color: watchScreen === "app" ? "#f5c842" : undefined }}>paused</span>'
 )
 
 # Status bar: segmented pill below display, matching its width
@@ -709,13 +709,15 @@ firebase_and_observer = r"""
               ) : (
                 <div className="next-exercise">
                   {obsPaused
-                    ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                    ? <span className="status-label">paused</span>
                     : obsResuming
-                      ? <><span className="next-label">resuming</span>{exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}</>
+                      ? obsMode === "clickonly"
+                        ? <span className="status-label">resuming</span>
+                        : <><span className="next-label">resuming</span>{exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}</>
                       : obsLooping
-                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                        ? <span className="status-label status-label--dim">looping</span>
                         : nextEx === -1 && phase === "playing"
-                          ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase" }}>last exercise</span>
+                          ? <span className="status-label status-label--dim">last exercise</span>
                           : nextEx != null && (phase === "playing" || phase === "countin")
                             ? <><span className="next-label">up next</span>{effectiveLm ? String.fromCharCode(64 + (nextEx === -1 ? exercise : nextEx)) : ((nextEx === -1 ? exercise : nextEx) < 10 ? "0" + (nextEx === -1 ? exercise : nextEx) : "" + (nextEx === -1 ? exercise : nextEx))}</>
                             : "\u00A0"}
@@ -1044,8 +1046,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setTimeSig(TIME_SIGS[2]);
         setBarsPerExercise(4);
         setExerciseLength(1);
-        setMinEx(1); setMinExStr("1");
-        setMaxEx(4); setMaxExStr("4");
+        setMinEx(1);
+        setMaxEx(4);
         setCountInBars(1);
         setCountInEvery(true);
         setMode(MODE_FULLSET);
@@ -1121,8 +1123,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
             lastTSeq.current = cmd.tseq;
             setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
-            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
-            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false); }
+            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); }
             else if (cmd.tcmd === "end-session") { handleStopSharing(); return; }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
             else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
@@ -1135,8 +1137,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
           if (cmd.exerciseLength != null) setExerciseLength(cmd.exerciseLength);
-          if (cmd.minEx != null) { const v = Math.min(200, Math.max(1, cmd.minEx)); setMinEx(v); setMinExStr(String(v)); }
-          if (cmd.maxEx != null) { const v = Math.min(200, Math.max(1, cmd.maxEx)); setMaxEx(v); setMaxExStr(String(v)); }
+          if (cmd.minEx != null) { const v = Math.min(200, Math.max(1, cmd.minEx)); setMinEx(v); }
+          if (cmd.maxEx != null) { const v = Math.min(200, Math.max(1, cmd.maxEx)); setMaxEx(v); }
           if (cmd.barsPerExercise != null) setBarsPerExercise(cmd.barsPerExercise);
           if (cmd.exMode != null) setExMode(cmd.exMode);
           if (cmd.pickedNums != null) setPickedNums(Array.isArray(cmd.pickedNums) ? cmd.pickedNums.map(Number) : []);

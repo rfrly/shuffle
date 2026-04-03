@@ -203,6 +203,17 @@
       margin-right: 0.3em;
     }
 
+    .status-label {
+      font-size: 0.6em;
+      color: #444;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: "Share Tech Mono", monospace;
+    }
+    .status-label--dim {
+      color: #555;
+    }
+
     .countdown-display {
       font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
@@ -1430,7 +1441,7 @@
                   if (stoppedRef.current) return;
                   setCurrentBeat(beatInBar);
                   setCurrentBar(barInExercise);
-                  if (isDownbeat && barInExercise === 0 && playBeat > 0) {
+                  if (currentMode !== MODE_CLICKONLY && isDownbeat && barInExercise === 0 && playBeat > 0) {
                     setFlashOn(true);
                     setTimeout(() => setFlashOn(false), FLASH_DURATION_MS);
                   }
@@ -2333,19 +2344,21 @@
             ) : mode === MODE_CLICKONLY ? (
               <div className="next-exercise">
                 {paused
-                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
-                  : "\u00A0"}
+                  ? <span className="status-label">paused</span>
+                  : isResuming
+                    ? <span className="status-label">resuming</span>
+                    : "\u00A0"}
               </div>
             ) : (
               <div key={nextEx} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
                 {paused
-                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                  ? <span className="status-label">paused</span>
                   : isResuming
                     ? <><span className="next-label">resuming</span>{fmtEx(nextEx ?? exercise, letterMode)}</>
                     : looping
-                      ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                      ? <span className="status-label status-label--dim">looping</span>
                       : nextEx === -1 && phase === "playing"
-                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
+                        ? <span className="status-label status-label--dim">last exercise</span>
                         : nextEx !== null && (phase === "playing" || phase === "countin")
                           ? <><span className="next-label">up next</span>{fmtEx(nextEx === -1 ? exercise : nextEx, letterMode)}</>
                           : "\u00A0"}
@@ -2570,7 +2583,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.9 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
