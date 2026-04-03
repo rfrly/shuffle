@@ -203,6 +203,17 @@
       margin-right: 0.3em;
     }
 
+    .status-label {
+      font-size: 0.6em;
+      color: #444;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-family: "Share Tech Mono", monospace;
+    }
+    .status-label--dim {
+      color: #555;
+    }
+
     .countdown-display {
       font-family: var(--font-mono);
       font-size: clamp(5rem, 18vw, 8rem);
@@ -1069,6 +1080,7 @@
         if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
         if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
         if (p.has("lm"))     r.letterMode = p.get("lm") === "1";
+        if (p.has("sw"))     r.stopwatch  = p.get("sw")  === "1";
         return Object.keys(r).length > 0 ? r : null;
       } catch { return null; }
     }
@@ -1430,7 +1442,7 @@
                   if (stoppedRef.current) return;
                   setCurrentBeat(beatInBar);
                   setCurrentBar(barInExercise);
-                  if (isDownbeat && barInExercise === 0 && playBeat > 0) {
+                  if (currentMode !== MODE_CLICKONLY && isDownbeat && barInExercise === 0 && playBeat > 0) {
                     setFlashOn(true);
                     setTimeout(() => setFlashOn(false), FLASH_DURATION_MS);
                   }
@@ -1888,16 +1900,17 @@
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
-      const [minExStr,        setMinExStr]        = useState(() => String(saved?.minEx ?? 1));
-      const [maxExStr,        setMaxExStr]        = useState(() => String(saved?.maxEx ?? 4));
       const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
       const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
+      const [stopwatch,       setStopwatch]       = useState(() => saved?.stopwatch ?? false);
+      const [elapsedSeconds,  setElapsedSeconds]  = useState(0);
+      const timerStartRef  = useRef(null);
+      const elapsedAccumRef = useRef(0);
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
-      const [exerciseKey,     setExerciseKey]     = useState(0);
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
@@ -1919,6 +1932,7 @@
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
+      const letterModeMountedRef = useRef(false);
       const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
@@ -1935,17 +1949,16 @@
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                       exMode, pickedNums, letterMode });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode]);
+                       exMode, pickedNums, letterMode, stopwatch });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
       }, []);
 
       useEffect(() => {
-        if (!letterMode) return;
-        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
-        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
+        if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
+        setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         if (!letterModeSeenRef.current) {
           letterModeSeenRef.current = true;
@@ -1984,10 +1997,10 @@
       }, [running, paused]);
 
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
-      const handleNextExercise = useCallback((n) => { setNextEx(n); setExerciseKey(k => k + 1); }, []);
+      const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
       const handleSetComplete  = useCallback(() => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setExercise(null); setNextEx(null);
         setSetComplete(true);
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
@@ -2019,13 +2032,14 @@
           setShowMuteHint(true);
         }
         setSetComplete(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setExercise(null); setNextEx(null);
         setPaused(false); setLooping(false); setResuming(false); setRunning(true);
       };
 
       const handleStop = () => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false);
+        setExercise(null); setNextEx(null); setSetComplete(false);
+        timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
       };
 
       const handlePause = () => {
@@ -2039,6 +2053,24 @@
       };
 
       const handleLoop = () => setLooping(l => !l);
+
+      useEffect(() => {
+        if (mode !== MODE_CLICKONLY || !stopwatch) {
+          timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
+          return;
+        }
+        if (phase === "playing" && !paused) {
+          timerStartRef.current = Date.now();
+          const id = setInterval(() => {
+            const elapsed = elapsedAccumRef.current + Math.floor((Date.now() - timerStartRef.current) / 1000);
+            setElapsedSeconds(elapsed);
+          }, 500);
+          return () => clearInterval(id);
+        } else if (paused && timerStartRef.current !== null) {
+          elapsedAccumRef.current += Math.floor((Date.now() - timerStartRef.current) / 1000);
+          timerStartRef.current = null;
+        }
+      }, [phase, paused, mode, stopwatch]);
 
       useEffect(() => {
         if (!isResuming && resuming) setResuming(false);
@@ -2105,14 +2137,14 @@
       const exInputDisabled = running || mode === MODE_CLICKONLY;
       const minSwipeHandlers = useSwipeInput({
         disabled: exInputDisabled,
-        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); setMinExStr(String(v)); },
-        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); setMinExStr(String(v)); },
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); },
         onTap: () => setNumpadOpen('min'),
       });
       const maxSwipeHandlers = useSwipeInput({
         disabled: exInputDisabled,
-        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); setMaxExStr(String(v)); },
-        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); },
         onTap: () => setNumpadOpen('max'),
       });
 
@@ -2268,7 +2300,7 @@
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to turn on ∞ mode — it loops continuously.</li>
                     <li>Sequence — plays exercises in order, then stops. Tap Sequence again to turn on ∞ mode — it loops continuously.</li>
-                    <li>Metronome — bar counter, runs until you stop it.</li>
+                    <li>Metronome — bar counter, runs until you stop it. Tap Metronome again to switch to stopwatch mode — shows elapsed time instead of bars.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2304,7 +2336,7 @@
 
           <div className="display">
             <div className="exercise-label">
-              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? "bar" : "exercise"}
+              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : "exercise"}
             </div>
 
             {phase === "countin" ? (
@@ -2315,9 +2347,13 @@
               <div className="exercise-number done">
                 done
               </div>
+            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
+              <div className="exercise-number" style={{ letterSpacing: 0 }}>
+                {`${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`}
+              </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {exercise !== null ? fmtEx(exercise, letterMode) : "--"}
+                {exercise !== null ? (mode === MODE_CLICKONLY ? fmt(exercise) : fmtEx(exercise, letterMode)) : "--"}
               </div>
             )}
 
@@ -2327,7 +2363,7 @@
               ) : (
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
-                    ? `${bpm} bpm · ${timeSig.label} · metronome`
+                    ? `${bpm} bpm · ${timeSig.label} · metronome${stopwatch ? " \u23F1\uFE0E" : ""}`
                     : exMode === 'pick'
                       ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
                       : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
@@ -2336,19 +2372,21 @@
             ) : mode === MODE_CLICKONLY ? (
               <div className="next-exercise">
                 {paused
-                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
-                  : "\u00A0"}
+                  ? <span className="status-label">paused</span>
+                  : isResuming
+                    ? <span className="status-label">resuming</span>
+                    : "\u00A0"}
               </div>
             ) : (
-              <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
+              <div key={nextEx} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
                 {paused
-                  ? <span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
+                  ? <span className="status-label">paused</span>
                   : isResuming
                     ? <><span className="next-label">resuming</span>{fmtEx(nextEx ?? exercise, letterMode)}</>
                     : looping
-                      ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>looping</span>
+                      ? <span className="status-label status-label--dim">looping</span>
                       : nextEx === -1 && phase === "playing"
-                        ? <span style={{ fontSize: "0.6em", color: "#555", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>last exercise</span>
+                        ? <span className="status-label status-label--dim">last exercise</span>
                         : nextEx !== null && (phase === "playing" || phase === "countin")
                           ? <><span className="next-label">up next</span>{fmtEx(nextEx === -1 ? exercise : nextEx, letterMode)}</>
                           : "\u00A0"}
@@ -2399,15 +2437,18 @@
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
                       onClick={() => {
-                        if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
+                        if (m.value === mode && m.value === MODE_CLICKONLY) {
+                          setStopwatch(v => !v);
+                        } else if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
                           setInfinite(v => !v);
                         } else {
                           setMode(m.value);
                           setInfinite(false);
+                          if (m.value !== MODE_CLICKONLY) setStopwatch(false);
                         }
                       }} disabled={running}
                       >
-                      {m.label}{mode === m.value && infinite ? " ∞" : ""}
+                      {m.label}{mode === m.value && infinite ? " ∞" : ""}{mode === m.value && m.value === MODE_CLICKONLY && stopwatch ? " \u23F1\uFE0E" : ""}
                     </button>
                   ))}
                 </div>
@@ -2486,12 +2527,12 @@
                     <div className="ex-control-row">
                       {exMode === 'range' ? (
                         <div className="range-row">
-                          <input type="text" readOnly value={letterMode ? numToLetter(minEx) : minExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(minEx) : String(minEx)}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...minSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
                           <span>to</span>
-                          <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : maxExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : String(maxEx)}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...maxSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
@@ -2573,13 +2614,13 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
               label="MIN"
               initialValue={minEx}
-              onConfirm={(v) => { setMinEx(v); setMinExStr(String(v)); setNumpadOpen(null); }}
+              onConfirm={(v) => { setMinEx(v); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
               letterMode={letterMode}
             />
@@ -2588,7 +2629,7 @@
             <NumpadPopup
               label="MAX"
               initialValue={maxEx}
-              onConfirm={(v) => { setMaxEx(v); setMaxExStr(String(v)); setNumpadOpen(null); }}
+              onConfirm={(v) => { setMaxEx(v); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
               letterMode={letterMode}
             />
