@@ -1080,6 +1080,7 @@
         if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
         if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
         if (p.has("lm"))     r.letterMode = p.get("lm") === "1";
+        if (p.has("sw"))     r.stopwatch  = p.get("sw")  === "1";
         return Object.keys(r).length > 0 ? r : null;
       } catch { return null; }
     }
@@ -1903,6 +1904,10 @@
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
       const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
+      const [stopwatch,       setStopwatch]       = useState(() => saved?.stopwatch ?? false);
+      const [elapsedSeconds,  setElapsedSeconds]  = useState(0);
+      const timerStartRef  = useRef(null);
+      const elapsedAccumRef = useRef(0);
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
@@ -1944,8 +1949,8 @@
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                       exMode, pickedNums, letterMode });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode]);
+                       exMode, pickedNums, letterMode, stopwatch });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2034,6 +2039,7 @@
       const handleStop = () => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
         setExercise(null); setNextEx(null); setSetComplete(false);
+        timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
       };
 
       const handlePause = () => {
@@ -2047,6 +2053,24 @@
       };
 
       const handleLoop = () => setLooping(l => !l);
+
+      useEffect(() => {
+        if (mode !== MODE_CLICKONLY || !stopwatch) {
+          timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
+          return;
+        }
+        if (phase === "playing" && !paused) {
+          timerStartRef.current = Date.now();
+          const id = setInterval(() => {
+            const elapsed = elapsedAccumRef.current + Math.floor((Date.now() - timerStartRef.current) / 1000);
+            setElapsedSeconds(elapsed);
+          }, 500);
+          return () => clearInterval(id);
+        } else if (paused && timerStartRef.current !== null) {
+          elapsedAccumRef.current += Math.floor((Date.now() - timerStartRef.current) / 1000);
+          timerStartRef.current = null;
+        }
+      }, [phase, paused, mode, stopwatch]);
 
       useEffect(() => {
         if (!isResuming && resuming) setResuming(false);
@@ -2312,7 +2336,7 @@
 
           <div className="display">
             <div className="exercise-label">
-              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? "bar" : "exercise"}
+              {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : "exercise"}
             </div>
 
             {phase === "countin" ? (
@@ -2322,6 +2346,10 @@
             ) : setComplete ? (
               <div className="exercise-number done">
                 done
+              </div>
+            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
+              <div className="exercise-number">
+                {`${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`}
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
@@ -2335,7 +2363,7 @@
               ) : (
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
-                    ? `${bpm} bpm · ${timeSig.label} · metronome`
+                    ? `${bpm} bpm · ${timeSig.label} · metronome${stopwatch ? " ⏱" : ""}`
                     : exMode === 'pick'
                       ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
                       : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
@@ -2409,15 +2437,18 @@
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
                       onClick={() => {
-                        if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
+                        if (m.value === mode && m.value === MODE_CLICKONLY) {
+                          setStopwatch(v => !v);
+                        } else if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
                           setInfinite(v => !v);
                         } else {
                           setMode(m.value);
                           setInfinite(false);
+                          if (m.value !== MODE_CLICKONLY) setStopwatch(false);
                         }
                       }} disabled={running}
                       >
-                      {m.label}{mode === m.value && infinite ? " ∞" : ""}
+                      {m.label}{mode === m.value && infinite ? " ∞" : ""}{mode === m.value && m.value === MODE_CLICKONLY && stopwatch ? " ⏱" : ""}
                     </button>
                   ))}
                 </div>
@@ -2583,7 +2614,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.11 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
