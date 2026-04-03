@@ -644,7 +644,7 @@ firebase_and_observer = r"""
             )}
             <div className="watching-banner-right">
               <span className="watching-code-text">watching <span>{code}</span></span>
-              <button className="watching-disconnect-btn" onClick={onDisconnect}>stop</button>
+              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); onDisconnect(); }}>stop</button>
             </div>
           </div>
 
@@ -925,6 +925,7 @@ watch_state = """
       const shareInterval   = useRef(null);
       const cmdDbRef        = useRef(null);
       const lastTSeq        = useRef(0);
+      const [lastTeacherCmdAt, setLastTeacherCmdAt] = useState(0);
       const watchSilentLoop = useRef(null);
 
 """
@@ -1082,9 +1083,11 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           const cmd = snap.val();
           if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
             lastTSeq.current = cmd.tseq;
+            setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
             else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setExerciseKey(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false); }
+            else if (cmd.tcmd === "end-session") { handleStopSharing(); return; }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
             else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
             else if (cmd.tcmd === "loop")   { setLooping(l => !l); }
@@ -1104,6 +1107,13 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         });
         return () => { cmdsRef.off(); cmdDbRef.current = null; };
       }, [watchScreen, shareCode]);
+
+      // ── Watch: auto-end student session after 30 min idle ────────────────
+      useEffect(() => {
+        if (watchScreen !== "share" && watchScreen !== "app") return;
+        const timer = setTimeout(() => handleStopSharing(), 30 * 60 * 1000);
+        return () => clearTimeout(timer);
+      }, [watchScreen, lastTeacherCmdAt]);
 
       // ── Watch: auto-disconnect teacher after 30 min idle ──────────────────
       useEffect(() => {
@@ -1203,7 +1213,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.5 · watch 1.17</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.19</div>
           </div>
         )}
         {watchScreen === "share" && (
