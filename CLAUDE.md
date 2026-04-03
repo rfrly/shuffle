@@ -64,7 +64,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - No dimming of fixed controls — all controls same visual weight
 - Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop
 - Start button amber filled, only visible when idle
-- ? help button top right of header, balanced with invisible spacer so title stays centred
+- Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
 - Idle state shows a one-line summary of current settings
 - Terminology: "Rounds" not "repetitions", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
 - Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (disabled in Metronome mode)
@@ -73,7 +73,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
-- A `☰` menu button sits in the header (left side, balancing the `?` button); opens a dropdown with three items: **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults. Hidden when student is sharing in Watch mode.
+- A `☰` menu button sits in the header (right side, balanced by an invisible spacer on the left); opens a dropdown with four items: **How to use** (opens the help overlay), **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults. Hidden when student is sharing in Watch mode.
 - Letter mode displays exercises as A–Z instead of numbers; toggled via the `☰` menu; limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
 - Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
 - useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app
