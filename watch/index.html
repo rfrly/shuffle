@@ -1104,10 +1104,13 @@
     @media (max-width: 380px) {
       .watch-student-status { font-size: 0.52rem; }
     }
-    @media (min-width: 600px) {
-      .watch-student-status { font-size: 0.75rem; max-width: 560px; }
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
+      .watch-student-status { font-size: 0.75rem; max-width: 700px; }
     }
-    @media (min-width: 900px) {
+    @media (hover: hover) and (min-width: 1024px) {
+      .watch-student-status { font-size: 0.8rem; max-width: 560px; }
+    }
+    @media (hover: hover) and (min-width: 1440px) {
       .watch-student-status { font-size: 0.9rem; max-width: 700px; }
     }
     /* watch 1.12: enhanced student glanceable view */
@@ -3061,7 +3064,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.27</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.28</div>
           </div>
         )}
         {watchScreen === "share" && (
