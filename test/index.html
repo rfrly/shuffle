@@ -835,7 +835,7 @@
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
     }
-    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
@@ -845,7 +845,7 @@
     }
 
     /* ── Numpad popup ─────────────────────────────────────────────────────────── */
-    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; }
+    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; background: rgba(0,0,0,0.5); }
     .numpad-popup {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
@@ -2172,7 +2172,7 @@
                   onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
                 {settingsMenuOpen && (
                   <>
-                    <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                    <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
                          onClick={() => setSettingsMenuOpen(false)} />
                     <div className="settings-menu-panel">
                       <button className="settings-menu-item settings-menu-item--help" onClick={() => {
@@ -2570,7 +2570,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.8.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.9.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
