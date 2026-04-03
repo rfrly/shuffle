@@ -1145,6 +1145,9 @@
       width: 100%; max-width: 440px; flex-shrink: 0;
       padding: 0.5rem 0.75rem; background: #1a1a1a; border: 1px solid #2a2a2a; border-radius: 4px;
     }
+    @media (max-width: 420px) {
+      .watching-banner { margin-top: 1.5rem; }
+    }
     .watching-code-text {
       font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.15em; color: #888;
       user-select: none; -webkit-user-select: none;
@@ -3072,7 +3075,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.19</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.6 · watch 1.20</div>
           </div>
         )}
         {watchScreen === "share" && (
