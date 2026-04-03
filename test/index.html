@@ -1694,7 +1694,7 @@
                     <button key={n} className="picker-chip"
                       style={flashChip === n ? { borderColor: '#ff4500', color: '#ff4500' } : {}}
                       onPointerDown={(e) => { e.preventDefault(); handleRemove(n); }}>
-                      {fmtEx(n, letterMode)}
+                      {letterMode ? numToLetter(n) : String(n)}
                     </button>
                   ))
               }
@@ -1714,7 +1714,7 @@
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
     function numToLetter(n) { return String.fromCharCode(64 + n); }
-    function fmtEx(n, lm) { return lm ? numToLetter(n) : String(n); }
+    function fmtEx(n, lm) { return lm ? numToLetter(n) : fmt(n); }
 
     // ── Bar progress display ───────────────────────────────────────────────────
 
@@ -2571,7 +2571,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.1.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.2.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
