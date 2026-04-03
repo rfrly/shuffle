@@ -2590,8 +2590,6 @@
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
-      const [minExStr,        setMinExStr]        = useState(() => String(saved?.minEx ?? 1));
-      const [maxExStr,        setMaxExStr]        = useState(() => String(saved?.maxEx ?? 4));
       const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
@@ -2664,8 +2662,8 @@
 
       useEffect(() => {
         if (!letterMode) return;
-        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); setMinExStr(String(EX_MAX_LETTERS)); }
-        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); setMaxExStr(String(EX_MAX_LETTERS)); }
+        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); }
+        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); }
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         /* letter mode popup suppressed in watch build */
       }, [letterMode]);
@@ -3016,14 +3014,14 @@
       const exInputDisabled = running || mode === MODE_CLICKONLY;
       const minSwipeHandlers = useSwipeInput({
         disabled: exInputDisabled,
-        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); setMinExStr(String(v)); },
-        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); setMinExStr(String(v)); },
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, minEx + 1); setMinEx(v); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, minEx - 1); setMinEx(v); },
         onTap: () => setNumpadOpen('min'),
       });
       const maxSwipeHandlers = useSwipeInput({
         disabled: exInputDisabled,
-        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); setMaxExStr(String(v)); },
-        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); setMaxExStr(String(v)); },
+        onSwipeUp:   () => { const v = Math.min(EX_MAX, maxEx + 1); setMaxEx(v); },
+        onSwipeDown: () => { const v = Math.max(EX_MIN, maxEx - 1); setMaxEx(v); },
         onTap: () => setNumpadOpen('max'),
       });
 
@@ -3455,12 +3453,12 @@
                     <div className="ex-control-row">
                       {exMode === 'range' ? (
                         <div className="range-row">
-                          <input type="text" readOnly value={letterMode ? numToLetter(minEx) : minExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(minEx) : String(minEx)}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...minSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
                           <span>to</span>
-                          <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : maxExStr}
+                          <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : String(maxEx)}
                             className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
                             {...maxSwipeHandlers}
                             disabled={running || mode === MODE_CLICKONLY} />
@@ -3557,13 +3555,13 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
               label="MIN"
               initialValue={minEx}
-              onConfirm={(v) => { setMinEx(v); setMinExStr(String(v)); setNumpadOpen(null); }}
+              onConfirm={(v) => { setMinEx(v); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
               letterMode={letterMode}
             />
@@ -3572,7 +3570,7 @@
             <NumpadPopup
               label="MAX"
               initialValue={maxEx}
-              onConfirm={(v) => { setMaxEx(v); setMaxExStr(String(v)); setNumpadOpen(null); }}
+              onConfirm={(v) => { setMaxEx(v); setNumpadOpen(null); }}
               onClose={() => setNumpadOpen(null)}
               letterMode={letterMode}
             />
