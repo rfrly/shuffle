@@ -432,7 +432,7 @@ src = src.replace(
     '              </div>\n'
     '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
     '              <div className="watch-student-status-item">\n'
-    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : mode === MODE_RANDOM ? "Random" : "Metronome"}\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{infinite ? " \u221e" : ""}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -513,7 +513,7 @@ firebase_and_observer = r"""
       const {
         running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
-        mode: obsMode, bpm: obsBpm, timeSig: obsTimeSigLabel,
+        mode: obsMode, infinite: obsInfinite, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
         countInBars: obsCib, countInEvery: obsCountInEvery,
         looping: obsLooping, letterMode: obsLm,
@@ -568,7 +568,7 @@ firebase_and_observer = r"""
         : exMode === "pick" ? pickedNums.length >= 1
         : (obsMinEx || 1) <= (obsMaxEx || 1);
 
-      const modeLabel = { fullset: "Shuffle", sequential: "Sequence", random: "Random", clickonly: "Metronome" }[obsMode] || obsMode;
+      const modeLabel = ({ fullset: "Shuffle", sequential: "Sequence", clickonly: "Metronome" }[obsMode] || obsMode) + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "");
 
       const buildSettingsSummary = () => {
         let parts = [modeLabel];
@@ -599,6 +599,7 @@ firebase_and_observer = r"""
         if (obsCib)           p.set("cib",    String(obsCib));
         if (obsCountInEvery)  p.set("cie",    "1");
         if (obsMode)          p.set("mode",   obsMode);
+        if (obsInfinite && obsMode !== "clickonly") p.set("inf", "1");
         if (obsBpe)           p.set("rounds", String(obsBpe));
         if (obsExMode && obsExMode !== "range") p.set("exmode", obsExMode);
         if (obsExMode === "pick" && pickedNums.length > 0) p.set("picks", pickedNums.join(","));
@@ -658,7 +659,7 @@ firebase_and_observer = r"""
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
-                      mode: "fullset", exMode: "range", pickedNums: [], letterMode: false });
+                      mode: "fullset", infinite: false, exMode: "range", pickedNums: [], letterMode: false });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -693,8 +694,8 @@ firebase_and_observer = r"""
                   {obsMode === "clickonly"
                     ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
                     : exMode === "pick"
-                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`
-                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${obsMode === "fullset" ? "shuffle" : obsMode === "random" ? "random" : obsMode === "sequential" ? "sequence" : obsMode || "--"}`}
+                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`
+                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`}
                 </div>
               ) : (
                 <div className="next-exercise">
@@ -746,15 +747,20 @@ firebase_and_observer = r"""
                 <label>Mode</label>
                 <div className="selector-row">
                   {[
-                    { label: "Shuffle",    value: "fullset" },
-                    { label: "Sequence",   value: "sequential" },
-                    { label: "Random",     value: "random" },
-                    { label: "Metronome",  value: "clickonly" },
+                    { label: "Shuffle",   value: "fullset" },
+                    { label: "Sequence",  value: "sequential" },
+                    { label: "Metronome", value: "clickonly" },
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${obsMode === m.value ? " active" : ""}`}
-                      onClick={() => onSendCmd({ mode: m.value })} disabled={disabled || obsRunning}>
-                      {m.label}
+                      onClick={() => {
+                        if (m.value === obsMode && (m.value === "fullset" || m.value === "sequential")) {
+                          onSendCmd({ infinite: !obsInfinite });
+                        } else {
+                          onSendCmd({ mode: m.value, ...(m.value === "clickonly" ? { infinite: false } : {}) });
+                        }
+                      }} disabled={disabled || obsRunning}>
+                      {m.label}{obsMode === m.value && obsInfinite ? " ∞" : ""}
                     </button>
                   ))}
                 </div>
@@ -986,14 +992,14 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         const payload = {
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
-          mode, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+          mode, infinite, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
-          exercise, nextEx, countInBeat, mode, bpm, timeSig, barsPerExercise,
+          exercise, nextEx, countInBeat, mode, infinite, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, watchScreen]);
 
@@ -1033,6 +1039,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setCountInBars(1);
         setCountInEvery(true);
         setMode(MODE_FULLSET);
+        setInfinite(false);
         setExMode("range");
         setPickedNums([]);
         setLetterMode(false);
@@ -1113,6 +1120,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           }
           if (cmd.bpm != null) setBpm(Math.min(300, Math.max(30, Math.round(cmd.bpm))));
           if (cmd.mode != null) setMode(cmd.mode);
+          if (cmd.infinite != null) setInfinite(!!cmd.infinite);
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
@@ -1232,7 +1240,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.7 · watch 1.28</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.7 · watch 1.29</div>
           </div>
         )}
         {watchScreen === "share" && (

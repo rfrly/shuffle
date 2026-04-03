@@ -1019,7 +1019,6 @@
     ];
 
     const MODE_FULLSET    = "fullset";
-    const MODE_RANDOM     = "random";
     const MODE_SEQUENTIAL = "sequential";
     const MODE_CLICKONLY  = "clickonly";
 
@@ -1063,7 +1062,8 @@
         if (p.has("max"))    { const v = parseInt(p.get("max"));     if (v >= 1 && v <= 200) r.maxEx = v; }
         if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
         if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
-        if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","random","clickonly"].includes(v)) r.mode = v; }
+        if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","clickonly"].includes(v)) r.mode = v; }
+        if (p.has("inf"))    r.infinite = p.get("inf") === "1";
         if (p.has("rounds")) { const v = parseInt(p.get("rounds"));  if (v >= 1 && v <= 32) r.barsPerExercise = v; }
         if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
         if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
@@ -1152,7 +1152,7 @@
                             onNewExercise, onNextExercise, onSetComplete,
                             running, paused, resuming,
                             countInBars, countInEveryRound,
-                            mode, volume, looping, setComplete,
+                            mode, volume, looping, infinite, setComplete,
                             exMode, pickedNums }) {
 
       const audioCtx          = useRef(null);
@@ -1166,6 +1166,7 @@
       const seqIndex          = useRef(0);
       const exercisesPlayed   = useRef(0);
       const loopingRef        = useRef(looping);
+      const infiniteRef       = useRef(infinite);
       const countInProgress   = useRef(false);
       const countInBeatPos    = useRef(0);
       const playBeatCount     = useRef(0);
@@ -1220,31 +1221,19 @@
           if (currentMode === MODE_FULLSET) {
             if (deckRef.current.length === 0) deckRef.current = buildDeckFromArray(pn, last);
             return deckRef.current.shift();
-          } else if (currentMode === MODE_SEQUENTIAL) {
+          } else {
             const ex = pn[seqIndex.current % pn.length];
             seqIndex.current++;
-            return ex;
-          } else {
-            if (pn.length === 1) return pn[0];
-            let ex, attempts = 0;
-            do { ex = pn[Math.floor(Math.random() * pn.length)]; attempts++; }
-            while (ex === last && attempts < 20);
             return ex;
           }
         }
         if (currentMode === MODE_FULLSET) {
           if (deckRef.current.length === 0) deckRef.current = buildDeck(min, max, last);
           return deckRef.current.shift();
-        } else if (currentMode === MODE_SEQUENTIAL) {
+        } else {
           const total = max - min + 1;
           const ex = min + (seqIndex.current % total);
           seqIndex.current++;
-          return ex;
-        } else {
-          if (max <= min) return min;
-          let ex, attempts = 0;
-          do { ex = Math.floor(Math.random() * (max - min + 1)) + min; attempts++; }
-          while (ex === last && attempts < 20);
           return ex;
         }
       }, [buildDeck, buildDeckFromArray]);
@@ -1258,6 +1247,10 @@
       });
 
       const resumingRef = useRef(false);
+
+      useEffect(() => {
+        infiniteRef.current = infinite;
+      }, [infinite]);
 
       useEffect(() => {
         loopingRef.current = looping;
@@ -1468,7 +1461,8 @@
                     playBeatCount.current = 1;
                   } else {
                     const setDone = (currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL)
-                      && exercisesPlayed.current >= totalInSet - 1;
+                      && exercisesPlayed.current >= totalInSet - 1
+                      && !infiniteRef.current;
 
                     if (setDone) {
                       const incoming = nextExercise.current;
@@ -1720,7 +1714,7 @@
 
     function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
     function numToLetter(n) { return String.fromCharCode(64 + n); }
-    function fmtEx(n, lm) { return lm ? numToLetter(n) : fmt(n); }
+    function fmtEx(n, lm) { return lm ? numToLetter(n) : String(n); }
 
     // ── Bar progress display ───────────────────────────────────────────────────
 
@@ -1898,6 +1892,7 @@
       const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
+      const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
@@ -1938,9 +1933,9 @@
 
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                       minEx, maxEx, countInBars, countInEvery, mode, volume,
+                       minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                        exMode, pickedNums, letterMode });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, volume, exMode, pickedNums, letterMode]);
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2007,7 +2002,7 @@
         running, paused, resuming,
         countInBars,
         countInEveryRound: countInEvery,
-        mode, volume, looping, setComplete,
+        mode, volume, looping, infinite, setComplete,
         exMode, pickedNums,
       });
 
@@ -2146,7 +2141,7 @@
         </svg>
       );
 
-      const modeSummary = mode === MODE_FULLSET ? "shuffle" : mode === MODE_RANDOM ? "random" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome";
+      const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (infinite && mode !== MODE_CLICKONLY ? " ∞" : "");
 
 
       return (
@@ -2213,6 +2208,7 @@
                         p.set("cib",  String(countInBars));
                         if (countInEvery) p.set("cie", "1");
                         p.set("mode", mode);
+                        if (infinite && mode !== MODE_CLICKONLY) p.set("inf", "1");
                         if (letterMode) p.set("lm", "1");
                         const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
                         navigator.clipboard.writeText(url)
@@ -2269,9 +2265,8 @@
                 <div className="help-section">
                   <h3>Modes</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                    <li>Shuffle — plays every exercise in random order, then stops.</li>
-                    <li>Sequence — plays exercises in order, then stops.</li>
-                    <li>Random — picks randomly and runs until you stop it.</li>
+                    <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to turn on ∞ mode — it loops continuously.</li>
+                    <li>Sequence — plays exercises in order, then stops. Tap Sequence again to turn on ∞ mode — it loops continuously.</li>
                     <li>Metronome — bar counter, runs until you stop it.</li>
                   </ul>
                 </div>
@@ -2289,7 +2284,7 @@
                     <li>If you can't hear anything, check your device isn't in silent mode.</li>
                     <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
                     <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
-                    <li>Tap <strong>☰</strong> to switch to letter mode or reset all settings to defaults.</li>
+                    <li>Tap <strong>☰</strong> to switch to letter mode, share your settings as a link, or reset all settings to defaults.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2396,16 +2391,22 @@
                 <label>Mode</label>
                 <div className="selector-row">
                   {[
-                    { label: "Shuffle",    value: MODE_FULLSET },
-                    { label: "Sequence",   value: MODE_SEQUENTIAL },
-                    { label: "Random",     value: MODE_RANDOM },
+                    { label: "Shuffle",   value: MODE_FULLSET },
+                    { label: "Sequence",  value: MODE_SEQUENTIAL },
                     { label: "Metronome", value: MODE_CLICKONLY },
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
-                      onClick={() => setMode(m.value)} disabled={running}
+                      onClick={() => {
+                        if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
+                          setInfinite(v => !v);
+                        } else {
+                          setMode(m.value);
+                          setInfinite(false);
+                        }
+                      }} disabled={running}
                       >
-                      {m.label}
+                      {m.label}{mode === m.value && infinite ? " ∞" : ""}
                     </button>
                   ))}
                 </div>
@@ -2570,7 +2571,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.9.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.1.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
