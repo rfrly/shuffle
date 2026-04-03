@@ -1916,6 +1916,7 @@
       const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
+      const letterModeMountedRef = useRef(false);
       const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
@@ -1940,6 +1941,7 @@
       }, []);
 
       useEffect(() => {
+        if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
         setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         if (!letterModeSeenRef.current) {
@@ -2568,7 +2570,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

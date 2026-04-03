@@ -2618,6 +2618,7 @@
       const [letterMode,          setLetterMode]          = useState(false);
       const [showLetterModePopup, setShowLetterModePopup] = useState(false);
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
+      const letterModeMountedRef = useRef(false);
       const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
@@ -2660,6 +2661,7 @@
       }, []);
 
       useEffect(() => {
+        if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
         setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         /* letter mode popup suppressed in watch build */
