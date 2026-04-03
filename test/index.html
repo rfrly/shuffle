@@ -376,7 +376,8 @@
     }
     .bpm-tap:active { background: #252525; }
     .bpm-tap.tapped { background: #222; }
-    .bpm-tap-label { font-size: 0.5rem; color: #555; letter-spacing: 0.08em; }
+    .bpm-tap-label { font-size: 0.5rem; color: #555; letter-spacing: 0.08em; user-select: none; }
+    .bpm-tap * { user-select: none; }
 
     .stepper { display: flex; align-items: center; height: 44px; }
 
@@ -2418,6 +2419,7 @@
                   <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
                   <div className={`bpm-tap${tapped ? " tapped" : ""}`}
                     onClick={!running ? handleTap : undefined}
+                    onMouseDown={e => e.preventDefault()}
                     style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                       <span>{bpm}</span>
@@ -2571,7 +2573,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.3.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

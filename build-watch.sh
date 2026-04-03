@@ -20,7 +20,16 @@ The script injects:
 
 import re, sys, os
 
-WATCH_VERSION = "1.0"
+_patch_warnings = []
+
+def patch(src, old, new, count=None, label=""):
+    """Replace old with new, printing a warning if old is not found."""
+    if old not in src:
+        _patch_warnings.append(label or repr(old[:60]))
+        return src
+    if count is not None:
+        return src.replace(old, new, count)
+    return src.replace(old, new)
 
 SRC  = os.path.join(os.path.dirname(__file__), "test", "index.html")
 DEST = os.path.join(os.path.dirname(__file__), "watch", "index.html")
@@ -30,22 +39,19 @@ with open(SRC, "r") as f:
 
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
-src = src.replace("<title>Shuffle</title>", "<title>Shuffle Watch</title>")
-src = src.replace(
+src = patch(src, "<title>Shuffle</title>", "<title>Shuffle Watch</title>")
+src = patch(src, 
     '<meta name="apple-mobile-web-app-title" content="Shuffle" />',
     '<meta name="apple-mobile-web-app-title" content="Shuffle Watch" />'
 )
-src = src.replace(
+src = patch(src, 
     '<meta property="og:title" content="Shuffle" />',
     '<meta property="og:title" content="Shuffle Watch" />'
 )
-src = src.replace(
-    '  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />\n'
-    '  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />\n'
-    '  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />',
-    '  <link rel="apple-touch-icon" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />\n'
-    '  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />\n'
-    '  <link rel="icon" href="https://shuffleclick.com/watch/shuffle-icon-watch.png" />'
+src = re.sub(
+    r'https://shuffleclick\.com/test/shuffle-icon-beta\.png\?v=\d+',
+    'https://shuffleclick.com/watch/shuffle-icon-watch.png',
+    src
 )
 
 # ── 2. Firebase SDK scripts ──────────────────────────────────────────────────
@@ -54,7 +60,7 @@ firebase_scripts = (
     '  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>\n'
     '  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>'
 )
-src = src.replace(
+src = patch(src, 
     '  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>',
     '  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>\n' + firebase_scripts
 )
@@ -263,6 +269,7 @@ watch_css = r"""
     .observer-app .display { min-height: clamp(178px, 30dvh, 320px); }
     .observer-app .display { max-width: 440px; }
     .observer-app .bpm-tap { user-select: none; }
+    .observer-app .bpm-tap * { user-select: none; }
     .observer-app .btn-row { width: 100%; max-width: 440px; }
     /* Observer controls panel */
     .observer-controls {
@@ -293,7 +300,7 @@ watch_css = r"""
       .observer-divider   { max-width: 700px; }
     }
 """
-src = src.replace("  </style>", watch_css + "  </style>")
+src = patch(src, "  </style>", watch_css + "  </style>")
 
 # ── 3b. Student controls: lock when watchScreen === "app" ────────────────────
 # The watch layer injects watchScreen into App scope. We patch the student
@@ -301,13 +308,13 @@ src = src.replace("  </style>", watch_css + "  </style>")
 # adding disabled attributes — disabled causes its own opacity: 0.25 override.
 
 # handleTap guard
-src = src.replace(
+src = patch(src, 
     "      const handleTap = useCallback(() => {\n        if (running) return;",
     "      const handleTap = useCallback(() => {\n        if (running || watchScreen === \"app\") return;"
 )
 
 # incBpm / decBpm / incBars / decBars guards
-src = src.replace(
+src = patch(src, 
     "      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));\n"
     "      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);\n"
     "      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);\n"
@@ -321,7 +328,7 @@ src = src.replace(
 )
 
 # Mode control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group full-width${running ? " dimmed" : ""}`}>',
     '              <div className={`control-group full-width${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>'
 )
@@ -330,11 +337,12 @@ src = src.replace(
 # (leave disabled={running} as-is; the watch-locked class already blocks interaction)
 
 # BPM control group
-src = src.replace(
+src = patch(src, 
     '              <div className="control-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
     '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
     '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
     '                    onClick={!running ? handleTap : undefined}\n'
+    '                    onMouseDown={e => e.preventDefault()}\n'
     '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
     '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
     '                      <span>{bpm}</span>\n'
@@ -346,6 +354,7 @@ src = src.replace(
     '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
     '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
     '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                    onMouseDown={e => e.preventDefault()}\n'
     '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
     '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
     '                      <span>{bpm}</span>\n'
@@ -356,37 +365,37 @@ src = src.replace(
 )
 
 # Time signature control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Time signature</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Time signature</label>'
 )
 
 # Count in control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Count in</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Count in</label>'
 )
 
 # Exercise length control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>'
 )
 
 # Exercises control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>'
 )
 
 # Rounds control group
-src = src.replace(
+src = patch(src, 
     '              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
 )
 
 # Settings menu: replace with sharing indicator when student is sharing
-src = src.replace(
+src = patch(src, 
     '            <div className="settings-menu-wrap app-header-spacer">',
     '            {watchScreen === "app"\n'
     '              ? <div className="sharing-indicator" onClick={() => setWatchScreen("share")} title="Sharing">\n'
@@ -396,7 +405,7 @@ src = src.replace(
     1
 )
 # Close the conditional after the closing </div> of the settings-menu-wrap
-src = src.replace(
+src = patch(src, 
     '            </div>\n'
     '          </div>\n'
     '          <div className="app-subtitle">',
@@ -407,19 +416,19 @@ src = src.replace(
 )
 
 # Stop button: hide from student when sharing (teacher controls Stop)
-src = src.replace(
+src = patch(src, 
     '                <div className="btn-group-stop">',
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
 # Paused state: make "paused" text amber in watch student view (inline color can't be overridden by CSS)
-src = src.replace(
+src = patch(src, 
     '<span style={{ fontSize: "0.6em", color: "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>',
     '<span style={{ fontSize: "0.6em", color: watchScreen === "app" ? "#f5c842" : "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>'
 )
 
 # Status bar: segmented pill below display, matching its width
-src = src.replace(
+src = patch(src, 
     '          <div className="btn-row">',
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
@@ -441,7 +450,7 @@ src = src.replace(
 )
 
 # Letter mode popup: suppress entirely in watch build
-src = src.replace(
+src = patch(src, 
     "        if (!letterModeSeenRef.current) {\n"
     "          letterModeSeenRef.current = true;\n"
     "          localStorage.setItem('shuffle_lm_seen', '1');\n"
@@ -451,7 +460,7 @@ src = src.replace(
 )
 
 # Mute hint: suppress when sharing
-src = src.replace(
+src = patch(src, 
     '            {showMuteHint && phase !== "idle" && (\n'
     '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
     '            )}',
@@ -772,6 +781,7 @@ firebase_and_observer = r"""
                   <button className="bpm-btn left" disabled={disabled} {...bpmObsDecHandlers}>−</button>
                   <div className={`bpm-tap${tapped ? " tapped" : ""}`}
                     onClick={!disabled && !obsRunning ? handleTapBpm : undefined}
+                    onMouseDown={e => e.preventDefault()}
                     style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                       <span>{obsBpm || "--"}</span>
@@ -928,7 +938,7 @@ firebase_and_observer = r"""
     }
 
 """
-src = src.replace(
+src = patch(src, 
     "    const { useState, useEffect, useRef, useCallback } = React;\n",
     "    const { useState, useEffect, useRef, useCallback } = React;\n" + firebase_and_observer
 )
@@ -954,7 +964,7 @@ watch_state = """
       const watchSilentLoop = useRef(null);
 
 """
-src = src.replace(
+src = patch(src, 
     "      const tapTimes = useRef([]);\n      const wakeLock = useRef(null);\n",
     "      const tapTimes = useRef([]);\n      const wakeLock = useRef(null);\n" + watch_state
 )
@@ -1156,7 +1166,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, [watchCode]);
 
 """
-src = src.replace(
+src = patch(src, 
     '\n\n      useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
     '\n\n' + watch_effects + '      useEffect(() => {\n        if (!showMuteHint || phase !== "playing") return;',
     1
@@ -1165,7 +1175,7 @@ src = src.replace(
 # ── 6a-ii. Force letterMode to false in Watch — never load from localStorage ──
 # Watch always starts in Number Mode regardless of what the student's main app
 # had saved. Prevents Letter Mode from persisting into a watch session.
-src = src.replace(
+src = patch(src, 
     "      const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);",
     "      const [letterMode,          setLetterMode]          = useState(false);"
 )
@@ -1173,11 +1183,11 @@ src = src.replace(
 # ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
 # getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
 # in App scope to create the silent loop that keeps the AudioContext alive.
-src = src.replace(
+src = patch(src, 
     "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };",
     "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
 )
-src = src.replace(
+src = patch(src, 
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
@@ -1186,7 +1196,7 @@ src = src.replace(
 # When the student is sharing (watchScreen === "app"), closing the AudioContext
 # on stop means the next teacher-triggered Start creates a new suspended context
 # that can't be resumed outside a user gesture. Keep it alive instead.
-src = src.replace(
+src = patch(src, 
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete,\n"
     "                            running, paused, resuming,\n"
@@ -1200,7 +1210,7 @@ src = src.replace(
     "                            mode, volume, looping, infinite, setComplete,\n"
     "                            exMode, pickedNums, keepCtxAlive }) {"
 )
-src = src.replace(
+src = patch(src, 
     "          if (setComplete) {\n"
     "            setTimeout(() => {\n"
     "              if (audioCtx.current) { try { audioCtx.current.close(); } catch {} audioCtx.current = null; }\n"
@@ -1218,7 +1228,7 @@ src = src.replace(
     "            }\n"
     "          }"
 )
-src = src.replace(
+src = patch(src, 
     "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n      });",
     "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
@@ -1240,7 +1250,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.2 · watch 1.30</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.3 · watch 1.31</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1283,7 +1293,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
         )}
         <div className={`app${watchScreen === "app" ? " watch-active" : ""}`} style={watchScreen === "app" || watchScreen === "share" ? {} : { display: "none" }}>"""
 
-src = src.replace(old_return_open, watch_jsx, 1)
+src = patch(src, old_return_open, watch_jsx, 1)
 
 old_close = '\n        </div>\n      );'
 new_close = '\n        </div>\n        </>\n      );'
@@ -1319,8 +1329,12 @@ checks = [
     "tcmd",
     "tseq",
     "observer-controls",
+    "keepCtxAlive",
+    "getCtx",
 ]
 for token in checks:
     if token not in src:
         print(f"  WARNING: '{token}' not found in output")
+for label in _patch_warnings:
+    print(f"  WARNING: patch target not found — '{label}'")
 print("Done.")
