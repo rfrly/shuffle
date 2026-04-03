@@ -1191,13 +1191,13 @@ src = src.replace(
     "                            onNewExercise, onNextExercise, onSetComplete,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
-    "                            mode, volume, looping, setComplete,\n"
+    "                            mode, volume, looping, infinite, setComplete,\n"
     "                            exMode, pickedNums }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
-    "                            mode, volume, looping, setComplete,\n"
+    "                            mode, volume, looping, infinite, setComplete,\n"
     "                            exMode, pickedNums, keepCtxAlive }) {"
 )
 src = src.replace(
@@ -1219,8 +1219,8 @@ src = src.replace(
     "          }"
 )
 src = src.replace(
-    "        mode, volume, looping, setComplete,\n        exMode, pickedNums,\n      });",
-    "        mode, volume, looping, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n      });",
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
@@ -1240,7 +1240,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.7 · watch 1.29</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.2 · watch 1.30</div>
           </div>
         )}
         {watchScreen === "share" && (

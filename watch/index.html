@@ -1851,7 +1851,7 @@
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, infinite, setComplete,
-                            exMode, pickedNums }) {
+                            exMode, pickedNums, keepCtxAlive }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -2718,6 +2718,7 @@
         countInEveryRound: countInEvery,
         mode, volume, looping, infinite, setComplete,
         exMode, pickedNums,
+        keepCtxAlive: watchScreen === "app",
       });
 
       // ── Watch: manage silent loop to keep AudioContext alive while sharing ──
@@ -3066,7 +3067,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.8.7 · watch 1.29</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.2 · watch 1.30</div>
           </div>
         )}
         {watchScreen === "share" && (
