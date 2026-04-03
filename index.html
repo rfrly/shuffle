@@ -110,7 +110,7 @@
       width: 100%;
     }
     .app-header-text { flex: 1; text-align: center; }
-    .app-header-spacer { width: 28px; flex-shrink: 0; }
+    .app-header-spacer { width: 32px; flex-shrink: 0; }
 
     .app-title {
       font-family: var(--font-mono);
@@ -672,48 +672,36 @@
     .help-section a { color: #aaa; }
     .help-section-support a { color: #f5c842; }
 
-    .help-btn {
-      background: none;
-      border: none;
-      color: #666;
-      font-family: var(--font-body);
-      font-size: 1.1rem;
-      cursor: pointer;
-      padding: 0;
-      letter-spacing: 0;
-      display: flex; align-items: center; justify-content: center;
-      height: 28px; width: 28px;
-    }
-    .help-btn:active { color: #aaa; }
-
-    .settings-menu-wrap { position: relative; width: 28px; flex-shrink: 0; }
+    .settings-menu-wrap { position: relative; width: 32px; flex-shrink: 0; display: flex; align-items: center; }
     .settings-menu-btn {
       background: none; border: none; color: #666;
-      font-family: var(--font-body); font-size: 1.1rem; cursor: pointer;
+      font-family: var(--font-body); font-size: 1.3rem; cursor: pointer;
       padding: 0; letter-spacing: 0;
-      width: 28px; height: 28px;
+      width: 32px; height: 32px;
       display: flex; align-items: center; justify-content: center;
     }
     .settings-menu-btn:active { color: #aaa; }
     .settings-menu-panel {
-      position: absolute; top: calc(100% + 0.4rem); left: 0;
+      position: absolute; top: calc(100% + 0.4rem); right: 0;
       background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
-      min-width: 175px; z-index: 50; overflow: hidden;
+      min-width: 190px; z-index: 50; overflow: hidden;
     }
     .settings-menu-item {
-      display: block; width: 100%; padding: 0.65rem 0.85rem;
+      display: block; width: 100%; padding: 0.75rem 0.9rem;
       background: none; border: none; border-bottom: 1px solid #222;
-      color: #ccc; font-family: var(--font-mono); font-size: 0.65rem;
+      color: #ccc; font-family: var(--font-mono); font-size: 0.68rem;
       letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
     }
     .settings-menu-item:last-child { border-bottom: none; }
     .settings-menu-item:active { background: #222; }
+    .settings-menu-item--help { border-bottom: 2px solid #333 !important; }
+    .settings-menu-item--destructive { color: #a04040; }
 
     @keyframes pulse-amber {
       0%, 100% { color: #666; }
       50% { color: #f5c842; }
     }
-    .help-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
+    .settings-menu-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .app { background: #0f0f0f !important; }
@@ -808,7 +796,7 @@
       .sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
       .compact-sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
       .action-btn:hover:not(:disabled) { filter: brightness(1.08); }
-      .help-btn:hover { color: #888; border-color: #555; }
+
       .vol-label-btn:hover { background: #252525; }
       .pick-trigger-btn:hover:not(:disabled) { background: #252525; border-color: #555; }
       .ex-mode-btn:hover:not(:disabled):not(.active) { background: #252525; color: #888; }
@@ -2175,82 +2163,84 @@
 
           <div className="app-header">
           <div className="app-header-row">
-            <div className="settings-menu-wrap app-header-spacer">
-              <button className="settings-menu-btn"
-                onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
-              {settingsMenuOpen && (
-                <>
-                  <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
-                       onClick={() => setSettingsMenuOpen(false)} />
-                  <div className="settings-menu-panel">
-                    <button className="settings-menu-item" onClick={() => {
-                      setSettingsMenuOpen(false);
-                      const next = !letterMode;
-                      setLetterMode(next);
-                      showAppToast(next ? "Letter mode" : "Number mode");
-                      if (next && !letterModeSeenRef.current) {
-                        letterModeSeenRef.current = true;
-                        try { localStorage.setItem('shuffle_lm_seen', '1'); } catch {}
-                        setShowLetterModePopup(true);
-                      }
-                    }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
-                    <button className="settings-menu-item" onClick={() => {
-                      setSettingsMenuOpen(false);
-                      const p = new URLSearchParams();
-                      p.set("bpm",    String(bpm));
-                      p.set("sig",    timeSig.label);
-                      p.set("exlen",  String(exerciseLength));
-                      if (mode !== MODE_CLICKONLY) {
-                        if (exMode === "pick" && pickedNums.length > 0) {
-                          p.set("picks", pickedNums.join(","));
-                        } else {
-                          p.set("min", String(minEx));
-                          p.set("max", String(maxEx));
-                        }
-                        p.set("rounds", String(barsPerExercise));
-                      }
-                      p.set("cib",  String(countInBars));
-                      if (countInEvery) p.set("cie", "1");
-                      p.set("mode", mode);
-                      if (letterMode) p.set("lm", "1");
-                      const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
-                      navigator.clipboard.writeText(url)
-                        .then(() => showAppToast("Link copied!"))
-                        .catch(() => showAppToast("Copy failed"));
-                    }}>Share settings</button>
-                    <button className="settings-menu-item" onClick={() => {
-                      setSettingsMenuOpen(false);
-                      handleStop();
-                      setBpm(80);
-                      setTimeSig(TIME_SIGS[2]);
-                      setBarsPerExercise(4);
-                      setExerciseLength(1);
-                      setMinEx(1);
-                      setMaxEx(4);
-                      setCountInBars(1);
-                      setCountInEvery(true);
-                      setMode(MODE_FULLSET);
-                      setVolume(1.0);
-                      setExMode('range');
-                      setPickedNums([]);
-                      setLetterMode(false);
-                      showAppToast("Settings reset");
-                    }}>Reset to defaults</button>
-                  </div>
-                </>
-              )}
-            </div>
+            <div className="app-header-spacer" />
             <div className="app-header-text">
               <div className="app-title">Shuffle</div>
             </div>
-            <button className={`help-btn app-header-spacer${helpPulse ? ' help-btn-pulse' : ''}`} onClick={() => {
-              setShowHelp(true); setHelpScrolledToEnd(false);
-              if (helpPulse) {
-                setHelpPulse(false);
-                clearTimeout(helpPulseTimer.current);
-                try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
-              }
-            }}>?</button>
+            <div className="settings-menu-wrap app-header-spacer">
+                <button className={`settings-menu-btn${helpPulse ? ' settings-menu-btn-pulse' : ''}`}
+                  onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
+                {settingsMenuOpen && (
+                  <>
+                    <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
+                         onClick={() => setSettingsMenuOpen(false)} />
+                    <div className="settings-menu-panel">
+                      <button className="settings-menu-item settings-menu-item--help" onClick={() => {
+                        setSettingsMenuOpen(false);
+                        setShowHelp(true); setHelpScrolledToEnd(false);
+                        if (helpPulse) {
+                          setHelpPulse(false);
+                          clearTimeout(helpPulseTimer.current);
+                          try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
+                        }
+                      }}>How to use</button>
+                      <button className="settings-menu-item" onClick={() => {
+                        setSettingsMenuOpen(false);
+                        const next = !letterMode;
+                        setLetterMode(next);
+                        showAppToast(next ? "Letter mode" : "Number mode");
+                        if (next && !letterModeSeenRef.current) {
+                          letterModeSeenRef.current = true;
+                          try { localStorage.setItem('shuffle_lm_seen', '1'); } catch {}
+                          setShowLetterModePopup(true);
+                        }
+                      }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                      <button className="settings-menu-item" onClick={() => {
+                        setSettingsMenuOpen(false);
+                        const p = new URLSearchParams();
+                        p.set("bpm",    String(bpm));
+                        p.set("sig",    timeSig.label);
+                        p.set("exlen",  String(exerciseLength));
+                        if (mode !== MODE_CLICKONLY) {
+                          if (exMode === "pick" && pickedNums.length > 0) {
+                            p.set("picks", pickedNums.join(","));
+                          } else {
+                            p.set("min", String(minEx));
+                            p.set("max", String(maxEx));
+                          }
+                          p.set("rounds", String(barsPerExercise));
+                        }
+                        p.set("cib",  String(countInBars));
+                        if (countInEvery) p.set("cie", "1");
+                        p.set("mode", mode);
+                        if (letterMode) p.set("lm", "1");
+                        const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
+                        navigator.clipboard.writeText(url)
+                          .then(() => showAppToast("Link copied!"))
+                          .catch(() => showAppToast("Copy failed"));
+                      }}>Share settings</button>
+                      <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
+                        setSettingsMenuOpen(false);
+                        handleStop();
+                        setBpm(80);
+                        setTimeSig(TIME_SIGS[2]);
+                        setBarsPerExercise(4);
+                        setExerciseLength(1);
+                        setMinEx(1);
+                        setMaxEx(4);
+                        setCountInBars(1);
+                        setCountInEvery(true);
+                        setMode(MODE_FULLSET);
+                        setVolume(1.0);
+                        setExMode('range');
+                        setPickedNums([]);
+                        setLetterMode(false);
+                        showAppToast("Settings reset");
+                      }}>Reset to defaults</button>
+                    </div>
+                  </>
+                )}
+            </div>
           </div>
           <div className="app-subtitle">practice randomiser and metronome for musicians</div>
           </div>
@@ -2580,7 +2570,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.8.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.8.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
