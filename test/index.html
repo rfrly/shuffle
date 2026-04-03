@@ -1940,10 +1940,7 @@
       }, []);
 
       useEffect(() => {
-        if (!letterMode) return;
-        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); }
-        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); }
-        if (minEx > maxEx) setMinEx(maxEx);
+        setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         if (!letterModeSeenRef.current) {
           letterModeSeenRef.current = true;
@@ -2571,7 +2568,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

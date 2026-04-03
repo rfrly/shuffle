@@ -2660,10 +2660,7 @@
       }, []);
 
       useEffect(() => {
-        if (!letterMode) return;
-        if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); }
-        if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); }
-        if (minEx > maxEx) setMinEx(maxEx);
+        setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         /* letter mode popup suppressed in watch build */
       }, [letterMode]);
