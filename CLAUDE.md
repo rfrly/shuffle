@@ -29,7 +29,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally
 - Audio context is never suspended on pause — scheduler interval is cleared instead, avoids rogue clicks on resume
 - schedulerFn ref stores the scheduler function so resume can restart it without re-picking exercises
-- Settings persisted to localStorage under key shuffle_settings_v7; URL params (`?bpm=`, `?sig=`, `?min=`, `?max=`, `?mode=`, `?rounds=`, `?exlen=`, `?cib=`, `?cie=`, `?exmode=`, `?picks=`, `?lm=`, `?inf=`) override localStorage on load and are stripped from the URL immediately via `history.replaceState`
+- Settings persisted to localStorage under key shuffle_settings_v7; URL params (`?bpm=`, `?sig=`, `?min=`, `?max=`, `?mode=`, `?rounds=`, `?exlen=`, `?cib=`, `?cie=`, `?exmode=`, `?picks=`, `?lm=`, `?inf=`, `?sw=`) override localStorage on load and are stripped from the URL immediately via `history.replaceState`
 - iOS background audio stops when the app leaves the screen — this is a fundamental WebKit limitation
 - `.app` uses `overflow: clip` not `overflow: hidden` — `overflow: hidden` creates a scroll container on iOS which constrains `position: fixed` children, preventing them from covering the full screen (home indicator zone)
 - Help overlay renders inside `.app`, not via portal — portalled `position: fixed` elements are constrained by `body { height: 100% }` on iOS PWA and won't reach the bottom of the screen
@@ -50,7 +50,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — bar counter, runs until stopped
+- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars
 - ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Switching to a different mode resets ∞.
 
 ---

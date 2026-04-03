@@ -2300,7 +2300,7 @@
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to turn on ∞ mode — it loops continuously.</li>
                     <li>Sequence — plays exercises in order, then stops. Tap Sequence again to turn on ∞ mode — it loops continuously.</li>
-                    <li>Metronome — bar counter, runs until you stop it.</li>
+                    <li>Metronome — bar counter, runs until you stop it. Tap Metronome again to switch to stopwatch mode — shows elapsed time instead of bars.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -2348,7 +2348,7 @@
                 done
               </div>
             ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
-              <div className="exercise-number">
+              <div className="exercise-number" style={{ letterSpacing: 0 }}>
                 {`${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`}
               </div>
             ) : (
@@ -2363,7 +2363,7 @@
               ) : (
                 <div className="idle-summary">
                   {mode === MODE_CLICKONLY
-                    ? `${bpm} bpm · ${timeSig.label} · metronome${stopwatch ? " ⏱" : ""}`
+                    ? `${bpm} bpm · ${timeSig.label} · metronome${stopwatch ? " \u23F1\uFE0E" : ""}`
                     : exMode === 'pick'
                       ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
                       : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
@@ -2448,7 +2448,7 @@
                         }
                       }} disabled={running}
                       >
-                      {m.label}{mode === m.value && infinite ? " ∞" : ""}{mode === m.value && m.value === MODE_CLICKONLY && stopwatch ? " ⏱" : ""}
+                      {m.label}{mode === m.value && infinite ? " ∞" : ""}{mode === m.value && m.value === MODE_CLICKONLY && stopwatch ? " \u23F1\uFE0E" : ""}
                     </button>
                   ))}
                 </div>
@@ -2614,7 +2614,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.11 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
