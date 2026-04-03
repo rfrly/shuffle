@@ -2353,7 +2353,7 @@
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {exercise !== null ? fmtEx(exercise, letterMode) : "--"}
+                {exercise !== null ? (mode === MODE_CLICKONLY ? fmt(exercise) : fmtEx(exercise, letterMode)) : "--"}
               </div>
             )}
 
@@ -2614,7 +2614,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.4.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.4.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

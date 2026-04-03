@@ -3320,7 +3320,7 @@
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {exercise !== null ? fmtEx(exercise, letterMode) : "--"}
+                {exercise !== null ? (mode === MODE_CLICKONLY ? fmt(exercise) : fmtEx(exercise, letterMode)) : "--"}
               </div>
             )}
 
