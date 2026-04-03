@@ -2597,7 +2597,6 @@
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
-      const [exerciseKey,     setExerciseKey]     = useState(0);
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
@@ -2664,6 +2663,7 @@
         if (!letterMode) return;
         if (minEx > EX_MAX_LETTERS) { setMinEx(EX_MAX_LETTERS); }
         if (maxEx > EX_MAX_LETTERS) { setMaxEx(EX_MAX_LETTERS); }
+        if (minEx > maxEx) setMinEx(maxEx);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
         /* letter mode popup suppressed in watch build */
       }, [letterMode]);
@@ -2698,10 +2698,10 @@
       }, [running, paused]);
 
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
-      const handleNextExercise = useCallback((n) => { setNextEx(n); setExerciseKey(k => k + 1); }, []);
+      const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
       const handleSetComplete  = useCallback(() => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setExercise(null); setNextEx(null);
         setSetComplete(true);
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
@@ -2928,13 +2928,13 @@
           setShowMuteHint(true);
         }
         setSetComplete(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0);
+        setExercise(null); setNextEx(null);
         setPaused(false); setLooping(false); setResuming(false); setRunning(true);
       };
 
       const handleStop = () => {
         setRunning(false); setPaused(false); setLooping(false); setResuming(false);
-        setExercise(null); setNextEx(null); setExerciseKey(0); setSetComplete(false);
+        setExercise(null); setNextEx(null); setSetComplete(false);
       };
 
       const handlePause = () => {
@@ -3307,7 +3307,7 @@
                   : "\u00A0"}
               </div>
             ) : (
-              <div key={exerciseKey} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
+              <div key={nextEx} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
                 {paused
                   ? <span style={{ fontSize: "0.6em", color: watchScreen === "app" ? "#f5c842" : "#444", letterSpacing: "0.2em", textTransform: "uppercase", fontFamily: "Share Tech Mono, monospace" }}>paused</span>
                   : isResuming
