@@ -1031,12 +1031,13 @@
       font-family: var(--font-mono); font-size: 0.9rem; letter-spacing: 0.1em;
       text-transform: uppercase; color: #888; text-align: center; margin-top: -0.75rem;
     }
-    .watch-btn {
+    .watch-btn-base {
       width: 100%; max-width: 380px; height: 56px; border-radius: 4px; border: none;
       font-family: var(--font-mono); font-size: 0.85rem; letter-spacing: 0.15em;
-      text-transform: uppercase; cursor: pointer; transition: opacity 0.1s;
+      text-transform: uppercase; cursor: pointer;
     }
-    .watch-btn:active { opacity: 0.7; }
+    .watch-btn-base:active { opacity: 0.7; }
+    .watch-btn { transition: opacity 0.1s; }
     .watch-btn.primary { background: #f5c842; color: #0f0f0f; }
     .watch-btn.secondary { background: #1a1a1a; color: #ccc; border: 1px solid #333; }
     .watch-code-input {
@@ -1048,12 +1049,7 @@
     }
     .watch-code-input::placeholder { color: #333; letter-spacing: 0.05em; }
     .watch-code-input:focus { border-color: #f5c842; }
-    .watch-connect-btn {
-      width: 100%; max-width: 380px; height: 56px; border-radius: 4px; border: none;
-      background: #f5c842; color: #0f0f0f; font-family: var(--font-mono);
-      font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; cursor: pointer;
-    }
-    .watch-connect-btn:active { opacity: 0.7; }
+    .watch-connect-btn { background: #f5c842; color: #0f0f0f; }
     .watch-connect-btn:disabled { opacity: 0.3; cursor: default; }
     .watch-entry-error {
       font-family: var(--font-mono); font-size: 0.65rem; letter-spacing: 0.1em;
@@ -3078,9 +3074,9 @@
           <div className="watch-overlay">
             <div className="watch-overlay-title">Shuffle</div>
             <div className="watch-overlay-subtitle">Watch</div>
-            <button className="watch-btn primary" onClick={handleStartSharing}>Share my session</button>
-            <button className="watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.3 · watch 1.31</div>
+            <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
+            <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.4 · watch 1.32</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3093,8 +3089,8 @@
             {teacherConnected
               ? <div className="share-session-hint" style={{ color: "#4caf50" }}>Teacher connected — tap Open Shuffle to begin.</div>
               : <div className="share-session-hint">Open shuffleclick.com/watch on another device and enter this code.</div>}
-            <button className="watch-btn primary" onClick={() => { try { const ctx = getCtx(); ctx.resume().catch(() => {}); if (!watchSilentLoop.current) { const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; const gain = ctx.createGain(); gain.gain.value = 0.001; src.connect(gain); gain.connect(ctx.destination); src.start(); watchSilentLoop.current = src; } } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
-            <button className="watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
+            <button className="watch-btn-base watch-btn primary" onClick={() => { try { const ctx = getCtx(); ctx.resume().catch(() => {}); if (!watchSilentLoop.current) { const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate); const src = ctx.createBufferSource(); src.buffer = buf; src.loop = true; const gain = ctx.createGain(); gain.gain.value = 0.001; src.connect(gain); gain.connect(ctx.destination); src.start(); watchSilentLoop.current = src; } } catch(e) {} setWatchScreen("app"); }}>Open Shuffle</button>
+            <button className="watch-btn-base watch-btn secondary" onClick={handleStopSharing}>Stop sharing</button>
           </div>
         )}
         {watchScreen === "watch-entry" && (
@@ -3117,7 +3113,7 @@
               spellCheck={false}
             />
             {watchEntryError && <div className="watch-entry-error">{watchEntryError}</div>}
-            <button className="watch-connect-btn" disabled={!watchEntryCode.includes("-")} onClick={() => handleConnectWatch(watchEntryCode)}>Connect</button>
+            <button className="watch-btn-base watch-connect-btn" disabled={!watchEntryCode.includes("-")} onClick={() => handleConnectWatch(watchEntryCode)}>Connect</button>
             <button className="watch-back-btn" onClick={() => { setWatchScreen("home"); setWatchEntryCode(""); setWatchEntryError(""); }}>← back</button>
           </div>
         )}
