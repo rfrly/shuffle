@@ -437,7 +437,7 @@ src = patch(src,
     '              </div>\n'
     '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
     '              <div className="watch-student-status-item">\n'
-    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{infinite ? " \u221e" : ""}\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{infinite ? " \u221e" : ""}{mode === MODE_CLICKONLY && stopwatch ? " \u23F1\uFE0E" : ""}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -518,7 +518,7 @@ firebase_and_observer = r"""
       const {
         running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
-        mode: obsMode, infinite: obsInfinite, bpm: obsBpm, timeSig: obsTimeSigLabel,
+        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
         countInBars: obsCib, countInEvery: obsCountInEvery,
         looping: obsLooping, letterMode: obsLm,
@@ -664,7 +664,7 @@ firebase_and_observer = r"""
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
-                      mode: "fullset", infinite: false, exMode: "range", pickedNums: [], letterMode: false });
+                      mode: "fullset", infinite: false, stopwatch: false, exMode: "range", pickedNums: [], letterMode: false });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -761,13 +761,15 @@ firebase_and_observer = r"""
                     <button key={m.value}
                       className={`sel-btn${obsMode === m.value ? " active" : ""}`}
                       onClick={() => {
-                        if (m.value === obsMode && (m.value === "fullset" || m.value === "sequential")) {
+                        if (m.value === obsMode && m.value === "clickonly") {
+                          onSendCmd({ stopwatch: !obsStopwatch });
+                        } else if (m.value === obsMode && (m.value === "fullset" || m.value === "sequential")) {
                           onSendCmd({ infinite: !obsInfinite });
                         } else {
-                          onSendCmd({ mode: m.value, ...(m.value === "clickonly" ? { infinite: false } : {}) });
+                          onSendCmd({ mode: m.value, infinite: false, stopwatch: false });
                         }
                       }} disabled={disabled || obsRunning}>
-                      {m.label}{obsMode === m.value && obsInfinite ? " ∞" : ""}
+                      {m.label}{obsMode === m.value && obsInfinite ? " ∞" : ""}{obsMode === m.value && m.value === "clickonly" && obsStopwatch ? " \u23F1\uFE0E" : ""}
                     </button>
                   ))}
                 </div>
@@ -1000,14 +1002,14 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         const payload = {
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
-          mode, infinite, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+          mode, infinite, stopwatch, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
-          exercise, nextEx, countInBeat, mode, infinite, bpm, timeSig, barsPerExercise,
+          exercise, nextEx, countInBeat, mode, infinite, stopwatch, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, watchScreen]);
 
@@ -1048,6 +1050,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setCountInEvery(true);
         setMode(MODE_FULLSET);
         setInfinite(false);
+        setStopwatch(false);
+        setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
+        setStopwatchPref(false);
         setExMode("range");
         setPickedNums([]);
         setLetterMode(false);
@@ -1127,8 +1132,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
             else if (cmd.tcmd === "loop")   { setLooping(l => !l); }
           }
           if (cmd.bpm != null) setBpm(Math.min(300, Math.max(30, Math.round(cmd.bpm))));
-          if (cmd.mode != null) setMode(cmd.mode);
-          if (cmd.infinite != null) setInfinite(!!cmd.infinite);
+          if (cmd.mode != null) { setMode(cmd.mode); setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false }); setStopwatchPref(false); }
+          if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); if (cmd.mode) setInfiniteByMode(prev => ({ ...prev, [cmd.mode]: inf })); }
+          if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
@@ -1248,7 +1254,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.4 · watch 1.32</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.33</div>
           </div>
         )}
         {watchScreen === "share" && (
