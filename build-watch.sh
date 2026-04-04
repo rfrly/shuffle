@@ -639,7 +639,7 @@ firebase_and_observer = r"""
           <div className="watching-banner">
             <div className="watching-banner-right">
               <span className="watching-code-text">watching <span>{code}</span></span>
-              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); onDisconnect(); }}>stop</button>
+              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); _db.ref("sessions/" + code).remove(); onDisconnect(); }}>stop</button>
             </div>
             <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
               onClick={() => setMenuOpen(v => !v)}>☰</button>
@@ -1089,9 +1089,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
 
       const handleStopSharing = useCallback(() => {
         if (shareCode) {
-          _db.ref("sessions/" + shareCode + "/state").set({ ts: Date.now(), studentEnded: true })
-            .catch(() => {})
-            .finally(() => _db.ref("sessions/" + shareCode).remove());
+          _db.ref("sessions/" + shareCode + "/state").set({ ts: Date.now(), studentEnded: true });
+          _db.ref("sessions/" + shareCode).remove();
         }
         shareDbRef.current = null;
         setShareCode("");
@@ -1311,7 +1310,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.41</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.42</div>
           </div>
         )}
         {watchScreen === "share" && (
