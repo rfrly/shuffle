@@ -988,3 +988,137 @@
     @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
+    /* ── Metronome View ─────────────────────────────────────────── */
+    .metro-view {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      width: 100%;
+      max-width: 440px;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .metro-display-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.1rem;
+      padding: 0.4rem 1rem 0.2rem;
+    }
+    .metro-display-label {
+      font-family: var(--font-body);
+      font-size: 11px;
+      color: #888;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    .metro-display-value {
+      font-family: var(--font-mono);
+      font-size: 2.8rem;
+      color: #f5c842;
+      line-height: 1;
+    }
+    .metro-beat-dots {
+      display: flex;
+      gap: 8px;
+      margin-top: 0.3rem;
+    }
+
+    /* Beat tiles */
+    .metro-beat-tiles {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      padding: 0 0.5rem;
+      justify-content: center;
+      flex: 1;
+      align-items: center;
+    }
+    .metro-beat-tile {
+      flex: 1 1 0;
+      min-width: 60px;
+      max-width: 120px;
+      aspect-ratio: 1;
+      border-radius: 10px;
+      font-family: var(--font-mono);
+      font-size: 1.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.08s, border-color 0.08s, color 0.08s;
+      border: 2px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    .metro-beat-tile--accent {
+      background: rgba(245,200,66,0.15);
+      border-color: #f5c842;
+      color: #f5c842;
+    }
+    .metro-beat-tile--normal {
+      background: #1a1a1a;
+      border-color: #444;
+      color: #aaa;
+    }
+    .metro-beat-tile--silent {
+      background: #111;
+      border-color: #2a2a2a;
+      border-style: dashed;
+      color: #444;
+    }
+    .metro-beat-tile--active.metro-beat-tile--accent {
+      background: rgba(245,200,66,0.35);
+      box-shadow: 0 0 12px rgba(245,200,66,0.4);
+    }
+    .metro-beat-tile--active.metro-beat-tile--normal {
+      background: #2a2a2a;
+      border-color: #888;
+      color: #eee;
+    }
+    .metro-beat-tile--active.metro-beat-tile--silent {
+      background: #1a1a1a;
+      border-color: #444;
+    }
+
+    /* Subdivision row */
+    .metro-subdiv-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0 0.5rem;
+    }
+    .metro-subdiv-label {
+      font-family: var(--font-body);
+      font-size: 12px;
+      color: #888;
+      flex-shrink: 0;
+    }
+    .metro-subdiv-btn {
+      flex: 1;
+      height: 36px;
+      border-radius: 8px;
+      background: #1a1a1a;
+      border: 1.5px solid #333;
+      color: #aaa;
+      font-family: var(--font-body);
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.08s, border-color 0.08s, color 0.08s;
+    }
+    .metro-subdiv-btn.active {
+      background: rgba(245,200,66,0.12);
+      border-color: #f5c842;
+      color: #f5c842;
+    }
+
+    /* Metro compact controls row */
+    .metro-controls-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem 0.75rem;
+      padding: 0 0.5rem;
+    }
+

@@ -11,7 +11,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                         running, paused, resuming,
                         countInBars, countInEveryRound,
                         mode, volume, looping, infinite, setComplete,
-                        exMode, pickedNums }) {
+                        exMode, pickedNums, subdivision, beatStates }) {
 
   const audioCtx          = useRef(null);
   const silentLoop        = useRef(null);
@@ -101,7 +101,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                          onNewExercise, onNextExercise, onSetComplete,
                          countInBars, countInEveryRound,
-                         mode, volume, exMode, pickedNums };
+                         mode, volume, exMode, pickedNums, subdivision, beatStates };
   });
 
   const resumingRef = useRef(false);
@@ -280,7 +280,17 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             const isDownbeat    = beatInBar === 0;
 
             if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-              scheduleMetronomeClick(ctx, nextBeatTime.current, isDownbeat, vol);
+              const { subdivision: subdiv, beatStates: bStates, mode: clickMode } = stateRef.current;
+              const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
+                ? bStates[beatInBar]
+                : (isDownbeat ? 'accent' : 'normal');
+              scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
+              if (clickMode === MODE_CLICKONLY && subdiv > 1) {
+                const subdivLen = (60 / b) / subdiv;
+                for (let s = 1; s < subdiv; s++) {
+                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                }
+              }
             }
             const t = nextBeatTime.current;
             setTimeout(() => {
@@ -391,5 +401,5 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     return () => clearInterval(schedulerRef.current);
   }, [running, getCtx, pickNext]);
 
-  return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };
+  return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };
 }

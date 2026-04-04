@@ -533,10 +533,10 @@ src = patch(src,
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
-# Stopwatch display: add stopwatch-time class so watch CSS can shrink it relative to exercise numbers
+# Stopwatch display: add stopwatch-time class to metro-display-value so watch CSS can size it
 src = patch(src,
-    '            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (\n              <div className="exercise-number" style={{ letterSpacing: 0 }}>',
-    '            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (\n              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>'
+    '<div className="metro-display-value">{displayValue}</div>',
+    '<div className={`metro-display-value${sw ? " stopwatch-time" : ""}`}>{displayValue}</div>'
 )
 
 # Paused state: make "paused" text amber in watch student view (inline color overrides CSS class)
@@ -583,13 +583,13 @@ src = patch(src,
 )
 
 # Mute hint: suppress when sharing
-src = patch(src, 
-    '            {showMuteHint && phase !== "idle" && (\n'
-    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
-    '            )}',
-    '            {showMuteHint && phase !== "idle" && watchScreen !== "app" && (\n'
-    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
-    '            )}'
+src = patch(src,
+    '          {showMuteHint && phase !== "idle" && (\n'
+    '            <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '          )}',
+    '          {showMuteHint && phase !== "idle" && watchScreen !== "app" && (\n'
+    '            <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '          )}'
 )
 
 # ── 4. Firebase init + ObserverDisplay component ─────────────────────────────
@@ -1374,13 +1374,8 @@ src = patch(src,
 )
 
 # ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
-# getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
-# in App scope to create the silent loop that keeps the AudioContext alive.
-src = patch(src, 
-    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };",
-    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
-)
-src = patch(src, 
+# getCtx is now always returned by useDrumTimer; just patch the destructure call site.
+src = patch(src,
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
     "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
@@ -1389,19 +1384,19 @@ src = patch(src,
 # When the student is sharing (watchScreen === "app"), closing the AudioContext
 # on stop means the next teacher-triggered Start creates a new suspended context
 # that can't be resumed outside a user gesture. Keep it alive instead.
-src = patch(src, 
+src = patch(src,
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums }) {",
+    "                            exMode, pickedNums, subdivision, beatStates }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1421,9 +1416,9 @@ src = patch(src,
     "            }\n"
     "          }"
 )
-src = patch(src, 
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n      });",
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+src = patch(src,
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n      });",
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
