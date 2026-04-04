@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-build-watch.sh — Rebuilds watch/index.html from the current test/index.html.
+build-watch.sh — Builds watch/index.html directly from src/.
 
-Run this after making changes to test/index.html to keep the watch app in sync:
+Run after any src/ change to keep the watch app in sync:
   python3 build-watch.sh
 
 The watch app is the full Shuffle app with a Firebase-powered session sharing
 layer added on top. It lives at shuffleclick.com/watch/ and is a private
 teacher/student observation tool — not part of the public app.
 
-The script injects:
+The script assembles a single-file HTML from src/ (same logic as the old
+generate-source.py) and then injects:
   1. Firebase SDK script tags (after Babel)
   2. Watch-specific CSS (before </style>)
   3. Firebase init + ObserverDisplay component (after React destructuring)
@@ -31,11 +32,109 @@ def patch(src, old, new, count=None, label=""):
         return src.replace(old, new, count)
     return src.replace(old, new)
 
-SRC  = os.path.join(os.path.dirname(__file__), "test", "index.html")
-DEST = os.path.join(os.path.dirname(__file__), "watch", "index.html")
+DEST    = os.path.join(os.path.dirname(__file__), "watch", "index.html")
+_SCRIPT = os.path.dirname(__file__)
+_SRC    = os.path.join(_SCRIPT, "src")
 
-with open(SRC, "r") as f:
-    src = f.read()
+_SRC_FILES = [
+    'constants.js',
+    'storage.js',
+    'audio.js',
+    'useInteraction.js',
+    'useDrumTimer.js',
+    'components/NumpadComponents.jsx',
+    'components/BarProgress.jsx',
+    'components/CompactSelector.jsx',
+    'components/App.jsx',
+]
+
+_IMPORT_RE = re.compile(
+    r"^import\s+"
+    r"(?:[^'\"]*?|\{[^}]*?\}[^'\"]*?)"
+    r"from\s+['\"][^'\"]*['\"];\s*\n?"
+    r"|"
+    r"^import\s+['\"][^'\"]*['\"];\s*\n?",
+    re.MULTILINE | re.DOTALL
+)
+_EXPORT_DECL = re.compile(r"^export\s+(function|const|class|async\s+function)\s+", re.MULTILINE)
+
+def _transform(source):
+    source = _IMPORT_RE.sub('', source)
+    source = re.sub(r"^export\s+default\s+", '', source, flags=re.MULTILINE)
+    source = _EXPORT_DECL.sub(lambda m: m.group(1) + ' ', source)
+    return source
+
+def _indent(source, spaces=4):
+    pad = ' ' * spaces
+    lines = source.splitlines(keepends=True)
+    return ''.join(pad + line if line.strip() else line for line in lines)
+
+def _build_source():
+    _HTML_HEAD = '''<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Shuffle" />
+  <meta name="description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
+  <meta property="og:title" content="Shuffle" />
+  <meta property="og:description" content="Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://shuffleclick.com" />
+  <meta property="og:image" content="https://shuffleclick.com/shuffle-icon.png" />
+  <title>Shuffle</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+'''
+    _HTML_STANDALONE_SCRIPT = '''\
+  <script>if (!navigator.standalone) document.documentElement.classList.add('browser-mode');</script>
+</head>
+<body>
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useState, useEffect, useRef, useCallback } = React;
+'''
+    _HTML_BOOTSTRAP = '''\
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<App />);
+  </script>
+  <p style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;">Randomise your exercises and keep time with Shuffle — a free tool that helps musicians practise more effectively. Set a range of exercises, choose a BPM, and let Shuffle run your session.</p>
+  <script data-goatcounter="https://shuffle.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+'''
+    _HTML_FOOT = '''\
+</body>
+</html>
+'''
+    parts = [_HTML_HEAD]
+    with open(os.path.join(_SRC, 'styles.css'), 'r', encoding='utf-8') as f:
+        css = f.read()
+    parts.append('  <style>\n')
+    parts.append(css)
+    parts.append('  </style>\n')
+    parts.append(_HTML_STANDALONE_SCRIPT)
+    for rel_path in _SRC_FILES:
+        with open(os.path.join(_SRC, rel_path), 'r', encoding='utf-8') as f:
+            source = f.read()
+        source = _transform(source)
+        source = source.strip('\n')
+        indented = _indent(source + '\n', spaces=4)
+        parts.append('\n')
+        parts.append(indented)
+    parts.append('\n')
+    parts.append(_HTML_BOOTSTRAP)
+    parts.append(_HTML_FOOT)
+    return ''.join(parts)
+
+src = _build_source()
 
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
