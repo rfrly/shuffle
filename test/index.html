@@ -2244,6 +2244,7 @@
                         if (countInEvery) p.set("cie", "1");
                         p.set("mode", mode);
                         if (infinite && mode !== MODE_CLICKONLY) p.set("inf", "1");
+                        if (stopwatch && mode === MODE_CLICKONLY) p.set("sw", "1");
                         if (letterMode) p.set("lm", "1");
                         const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
                         navigator.clipboard.writeText(url)
@@ -2626,7 +2627,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.8.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.8.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
