@@ -174,6 +174,16 @@ watch_css = r"""
     @media (hover: hover) and (min-width: 1440px) {
       .watch-student-status { font-size: 0.9rem; max-width: 700px; }
     }
+    .watch-audio-restore {
+      position: fixed; bottom: max(5rem, calc(4rem + env(safe-area-inset-bottom))); left: 50%;
+      transform: translateX(-50%);
+      background: #1a1a1a; border: 1px solid #f5c842; border-radius: 8px;
+      color: #f5c842; font-family: var(--font-mono); font-size: 0.7rem;
+      letter-spacing: 0.08em; text-align: center; padding: 0.6rem 1.2rem;
+      cursor: pointer; z-index: 50; white-space: nowrap;
+      animation: watch-restore-pulse 2s ease-in-out infinite;
+    }
+    @keyframes watch-restore-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     /* watch 1.12: enhanced student glanceable view */
     .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
     .watch-active .next-exercise { font-size: clamp(1.8rem, 7vw, 2.8rem); }
@@ -434,6 +444,11 @@ src = patch(src,
 # Status bar: segmented pill below display, matching its width
 src = patch(src, 
     '          <div className="btn-row">',
+    '          {watchScreen === "app" && audioRestoreNeeded && (\n'
+    '            <div className="watch-audio-restore" onClick={() => {\n'
+    '              try { const ctx = getCtx(); ctx.resume().then(() => { if (ctx.state === "running") setAudioRestoreNeeded(false); }); } catch(e) {}\n'
+    '            }}>Tap to restore audio</div>\n'
+    '          )}\n'
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
     '              <div className="watch-student-status-item">{bpm} BPM</div>\n'
@@ -975,6 +990,7 @@ watch_state = """
       const lastTSeq        = useRef(0);
       const [lastTeacherCmdAt, setLastTeacherCmdAt] = useState(0);
       const watchSilentLoop = useRef(null);
+      const [audioRestoreNeeded, setAudioRestoreNeeded] = useState(false);
       const modeRef         = useRef(mode);
       const infiniteRef2    = useRef(infinite);
       const stopwatchRef2   = useRef(stopwatch);
@@ -986,6 +1002,12 @@ watch_state = """
 src = patch(src, 
     "      const tapTimes = useRef([]);\n      const wakeLock = useRef(null);\n",
     "      const tapTimes = useRef([]);\n      const wakeLock = useRef(null);\n" + watch_state
+)
+
+# ── 5b. Patch wake lock effect to hold lock in student view ──────────────────
+src = patch(src,
+    "        if (running && !paused) req(); else rel();\n        return () => rel();\n      }, [running, paused]);",
+    "        if ((running && !paused) || watchScreen === \"app\") req(); else rel();\n        return () => rel();\n      }, [running, paused, watchScreen]);"
 )
 
 # ── 6. Watch effects and handlers (after useDrumTimer, before showMuteHint) ──
@@ -1042,14 +1064,20 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, []);
 
       // ── Watch: resume AudioContext when app returns to foreground ───────────
-      // iOS suspends the AudioContext when the app goes to background. This
-      // visibilitychange handler resumes it when the student returns so the
-      // context is ready before the teacher triggers Start.
+      // iOS suspends the AudioContext when the screen locks. On return to visible,
+      // attempt to resume — if it's still suspended after the attempt (no user
+      // gesture available), show a tap-to-restore prompt.
       useEffect(() => {
         if (watchScreen !== "app") return;
         const onVisible = () => {
           if (document.visibilityState === "visible") {
-            try { const ctx = getCtx(); ctx.resume().catch(() => {}); } catch(e) {}
+            try {
+              const ctx = getCtx();
+              ctx.resume().then(() => {
+                if (ctx.state === "running") setAudioRestoreNeeded(false);
+                else setAudioRestoreNeeded(true);
+              }).catch(() => setAudioRestoreNeeded(true));
+            } catch(e) { setAudioRestoreNeeded(true); }
           }
         };
         document.addEventListener("visibilitychange", onVisible);
@@ -1311,7 +1339,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.43</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.45</div>
           </div>
         )}
         {watchScreen === "share" && (
