@@ -1361,7 +1361,7 @@
       const modeLabel = ({ fullset: "Shuffle", sequential: "Sequence", clickonly: "Metronome" }[obsMode] || obsMode) + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "");
 
       const buildSettingsSummary = () => {
-        let parts = [modeLabel];
+        let parts = [];
         if (obsMode !== "clickonly") {
           if (exMode === "pick") {
             if (pickedNums.length === 0) parts.push("no exercises");
@@ -1376,6 +1376,7 @@
         }
         const cib = obsCib || 1;
         parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
+        parts.push(modeLabel);
         return parts.join(", ");
       };
 
@@ -3158,7 +3159,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.42</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.43</div>
           </div>
         )}
         {watchScreen === "share" && (
