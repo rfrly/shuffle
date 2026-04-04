@@ -1036,8 +1036,6 @@
 
     const STORAGE_KEY = "shuffle_settings_v7";
 
-    // ── Constants ─────────────────────────────────────────────────────────────
-
     const SCHEDULER_INTERVAL_MS   = 25;
     const LOOKAHEAD_TIME          = 0.2;
     const START_DELAY             = 0.1;
@@ -1084,8 +1082,6 @@
         return Object.keys(r).length > 0 ? r : null;
       } catch { return null; }
     }
-
-    // ── Audio ──────────────────────────────────────────────────────────────────
 
     function getCompressor(ctx) {
       if (ctx._compressor) return ctx._compressor;
@@ -1159,7 +1155,46 @@
       return src;
     }
 
-    // ── Timer hook ─────────────────────────────────────────────────────────────
+    function useLongPress(callback, { delay = 400, interval = 80 } = {}) {
+      const timeoutRef   = useRef(null);
+      const intervalRef  = useRef(null);
+
+      const start = useCallback(() => {
+        callback();
+        timeoutRef.current = setTimeout(() => {
+          intervalRef.current = setInterval(callback, interval);
+        }, delay);
+      }, [callback, delay, interval]);
+
+      const stop = useCallback(() => {
+        clearTimeout(timeoutRef.current);
+        clearInterval(intervalRef.current);
+      }, []);
+
+      return {
+        onMouseDown: start,
+        onMouseUp: stop,
+        onMouseLeave: stop,
+        onTouchStart: (e) => { e.preventDefault(); start(); },
+        onTouchEnd: (e) => { e.preventDefault(); stop(); },
+        onTouchCancel: stop,
+      };
+    }
+
+    function useSwipeInput({ onSwipeUp, onSwipeDown, onTap, disabled, threshold = 15 }) {
+      const startYRef = useRef(null);
+      return {
+        onTouchStart: (e) => { if (disabled) return; e.preventDefault(); startYRef.current = e.touches[0].clientY; },
+        onTouchEnd: (e) => {
+          if (startYRef.current === null) return;
+          const delta = startYRef.current - e.changedTouches[0].clientY;
+          startYRef.current = null;
+          if (Math.abs(delta) > threshold) { if (delta > 0) onSwipeUp(); else onSwipeDown(); } else { onTap(); }
+        },
+        onClick: () => { if (!disabled) onTap(); },
+        style: { touchAction: 'none' },
+      };
+    }
 
     function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                             onNewExercise, onNextExercise, onSetComplete,
@@ -1549,52 +1584,9 @@
       return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };
     }
 
-    // ── Long press ─────────────────────────────────────────────────────────────
-
-    function useLongPress(callback, { delay = 400, interval = 80 } = {}) {
-      const timeoutRef   = useRef(null);
-      const intervalRef  = useRef(null);
-
-      const start = useCallback(() => {
-        callback();
-        timeoutRef.current = setTimeout(() => {
-          intervalRef.current = setInterval(callback, interval);
-        }, delay);
-      }, [callback, delay, interval]);
-
-      const stop = useCallback(() => {
-        clearTimeout(timeoutRef.current);
-        clearInterval(intervalRef.current);
-      }, []);
-
-      return {
-        onMouseDown: start,
-        onMouseUp: stop,
-        onMouseLeave: stop,
-        onTouchStart: (e) => { e.preventDefault(); start(); },
-        onTouchEnd: (e) => { e.preventDefault(); stop(); },
-        onTouchCancel: stop,
-      };
-    }
-
-    // ── Swipe input ────────────────────────────────────────────────────────────
-
-    function useSwipeInput({ onSwipeUp, onSwipeDown, onTap, disabled, threshold = 15 }) {
-      const startYRef = useRef(null);
-      return {
-        onTouchStart: (e) => { if (disabled) return; e.preventDefault(); startYRef.current = e.touches[0].clientY; },
-        onTouchEnd: (e) => {
-          if (startYRef.current === null) return;
-          const delta = startYRef.current - e.changedTouches[0].clientY;
-          startYRef.current = null;
-          if (Math.abs(delta) > threshold) { if (delta > 0) onSwipeUp(); else onSwipeDown(); } else { onTap(); }
-        },
-        onClick: () => { if (!disabled) onTap(); },
-        style: { touchAction: 'none' },
-      };
-    }
-
-    // ── Numpad components ──────────────────────────────────────────────────────
+    function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
+    function numToLetter(n) { return String.fromCharCode(64 + n); }
+    function fmtEx(n, lm) { return lm ? numToLetter(n) : fmt(n); }
 
     function NumpadGrid({ onDigit, onBackspace, onClear }) {
       return (
@@ -1725,12 +1717,6 @@
       );
     }
 
-    function fmt(n) { return n < 10 ? `0${n}` : `${n}`; }
-    function numToLetter(n) { return String.fromCharCode(64 + n); }
-    function fmtEx(n, lm) { return lm ? numToLetter(n) : fmt(n); }
-
-    // ── Bar progress display ───────────────────────────────────────────────────
-
     function blockWidth(n) {
       if (n <= 8)  return 20;
       if (n <= 12) return 16;
@@ -1829,8 +1815,6 @@
 
       return <div style={{ height: "5px" }} />;
     }
-
-    // ── App ────────────────────────────────────────────────────────────────────
 
     function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, buttonLabel, footer }) {
       const btnRef = useRef(null);
