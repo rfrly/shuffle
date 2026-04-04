@@ -1094,6 +1094,7 @@
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
     .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
@@ -1470,7 +1471,7 @@
             ) : sc ? (
               <div className="exercise-number done">done</div>
             ) : obsMode === "clickonly" && obsStopwatch && phase !== "idle" ? (
-              <div className="exercise-number">
+              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>
                 {Math.floor((obsElapsed || 0) / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String((obsElapsed || 0) % 60).padStart(2, "0")}
               </div>
             ) : (
@@ -2670,6 +2671,12 @@
       const lastTSeq        = useRef(0);
       const [lastTeacherCmdAt, setLastTeacherCmdAt] = useState(0);
       const watchSilentLoop = useRef(null);
+      const modeRef         = useRef(mode);
+      const infiniteRef2    = useRef(infinite);
+      const stopwatchRef2   = useRef(stopwatch);
+      useEffect(() => { modeRef.current = mode; }, [mode]);
+      useEffect(() => { infiniteRef2.current = infinite; }, [infinite]);
+      useEffect(() => { stopwatchRef2.current = stopwatch; }, [stopwatch]);
 
 
       useEffect(() => {
@@ -2904,9 +2911,21 @@
             else if (cmd.tcmd === "loop")   { setLooping(l => !l); }
           }
           if (cmd.bpm != null) setBpm(Math.min(300, Math.max(30, Math.round(cmd.bpm))));
-          if (cmd.mode != null) { setMode(cmd.mode); setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false }); setStopwatchPref(false); }
-          if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); if (cmd.mode) setInfiniteByMode(prev => ({ ...prev, [cmd.mode]: inf })); }
-          if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
+          if (cmd.mode != null) {
+            const prevMode = modeRef.current;
+            if (prevMode === MODE_FULLSET || prevMode === MODE_SEQUENTIAL) {
+              setInfiniteByMode(prev => ({ ...prev, [prevMode]: infiniteRef2.current }));
+            }
+            if (prevMode === MODE_CLICKONLY) {
+              setStopwatchPref(stopwatchRef2.current);
+            }
+            setMode(cmd.mode);
+            setInfinite(cmd.infinite != null ? !!cmd.infinite : cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL ? false : false);
+            setStopwatch(cmd.stopwatch != null ? !!cmd.stopwatch : false);
+          } else {
+            if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); setInfiniteByMode(prev => ({ ...prev, [modeRef.current]: inf })); }
+            if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
+          }
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
@@ -3112,7 +3131,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.34</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.35</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3331,7 +3350,7 @@
                 done
               </div>
             ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
-              <div className="exercise-number" style={{ letterSpacing: 0 }}>
+              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>
                 {Math.floor(elapsedSeconds / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String(elapsedSeconds % 60).padStart(2, "0")}
               </div>
             ) : (
