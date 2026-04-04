@@ -21,6 +21,8 @@ generate-source.py) and then injects:
 
 import re, sys, os
 
+build_watch = "--watch" in sys.argv
+
 _patch_warnings = []
 
 def patch(src, old, new, count=None, label=""):
@@ -140,6 +142,11 @@ src = _build_source()
 BETA_DEST = os.path.join(os.path.dirname(__file__), "beta", "index.html")
 with open(BETA_DEST, "w", encoding="utf-8") as f:
     f.write(src)
+print(f"Built {BETA_DEST} ({len(src):,} bytes)")
+
+if not build_watch:
+    print("Skipping watch/index.html (pass --watch to build it)")
+    sys.exit(0)
 
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
@@ -1499,7 +1506,6 @@ src = re.sub(r'(v\d+\.\d+\.\d+)\.beta\.\d+', r'\1', src)
 with open(DEST, "w") as f:
     f.write(src)
 
-print(f"Built {BETA_DEST} ({len(src):,} bytes)")
 print(f"Built {DEST} ({len(src):,} bytes)")
 
 # Sanity checks
