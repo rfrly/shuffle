@@ -102,18 +102,17 @@ Version numbering:
 - Major feature additions (new modes, significant functionality): increment minor version (1.3.x → 1.4.0)
 - Bug fixes, refinements, UI polish: increment patch version (1.4.0 → 1.4.1)
 
-Test builds (test/index.html):
-- All new development happens in test/index.html, not the live index.html
-- Use the next target version with a beta suffix: if live is v1.5.33 and the next version will be v1.5.34, test builds are v1.5.34.beta.1, v1.5.34.beta.2, etc.
-- Never change the version number in the live index.html until changes are confirmed working and ready to ship
-- When starting a new batch of changes, copy index.html to test/ and update the version to the next beta number
-- When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
-- test/index.html always uses shuffle-icon-beta.png — keep the apple-touch-icon and icon hrefs pointing to shuffle-icon-beta.png?v=N, incrementing N when the beta icon changes
+Development builds (dev branch):
+- All new development happens in `src/` files on the `dev` branch
+- Version number lives in the footer JSX in `src/components/App.jsx`
+- Use the next target version with a beta suffix while in development: if live is v1.5.33 and the next version will be v1.5.34, use v1.5.34.beta.1, v1.5.34.beta.2, etc.
+- Increment the beta suffix with each meaningful change on dev
+- Never change the version to a release number until the PR is being merged to main
 
-After shipping (copying test → index.html and removing the beta suffix):
-- Immediately bump test/index.html to the next beta version (e.g. if you just shipped v1.8.2, set test/index.html to v1.8.3.beta.1)
-- This keeps test/index.html ahead of the live version and ready for the next development cycle
-- At the start of any new session, check that test/index.html is already on a beta version ahead of index.html — if it isn't, bump it now before making any changes
+After shipping (merging dev → main):
+- Immediately bump `src/components/App.jsx` version to the next beta (e.g. if you just shipped v1.8.2, set it to v1.8.3.beta.1)
+- Also update the watch version string in `build-watch.sh` to match and run `python3 build-watch.sh`
+- At the start of any new session, confirm the version in `src/components/App.jsx` is already on a beta ahead of the live version
 
 Commit message format:
 vX.X.X - Brief summary of main change
