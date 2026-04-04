@@ -1302,7 +1302,7 @@
       const {
         running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
-        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
+        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, infiniteByMode: obsInfiniteByMode, stopwatchPref: obsStopwatchPref, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
         countInBars: obsCib, countInEvery: obsCountInEvery,
         looping: obsLooping, letterMode: obsLm,
@@ -1557,7 +1557,7 @@
                           onSendCmd({ mode: m.value });
                         }
                       }} disabled={disabled || obsRunning}>
-                      {m.label}{obsMode === m.value && obsInfinite ? " ∞" : ""}{obsMode === m.value && m.value === "clickonly" && obsStopwatch ? " \u23F1\uFE0E" : ""}
+                      {m.label}{((m.value === obsMode ? obsInfinite : (obsInfiniteByMode || {})[m.value]) && (m.value === "fullset" || m.value === "sequential")) ? " ∞" : ""}{(m.value === obsMode ? obsStopwatch : (m.value === "clickonly" ? obsStopwatchPref : false)) && m.value === "clickonly" ? " \u23F1\uFE0E" : ""}
                     </button>
                   ))}
                 </div>
@@ -2781,14 +2781,14 @@
         const payload = {
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
-          mode, infinite, stopwatch, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+          mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
-          exercise, nextEx, countInBeat, mode, infinite, stopwatch, elapsedSeconds, bpm, timeSig, barsPerExercise,
+          exercise, nextEx, countInBeat, mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, watchScreen]);
 
@@ -3139,7 +3139,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.36</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.37</div>
           </div>
         )}
         {watchScreen === "share" && (
