@@ -1181,7 +1181,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
             lastTSeq.current = cmd.tseq;
             setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
-            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); }
             else if (cmd.tcmd === "end-session") { handleStopSharing(); return; }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
@@ -1339,7 +1339,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.45</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.46</div>
           </div>
         )}
         {watchScreen === "share" && (
