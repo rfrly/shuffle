@@ -1088,10 +1088,16 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, []);
 
       const handleStopSharing = useCallback(() => {
-        if (shareCode) _db.ref("sessions/" + shareCode).remove();
+        if (shareCode) {
+          _db.ref("sessions/" + shareCode + "/state").set({ ts: Date.now(), studentEnded: true })
+            .catch(() => {})
+            .finally(() => _db.ref("sessions/" + shareCode).remove());
+        }
         shareDbRef.current = null;
         setShareCode("");
         setTeacherConnected(false);
+        setRunning(false);
+        setPaused(false);
         if (watchSilentLoop.current) { try { watchSilentLoop.current.stop(); } catch {} watchSilentLoop.current = null; }
         setWatchScreen("home");
       }, [shareCode]);
@@ -1109,10 +1115,15 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           setWatchScreen("watching");
           _db.ref("sessions/" + code + "/cmds").set({ tcmd: "connected", tseq: Date.now() });
           stateRef.on("value", s => {
-            if (s.exists()) {
-              setObservedState(s.val());
+            if (!s.exists() || s.val().studentEnded) {
+              if (watchDbRef.current) { watchDbRef.current.off(); watchDbRef.current = null; }
+              setObservedState(null);
+              setWatchCode("");
+              setWatchEntryCode("");
+              setWatchEntryError("");
+              setWatchScreen("home");
             } else {
-              setObservedState(prev => prev ? { ...prev, disconnected: true } : null);
+              setObservedState(s.val());
             }
           });
         }).catch(() => {
@@ -1300,7 +1311,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.39</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.41</div>
           </div>
         )}
         {watchScreen === "share" && (
