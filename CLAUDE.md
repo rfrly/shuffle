@@ -6,19 +6,33 @@ Shuffle is a web app for musicians that randomises practice exercises and provid
 
 ## Tech stack
 
-Single-file React app (Babel transpiled, no build step) — one index.html file. Web Audio API for the metronome engine. No dependencies beyond React 18 and Babel via CDN. Deployed on GitHub Pages at shuffleclick.com. Repo is rfrly/shuffle on GitHub. File must be named index.html alongside shuffle-icon.png in the repo root. Test builds live in test/index.html alongside test/shuffle-icon-beta.png. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
+Vite + React app with ES modules. Web Audio API for the metronome engine. React 18, Vite 5. Deployed on GitHub Pages at shuffleclick.com via GitHub Actions (push to `main` triggers build and deploy). Repo is rfrly/shuffle on GitHub. Icons and static assets live in `public/`. Source files in `src/` — entry point is `src/main.jsx`, main component is `src/components/App.jsx`. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
+
+Source file structure:
+- `src/main.jsx` — entry point
+- `src/components/App.jsx` — main App component
+- `src/components/NumpadComponents.jsx` — NumpadPopup, BarPickerPopup, fmt, numToLetter, fmtEx
+- `src/components/BarProgress.jsx` — BarProgress
+- `src/components/CompactSelector.jsx` — CompactSelector
+- `src/styles.css` — all CSS
+- `src/constants.js` — TIME_SIGS, mode constants, STORAGE_KEY, numeric constants
+- `src/storage.js` — loadSettings, saveSettings, loadUrlParams
+- `src/audio.js` — getCompressor, scheduleWoodblock, scheduleEndBell, scheduleMetronomeClick, startSilentLoop
+- `src/useDrumTimer.js` — scheduler hook
+- `src/useInteraction.js` — useLongPress, useSwipeInput
+
+The old single-file snapshot is preserved in `test/index.html` — do not edit it; it is the frozen source used by `build-watch.sh` to generate the watch app.
 
 ---
 
 ## Claude Code workflow
 
-- All development happens directly in the repo — no file uploads needed
-- Before making any changes, confirm the current version number in index.html
-- All new changes go into test/index.html first — never edit the live index.html directly until changes are confirmed working
-- To preview changes locally, open test/index.html in a browser (no build step needed — just open the file)
-- When changes are confirmed working, copy test/index.html to index.html, update the version number in index.html (removing the beta suffix), and commit
-- After any changes to test/index.html, run `python3 build-watch.sh` to regenerate watch/index.html and commit both together
-- When changes are ready, commit and push to GitHub via Claude Code or the terminal
+- All development happens on the `dev` branch — never commit directly to `main`
+- Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
+- To preview changes locally: `npm run dev` — opens a live-reloading dev server
+- All changes to the main app go in `src/` files only — never edit `test/index.html` (frozen watch snapshot) or `watch/index.html` (generated file)
+- After any main app changes, run `python3 build-watch.sh` to regenerate `watch/index.html` and commit both together
+- When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
 ---
