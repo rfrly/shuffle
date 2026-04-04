@@ -232,6 +232,7 @@ watch_css = r"""
     .obs-menu-item:last-child { border-bottom: none; }
     .obs-menu-item:active { background: #222; }
     .obs-menu-item.active { color: #f5c842; }
+    .obs-menu-item--destructive { color: #a04040; }
     .observer-info-strip {
       display: flex; gap: 1.5rem; align-items: center; justify-content: center;
       width: 100%; max-width: 440px;
@@ -666,7 +667,7 @@ firebase_and_observer = r"""
                       .then(() => showToast("Link copied!"))
                       .catch(() => showToast("Copy failed"));
                   }}>Share link</button>
-                  <button className="obs-menu-item" onClick={() => {
+                  <button className="obs-menu-item obs-menu-item--destructive" onClick={() => {
                     setMenuOpen(false);
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
@@ -1291,7 +1292,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.37</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.38</div>
           </div>
         )}
         {watchScreen === "share" && (
