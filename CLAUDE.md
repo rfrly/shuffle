@@ -6,19 +6,32 @@ Shuffle is a web app for musicians that randomises practice exercises and provid
 
 ## Tech stack
 
-Single-file React app (Babel transpiled, no build step) — one index.html file. Web Audio API for the metronome engine. No dependencies beyond React 18 and Babel via CDN. Deployed on GitHub Pages at shuffleclick.com. Repo is rfrly/shuffle on GitHub. File must be named index.html alongside shuffle-icon.png in the repo root. Test builds live in test/index.html alongside test/shuffle-icon-beta.png. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
+Vite + React app with ES modules. Web Audio API for the metronome engine. React 18, Vite 5. Deployed on GitHub Pages at shuffleclick.com via GitHub Actions (push to `main` triggers build and deploy). Repo is rfrly/shuffle on GitHub. Icons and static assets live in `public/`. Source files in `src/` — entry point is `src/main.jsx`, main component is `src/components/App.jsx`. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
+
+Source file structure:
+- `src/main.jsx` — entry point
+- `src/components/App.jsx` — main App component
+- `src/components/NumpadComponents.jsx` — NumpadPopup, BarPickerPopup, fmt, numToLetter, fmtEx
+- `src/components/BarProgress.jsx` — BarProgress
+- `src/components/CompactSelector.jsx` — CompactSelector
+- `src/styles.css` — all CSS
+- `src/constants.js` — TIME_SIGS, mode constants, STORAGE_KEY, numeric constants
+- `src/storage.js` — loadSettings, saveSettings, loadUrlParams
+- `src/audio.js` — getCompressor, scheduleWoodblock, scheduleEndBell, scheduleMetronomeClick, startSilentLoop
+- `src/useDrumTimer.js` — scheduler hook
+- `src/useInteraction.js` — useLongPress, useSwipeInput
 
 ---
 
 ## Claude Code workflow
 
-- All development happens directly in the repo — no file uploads needed
-- Before making any changes, confirm the current version number in index.html
-- All new changes go into test/index.html first — never edit the live index.html directly until changes are confirmed working
-- To preview changes locally, open test/index.html in a browser (no build step needed — just open the file)
-- When changes are confirmed working, copy test/index.html to index.html, update the version number in index.html (removing the beta suffix), and commit
-- After any changes to test/index.html, run `python3 build-watch.sh` to regenerate watch/index.html and commit both together
-- When changes are ready, commit and push to GitHub via Claude Code or the terminal
+- All development happens on the `dev` branch — never commit directly to `main`
+- Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
+- To preview changes locally: `npm run dev` — opens a live-reloading dev server
+- All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
+- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate both files and commit them together
+- To test on device before merging: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta with full version string. The live app at `shuffleclick.com` is unaffected until `dev` is merged to `main`
+- When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
 ---
@@ -88,18 +101,17 @@ Version numbering:
 - Major feature additions (new modes, significant functionality): increment minor version (1.3.x → 1.4.0)
 - Bug fixes, refinements, UI polish: increment patch version (1.4.0 → 1.4.1)
 
-Test builds (test/index.html):
-- All new development happens in test/index.html, not the live index.html
-- Use the next target version with a beta suffix: if live is v1.5.33 and the next version will be v1.5.34, test builds are v1.5.34.beta.1, v1.5.34.beta.2, etc.
-- Never change the version number in the live index.html until changes are confirmed working and ready to ship
-- When starting a new batch of changes, copy index.html to test/ and update the version to the next beta number
-- When making any subsequent edits to test/index.html, always increment the beta suffix (e.g. beta.1 → beta.2)
-- test/index.html always uses shuffle-icon-beta.png — keep the apple-touch-icon and icon hrefs pointing to shuffle-icon-beta.png?v=N, incrementing N when the beta icon changes
+Development builds (dev branch):
+- All new development happens in `src/` files on the `dev` branch
+- Version number lives in the footer JSX in `src/components/App.jsx`
+- Use the next target version with a beta suffix while in development: if live is v1.5.33 and the next version will be v1.5.34, use v1.5.34.beta.1, v1.5.34.beta.2, etc.
+- Increment the beta suffix with each meaningful change on dev
+- Never change the version to a release number until the PR is being merged to main
 
-After shipping (copying test → index.html and removing the beta suffix):
-- Immediately bump test/index.html to the next beta version (e.g. if you just shipped v1.8.2, set test/index.html to v1.8.3.beta.1)
-- This keeps test/index.html ahead of the live version and ready for the next development cycle
-- At the start of any new session, check that test/index.html is already on a beta version ahead of index.html — if it isn't, bump it now before making any changes
+After shipping (merging dev → main):
+- Immediately bump `src/components/App.jsx` version to the next beta (e.g. if you just shipped v1.8.2, set it to v1.8.3.beta.1)
+- Also update the watch version string in `build-watch.sh` to match and run `python3 build-watch.sh`
+- At the start of any new session, confirm the version in `src/components/App.jsx` is already on a beta ahead of the live version
 
 Commit message format:
 vX.X.X - Brief summary of main change
@@ -125,21 +137,21 @@ A private teacher/student session observation tool. Not part of the public app �
 - Sessions auto-delete from Firebase when the student closes or navigates away
 - Student session auto-ends after 30 minutes of inactivity (no teacher commands received); resets on any teacher command
 - Teacher session auto-disconnects after 30 minutes of inactivity
-- **Audio context:** The student must tap "Open Shuffle" before the teacher starts — this is the required user gesture to unlock the Web Audio context on all platforms. On tap, `getCtx()` (exposed from `useDrumTimer`) creates the AudioContext, resumes it, and starts a looping near-silent buffer (`watchSilentLoop` ref) to keep the context alive. The AudioContext is never closed while the student is sharing (`keepCtxAlive: watchScreen === "app"` is passed to `useDrumTimer`) — this means the context unlocked by the "Open Shuffle" tap stays usable for every subsequent teacher Start without needing a new user gesture. **Screen lock caveat:** if the student manually locks the screen mid-session, iOS suspends the audio session in a way that `ctx.resume()` cannot reliably fix without a new user gesture — the session will hang on beat 1 of the next count-in. A screen wake lock is held in student view to prevent auto-lock, but manual lock cannot be prevented. Recovery requires reloading the browser on both devices. If the teacher starts before the student taps, the metronome will hang silently. The green "Teacher connected" prompt exists specifically to prompt this tap. **Critical:** `getCtx` must be destructured from `useDrumTimer` in App scope — the `src.replace` patch in `build-watch.sh` section 6b does this. If that patch ever silently fails (e.g. the source line in `test/index.html` changes), `getCtx` will be undefined in the "Open Shuffle" handler, the try/catch will swallow the ReferenceError, the AudioContext will never be unlocked, and the teacher Start will hang every time. Always verify the generated `watch/index.html` has `getCtx` in the `useDrumTimer` destructuring after any change to `test/index.html`.
-- **`useDrumTimer` signature is matched verbatim by `src.replace()` patches in `build-watch.sh`** — sections 6b and 6c match the exact parameter list of `useDrumTimer` and its call site. If you add, remove, or rename any parameter in `useDrumTimer` in `test/index.html`, you **must** update the matching strings in `build-watch.sh` at the same time, or those patches will silently fail and the watch app will show a black screen. After any such change, verify `watch/index.html` contains `keepCtxAlive` in both the function signature and the call site.
+- **Audio context:** The student must tap "Open Shuffle" before the teacher starts — this is the required user gesture to unlock the Web Audio context on all platforms. On tap, `getCtx()` (exposed from `useDrumTimer`) creates the AudioContext, resumes it, and starts a looping near-silent buffer (`watchSilentLoop` ref) to keep the context alive. The AudioContext is never closed while the student is sharing (`keepCtxAlive: watchScreen === "app"` is passed to `useDrumTimer`) — this means the context unlocked by the "Open Shuffle" tap stays usable for every subsequent teacher Start without needing a new user gesture. **Screen lock caveat:** if the student manually locks the screen mid-session, iOS suspends the audio session in a way that `ctx.resume()` cannot reliably fix without a new user gesture — the session will hang on beat 1 of the next count-in. A screen wake lock is held in student view to prevent auto-lock, but manual lock cannot be prevented. Recovery requires reloading the browser on both devices. If the teacher starts before the student taps, the metronome will hang silently. The green "Teacher connected" prompt exists specifically to prompt this tap. **Critical:** `getCtx` must be destructured from `useDrumTimer` in App scope — the `src.replace` patch in `build-watch.sh` section 6b does this. If that patch ever silently fails (e.g. the source line in `test/index.html` changes), `getCtx` will be undefined in the "Open Shuffle" handler, the try/catch will swallow the ReferenceError, the AudioContext will never be unlocked, and the teacher Start will hang every time. Always verify the generated `watch/index.html` has `getCtx` in the `useDrumTimer` destructuring after any change to `src/useDrumTimer.js`.
+- **`useDrumTimer` signature is matched verbatim by `src.replace()` patches in `build-watch.sh`** — sections 6b and 6c match the exact parameter list of `useDrumTimer` and its call site. If you add, remove, or rename any parameter in `useDrumTimer` in `src/useDrumTimer.js`, you **must** update the matching strings in `build-watch.sh` at the same time, or those patches will silently fail and the watch app will show a black screen. After any such change, run `python3 build-watch.sh` and verify `watch/index.html` contains `keepCtxAlive` in both the function signature and the call site.
 - **Teacher commands use `.set()` not `.update()`** — cmds are always written as a complete replacement. Using `.update()` would merge with previous cmds, causing old setting fields (BPM, mode, etc.) to be re-applied when a transport command (start/stop) arrives, disrupting the scheduler.
 
 
 ### Version numbering
-The watch app has its own version number displayed on the home screen (e.g. `v1.9.2 · watch 1.30`). The first part **must always match the current live main app version** — update it whenever the main app version changes. The watch number increments independently. **Update both parts of the watch version string in `build-watch.sh` every time any watch-related change is made** (the string is in the home screen JSX near the bottom of the watch_jsx block). This must be done even when the change is purely in `build-watch.sh` — not just when `test/index.html` changes. After updating the version, always run `python3 build-watch.sh` to regenerate `watch/index.html`.
+The watch app has its own version number displayed on the home screen (e.g. `v1.9.2 · watch 1.30`). The first part **must always match the current live main app version** — update it whenever the main app version changes. The watch number increments independently. **Update both parts of the watch version string in `build-watch.sh` every time any watch-related change is made** (the string is in the home screen JSX near the bottom of the watch_jsx block). This must be done even when the change is purely in `build-watch.sh` — not just when `src/` changes. After updating the version, always run `python3 build-watch.sh` to regenerate `watch/index.html`.
 
 ### Files
 - `watch/index.html` — the watch app. **Do not edit this file directly.** It is generated by `build-watch.sh`.
 - `watch/shuffle-icon-watch.png` — the watch app icon
-- `build-watch.sh` — Python script that builds `watch/index.html` from `test/index.html` by injecting the watch layer
+- `build-watch.sh` — Python script that builds `watch/index.html` directly from `src/`
 
 ### How it's built
-`watch/index.html` is the full Shuffle app (copied from `test/index.html`) with the following injected by `build-watch.sh`:
+`watch/index.html` is built directly from `src/` by `build-watch.sh`, which assembles a single-file HTML (same logic as the old `generate-source.py`) and then injects:
 1. Firebase SDK script tags (compat library, Realtime Database)
 2. Watch-specific CSS (home/share/watch-entry/observer screens; student minimal view: `.watch-active .controls { display: none }`, segmented status bar, sharing indicator sizing)
 3. `src.replace()` patches on student controls — adds `watch-locked` class to control groups and guards on `handleTap`, `incBpm`, `decBpm`, `incBars`, `decBars` to block interaction when `watchScreen === "app"`; hides Stop button and injects segmented status bar (BPM, count-in, exercises, rounds, mode) when sharing
@@ -152,17 +164,20 @@ The watch app has its own version number displayed on the home screen (e.g. `v1.
 
 ### Keeping watch in sync with the main app
 
-**CRITICAL RULE: Never edit `test/index.html` for watch feature work.** `test/index.html` is the main Shuffle app source only. All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
+**CRITICAL RULE: Never edit `beta/index.html` or `watch/index.html` directly** — both are generated files.
 
-**Never edit `watch/index.html` directly** — it is a generated file and changes will be overwritten next time `build-watch.sh` runs.
+- `beta/index.html` and `watch/index.html` are both generated from `src/` by `build-watch.sh`
+- `beta/index.html` is the unpatched build (beta version string kept); `watch/index.html` has all watch patches applied (beta suffix stripped)
 
-After making changes to `test/index.html` (main app changes only), run:
+All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
+
+After making changes to `src/` (main app changes), run:
 ```
 python3 build-watch.sh
 ```
-This rebuilds `watch/index.html` from scratch. Commit both `test/index.html` and `watch/index.html` together.
+Or equivalently: `npm run generate`. Commit `src/` changes, `beta/index.html`, and `watch/index.html` together.
 
-For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh` and `watch/index.html` — do not touch `test/index.html`.
+For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh`, `beta/index.html`, and `watch/index.html`.
 
 ### Firebase
 - Project: `shuffle-watch-d578b` (Firebase console)
