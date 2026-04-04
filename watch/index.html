@@ -3316,7 +3316,7 @@
               </div>
             ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
               <div className="exercise-number" style={{ letterSpacing: 0 }}>
-                {`${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`}
+                {Math.floor(elapsedSeconds / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String(elapsedSeconds % 60).padStart(2, "0")}
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
