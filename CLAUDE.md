@@ -51,7 +51,7 @@ Single-file React app (Babel transpiled, no build step) — one index.html file.
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
 - Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars
-- ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Switching to a different mode resets ∞.
+- ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive.
 
 ---
 

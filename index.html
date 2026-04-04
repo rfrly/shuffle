@@ -1905,6 +1905,8 @@
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
       const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
       const [stopwatch,       setStopwatch]       = useState(() => saved?.stopwatch ?? false);
+      const [infiniteByMode,  setInfiniteByMode]  = useState(() => saved?.infiniteByMode ?? { [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
+      const [stopwatchPref,   setStopwatchPref]   = useState(() => saved?.stopwatchPref ?? false);
       const [elapsedSeconds,  setElapsedSeconds]  = useState(0);
       const timerStartRef  = useRef(null);
       const elapsedAccumRef = useRef(0);
@@ -1949,8 +1951,8 @@
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                       exMode, pickedNums, letterMode, stopwatch });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch]);
+                       exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2260,6 +2262,10 @@
                         setCountInBars(1);
                         setCountInEvery(true);
                         setMode(MODE_FULLSET);
+                        setInfinite(false);
+                        setStopwatch(false);
+                        setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
+                        setStopwatchPref(false);
                         setVolume(1.0);
                         setExMode('range');
                         setPickedNums([]);
@@ -2438,17 +2444,23 @@
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
                       onClick={() => {
                         if (m.value === mode && m.value === MODE_CLICKONLY) {
-                          setStopwatch(v => !v);
+                          setStopwatch(v => { setStopwatchPref(!v); return !v; });
                         } else if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
-                          setInfinite(v => !v);
+                          setInfinite(v => { setInfiniteByMode(prev => ({ ...prev, [mode]: !v })); return !v; });
                         } else {
+                          if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
+                            setInfiniteByMode(prev => ({ ...prev, [mode]: infinite }));
+                          }
+                          if (mode === MODE_CLICKONLY) {
+                            setStopwatchPref(stopwatch);
+                          }
                           setMode(m.value);
-                          setInfinite(false);
-                          if (m.value !== MODE_CLICKONLY) setStopwatch(false);
+                          setInfinite(m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL ? infiniteByMode[m.value] : false);
+                          setStopwatch(m.value === MODE_CLICKONLY ? stopwatchPref : false);
                         }
                       }} disabled={running}
                       >
-                      {m.label}{mode === m.value && infinite ? " ∞" : ""}{mode === m.value && m.value === MODE_CLICKONLY && stopwatch ? " \u23F1\uFE0E" : ""}
+                      {m.label}{(m.value === mode ? infinite : infiniteByMode[m.value]) && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) ? " ∞" : ""}{(m.value === mode ? stopwatch : (m.value === MODE_CLICKONLY ? stopwatchPref : false)) && m.value === MODE_CLICKONLY ? " \u23F1\uFE0E" : ""}
                     </button>
                   ))}
                 </div>
@@ -2614,7 +2626,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
