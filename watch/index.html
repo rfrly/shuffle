@@ -1449,7 +1449,7 @@
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
-                      mode: "fullset", infinite: false, stopwatch: false, exMode: "range", pickedNums: [], letterMode: false });
+                      mode: "fullset", infinite: false, stopwatch: false, resetAll: true, exMode: "range", pickedNums: [], letterMode: false });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -2913,24 +2913,32 @@
           }
           if (cmd.bpm != null) setBpm(Math.min(300, Math.max(30, Math.round(cmd.bpm))));
           if (cmd.mode != null) {
-            const prevMode = modeRef.current;
-            if (prevMode === MODE_FULLSET || prevMode === MODE_SEQUENTIAL) {
-              setInfiniteByMode(prev => ({ ...prev, [prevMode]: infiniteRef2.current }));
+            if (cmd.resetAll) {
+              setMode(cmd.mode);
+              setInfinite(false);
+              setStopwatch(false);
+              setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
+              setStopwatchPref(false);
+            } else {
+              const prevMode = modeRef.current;
+              if (prevMode === MODE_FULLSET || prevMode === MODE_SEQUENTIAL) {
+                setInfiniteByMode(prev => ({ ...prev, [prevMode]: infiniteRef2.current }));
+              }
+              if (prevMode === MODE_CLICKONLY) {
+                setStopwatchPref(stopwatchRef2.current);
+              }
+              setMode(cmd.mode);
+              setInfiniteByMode(prev => {
+                const restoredInf = (cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL) ? (prev[cmd.mode] ?? false) : false;
+                setInfinite(restoredInf);
+                return prev;
+              });
+              setStopwatchPref(prev => {
+                const restoredSw = cmd.mode === MODE_CLICKONLY ? prev : false;
+                setStopwatch(restoredSw);
+                return prev;
+              });
             }
-            if (prevMode === MODE_CLICKONLY) {
-              setStopwatchPref(stopwatchRef2.current);
-            }
-            setMode(cmd.mode);
-            setInfiniteByMode(prev => {
-              const restoredInf = (cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL) ? (prev[cmd.mode] ?? false) : false;
-              setInfinite(restoredInf);
-              return prev;
-            });
-            setStopwatchPref(prev => {
-              const restoredSw = cmd.mode === MODE_CLICKONLY ? prev : false;
-              setStopwatch(restoredSw);
-              return prev;
-            });
           } else {
             if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); setInfiniteByMode(prev => ({ ...prev, [modeRef.current]: inf })); }
             if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
@@ -3140,7 +3148,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.38</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.39</div>
           </div>
         )}
         {watchScreen === "share" && (
