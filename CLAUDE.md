@@ -31,7 +31,7 @@ Source file structure:
 - All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
 - After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate `beta/index.html` only — **never regenerates `watch/index.html` on dev**
 - `watch/index.html` is only rebuilt when merging to `main`: run `python3 build-watch.sh --watch` (or `npm run generate:watch`) at that point
-- To test on device before merging: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta with full version string. The live app at `shuffleclick.com` is unaffected until `dev` is merged to `main`
+- To test on device before merging: push to `dev` — GitHub Actions deploys automatically, then open `shuffleclick.com/beta/` (allow 2–3 minutes). The live app at `shuffleclick.com` and watch at `shuffleclick.com/watch/` are unaffected — the deploy copies `watch/index.html` from the repo as-is, which is always the last shipped main version
 - When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
