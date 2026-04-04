@@ -518,7 +518,7 @@ firebase_and_observer = r"""
       const {
         running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
-        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, bpm: obsBpm, timeSig: obsTimeSigLabel,
+        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
         countInBars: obsCib, countInEvery: obsCountInEvery,
         looping: obsLooping, letterMode: obsLm,
@@ -686,6 +686,10 @@ firebase_and_observer = r"""
               </div>
             ) : sc ? (
               <div className="exercise-number done">done</div>
+            ) : obsMode === "clickonly" && obsStopwatch && phase !== "idle" ? (
+              <div className="exercise-number">
+                {Math.floor((obsElapsed || 0) / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String((obsElapsed || 0) % 60).padStart(2, "0")}
+              </div>
             ) : (
               <div className={`exercise-number${isIdle ? " idle" : ""}`}>
                 {exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
@@ -1002,14 +1006,14 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         const payload = {
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
-          mode, infinite, stopwatch, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+          mode, infinite, stopwatch, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
-          exercise, nextEx, countInBeat, mode, infinite, stopwatch, bpm, timeSig, barsPerExercise,
+          exercise, nextEx, countInBeat, mode, infinite, stopwatch, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, watchScreen]);
 
@@ -1254,7 +1258,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.33</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.34</div>
           </div>
         )}
         {watchScreen === "share" && (
