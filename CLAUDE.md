@@ -28,8 +28,9 @@ Source file structure:
 - All development happens on the `dev` branch — never commit directly to `main`
 - Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
 - To preview changes locally: `npm run dev` — opens a live-reloading dev server
-- All changes to the main app go in `src/` files only — never edit `watch/index.html` (generated file) directly
-- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate `watch/index.html` and commit them together
+- All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
+- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate both files and commit them together
+- To test on device before merging: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta with full version string. The live app at `shuffleclick.com` is unaffected until `dev` is merged to `main`
 - When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
@@ -163,9 +164,10 @@ The watch app has its own version number displayed on the home screen (e.g. `v1.
 
 ### Keeping watch in sync with the main app
 
-**CRITICAL RULE: Never edit `watch/index.html` directly** — it is a generated file.
+**CRITICAL RULE: Never edit `beta/index.html` or `watch/index.html` directly** — both are generated files.
 
-- `watch/index.html` is generated from `src/` by `build-watch.sh`
+- `beta/index.html` and `watch/index.html` are both generated from `src/` by `build-watch.sh`
+- `beta/index.html` is the unpatched build (beta version string kept); `watch/index.html` has all watch patches applied (beta suffix stripped)
 
 All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
 
@@ -173,9 +175,9 @@ After making changes to `src/` (main app changes), run:
 ```
 python3 build-watch.sh
 ```
-Or equivalently: `npm run generate`. Commit `src/` changes and `watch/index.html` together.
+Or equivalently: `npm run generate`. Commit `src/` changes, `beta/index.html`, and `watch/index.html` together.
 
-For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh` and `watch/index.html`.
+For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh`, `beta/index.html`, and `watch/index.html`.
 
 ### Firebase
 - Project: `shuffle-watch-d578b` (Firebase console)

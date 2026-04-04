@@ -88,9 +88,9 @@ def _build_source():
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600&display=swap" rel="stylesheet" />
-  <link rel="apple-touch-icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
-  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
-  <link rel="icon" href="https://shuffleclick.com/test/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" href="https://shuffleclick.com/beta/shuffle-icon-beta.png?v=9" />
+  <link rel="apple-touch-icon" sizes="512x512" href="https://shuffleclick.com/beta/shuffle-icon-beta.png?v=9" />
+  <link rel="icon" href="https://shuffleclick.com/beta/shuffle-icon-beta.png?v=9" />
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -136,6 +136,11 @@ def _build_source():
 
 src = _build_source()
 
+# Write beta/index.html (beta build — no watch patches, beta version string kept)
+BETA_DEST = os.path.join(os.path.dirname(__file__), "beta", "index.html")
+with open(BETA_DEST, "w", encoding="utf-8") as f:
+    f.write(src)
+
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
 src = patch(src, "<title>Shuffle</title>", "<title>Shuffle Watch</title>")
@@ -148,7 +153,7 @@ src = patch(src,
     '<meta property="og:title" content="Shuffle Watch" />'
 )
 src = re.sub(
-    r'https://shuffleclick\.com/test/shuffle-icon-beta\.png\?v=\d+',
+    r'https://shuffleclick\.com/beta/shuffle-icon-beta\.png\?v=\d+',
     'https://shuffleclick.com/watch/shuffle-icon-watch.png',
     src
 )
@@ -1499,6 +1504,7 @@ src = re.sub(r'(v\d+\.\d+\.\d+)\.beta\.\d+', r'\1', src)
 with open(DEST, "w") as f:
     f.write(src)
 
+print(f"Built {BETA_DEST} ({len(src):,} bytes)")
 print(f"Built {DEST} ({len(src):,} bytes)")
 
 # Sanity checks

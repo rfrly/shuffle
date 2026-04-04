@@ -34,6 +34,7 @@ jobs:
           cp -r ross dist/ross
           cp -r s dist/s
           cp -r watch dist/watch
+          cp -r beta dist/beta
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
