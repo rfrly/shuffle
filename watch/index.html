@@ -1094,7 +1094,7 @@
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
     .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(4rem, 16vw, 7rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 22vw, 9rem); }
     .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
@@ -1554,7 +1554,7 @@
                         } else if (m.value === obsMode && (m.value === "fullset" || m.value === "sequential")) {
                           onSendCmd({ infinite: !obsInfinite });
                         } else {
-                          onSendCmd({ mode: m.value, infinite: false, stopwatch: false });
+                          onSendCmd({ mode: m.value });
                         }
                       }} disabled={disabled || obsRunning}>
                       {m.label}{obsMode === m.value && obsInfinite ? " ∞" : ""}{obsMode === m.value && m.value === "clickonly" && obsStopwatch ? " \u23F1\uFE0E" : ""}
@@ -2920,8 +2920,16 @@
               setStopwatchPref(stopwatchRef2.current);
             }
             setMode(cmd.mode);
-            setInfinite(cmd.infinite != null ? !!cmd.infinite : cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL ? false : false);
-            setStopwatch(cmd.stopwatch != null ? !!cmd.stopwatch : false);
+            setInfiniteByMode(prev => {
+              const restoredInf = (cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL) ? (prev[cmd.mode] ?? false) : false;
+              setInfinite(restoredInf);
+              return prev;
+            });
+            setStopwatchPref(prev => {
+              const restoredSw = cmd.mode === MODE_CLICKONLY ? prev : false;
+              setStopwatch(restoredSw);
+              return prev;
+            });
           } else {
             if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); setInfiniteByMode(prev => ({ ...prev, [modeRef.current]: inf })); }
             if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
@@ -3131,7 +3139,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.35</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.36</div>
           </div>
         )}
         {watchScreen === "share" && (
