@@ -63,8 +63,58 @@ Source file structure:
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars
+- Metronome — full-screen view with large tappable beat tiles; bar counter or stopwatch (tap Metronome again to toggle); see **Metronome View** section below for full details
 - ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive.
+
+---
+
+## Metronome View
+
+When `mode === MODE_CLICKONLY`, the normal `.display` + `.controls-grid` is replaced by a dedicated full-screen `MetronomeView` component. All other modes render the existing layout unchanged.
+
+### Layout
+- **Beat tiles** (`MetronomeBeatTiles`) — large tappable buttons filling the upper area, one per beat. Tap cycles: accent → normal → silent. Active beat lights up while playing.
+- **Subdivision row** — three buttons: None / 8ths / Triplets (values 1 / 2 / 3)
+- **Mode row** — Shuffle / Sequence / Metronome selector (same logic as the main controls grid mode row, including ∞ and stopwatch sub-states)
+- **Controls row** (`metro-controls-row`) — BPM stepper (with tap-to-set), Time sig CompactSelector, Count in CompactSelector
+
+### Beat tile states
+| State  | Visual                          | Audio                     |
+|--------|---------------------------------|---------------------------|
+| accent | amber fill/border, amber text   | 1000 Hz, 0.9× vol         |
+| normal | dark border, grey text          | 700 Hz, 0.5× vol          |
+| silent | dashed dark border, dim text    | no click                  |
+
+Beat 1 defaults to accent, others to normal. When time sig changes, `beatStates` resets to defaults for the new beat count.
+
+### State
+- `subdivision` — `1` (none) / `2` (8ths) / `3` (triplets); persisted to localStorage
+- `beatStates` — array of `"accent" | "normal" | "silent"`, length = `timeSig.beats`; persisted to localStorage
+- Both are passed to `useDrumTimer` via `stateRef`
+
+### Audio: scheduleMetronomeClick signature
+Updated to: `scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSubdivision)`
+- `beatStateOrDownbeat`: `"accent" | "normal" | "silent"` (new) or `true/false` boolean (legacy, maps to accent/normal)
+- `isSubdivision`: if true, plays 500 Hz at 0.22× vol regardless of beat state
+- Silent beat state returns immediately (no oscillator created)
+
+### Scheduler changes (useDrumTimer.js)
+In the play loop, when `mode === MODE_CLICKONLY`:
+- Looks up `bStates[beatInBar]` to get the beat state; falls back to accent/normal for non-metro modes
+- Fires subdivision clicks at `nextBeatTime + subdivLen * s` for `s = 1..subdiv-1`
+
+### CSS classes
+`.metro-view`, `.metro-display-row`, `.metro-display-label`, `.metro-display-value`, `.metro-beat-tiles`, `.metro-beat-tile`, `.metro-beat-tile--accent/normal/silent`, `.metro-beat-tile--active`, `.metro-subdiv-row`, `.metro-subdiv-btn`, `.metro-controls-row`
+
+### Mute hint and toast
+Moved outside the mode conditional — appear in both Metronome and non-Metronome layouts.
+
+### build-watch.sh patches affected
+- Stopwatch display: patches `metro-display-value` div to add `stopwatch-time` class when `sw` is true
+- Mute hint: patches the new location (outside `.display`, 10-space indent)
+- `useDrumTimer` signature patch updated to include `subdivision, beatStates` before `keepCtxAlive`
+- Call site patch updated to match `subdivision, beatStates,` before `keepCtxAlive`
+- `getCtx` is now always returned by `useDrumTimer` in source — no longer needs a return-value patch, only the destructure call site patch remains
 
 ---
 
