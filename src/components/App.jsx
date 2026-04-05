@@ -537,37 +537,39 @@ export function App() {
         )}
 
         {!setComplete && (
-          <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
-            {Array.from({ length: timeSig.beats }).map((_, i) => {
-              const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
-              const isActive = phase === "playing" && !paused && currentBeat === i;
-              return (
-                <div
-                  key={i}
-                  className={[
-                    'beat-dot',
-                    phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
-                    i === 0 ? 'beat1' : '',
-                    isActive ? 'active' : '',
-                    bState ? bState : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
-                />
-              );
-            })}
-          </div>
-        )}
-        {mode === MODE_CLICKONLY && subdivision > 1 && (
-          <div className="subdiv-dots">
-            {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
-              const beatIndex = Math.floor(i / subdivision);
-              const subIndex = i % subdivision;
-              const isActive = phase === "playing" && !paused && currentBeat === beatIndex && (subIndex === 0 ? true : currentSubdiv === subIndex);
-              const isBeat = subIndex === 0;
-              return (
-                <div key={i} className={`subdiv-dot${isBeat ? ' beat' : ''}${isActive ? ' active' : ''}`} />
-              );
-            })}
+          <div className={mode === MODE_CLICKONLY ? "beat-group" : null}>
+            <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
+              {Array.from({ length: timeSig.beats }).map((_, i) => {
+                const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
+                const isActive = phase === "playing" && !paused && currentBeat === i;
+                return (
+                  <div
+                    key={i}
+                    className={[
+                      'beat-dot',
+                      phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
+                      i === 0 ? 'beat1' : '',
+                      isActive ? 'active' : '',
+                      bState ? bState : '',
+                    ].filter(Boolean).join(' ')}
+                    onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
+                  />
+                );
+              })}
+            </div>
+            {mode === MODE_CLICKONLY && subdivision > 1 && (
+              <div className="subdiv-dots">
+                {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
+                  const beatIndex = Math.floor(i / subdivision);
+                  const subIndex = i % subdivision;
+                  const isActive = phase === "playing" && !paused && currentBeat === beatIndex && (subIndex === 0 ? true : currentSubdiv === subIndex);
+                  const isBeat = subIndex === 0;
+                  return (
+                    <div key={i} className={`subdiv-dot${isBeat ? ' beat' : ''}${isActive ? ' active' : ''}`} />
+                  );
+                })}
+              </div>
+            )}
           </div>
         )}
 
@@ -812,7 +814,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

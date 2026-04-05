@@ -993,14 +993,12 @@
       display: flex;
       gap: 0.25rem;
       justify-content: center;
-      margin-top: 0.3rem;
-      padding: 0.25rem 0.5rem;
+      padding: 0.1rem 0.5rem;
       box-sizing: border-box;
-      max-width: 380px;
       width: 100%;
     }
     .subdiv-dot {
-      flex: 0 1 12px;
+      flex: 0 1 16px;
       min-width: 4px;
       height: 8px;
       max-width: 20px;
@@ -1016,6 +1014,15 @@
     }
     .subdiv-dot.beat.active {
       background: #fff;
+    }
+
+    /* ── Beat group wrapper (Metronome mode) ──────────────────── */
+    .beat-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      margin: auto 0;
     }
 
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
