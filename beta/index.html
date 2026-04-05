@@ -1017,16 +1017,16 @@
     .subdiv-dots {
       display: flex;
       gap: 0.25rem;
-      padding-top: 0.25rem;
-      padding-bottom: 0.25rem;
       justify-content: center;
       margin-top: 0.3rem;
-      width: 100%;
-      padding: 0 0.5rem;
+      padding: 0.25rem 0.5rem;
       box-sizing: border-box;
+      max-width: 380px;
+      width: 100%;
     }
     .subdiv-dot {
-      flex: 1;
+      flex: 0 1 12px;
+      min-width: 4px;
       height: 8px;
       max-width: 20px;
       border-radius: 3px;
@@ -2771,7 +2771,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
