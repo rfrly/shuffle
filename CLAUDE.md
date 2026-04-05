@@ -40,6 +40,7 @@ Source file structure:
 - Only `shuffleclick.com/beta/` is updated when pushing to `dev`
 - **Never merge `dev` → `main` until beta features are confirmed working** — merging is what ships to the live app
 - Do not suggest or perform a `dev` → `main` merge unless the user explicitly asks to ship
+- **Hotfix workflow (watch/live fixes while beta is in progress):** create a branch off `main` (`git checkout main && git checkout -b hotfix/description`), apply only the targeted fix to `build-watch.sh`, run `python3 build-watch.sh --watch`, commit, push, and open a PR to `main`. Then merge the hotfix into `dev` to keep in sync (`git checkout dev && git merge hotfix/description`). Never cherry-pick generated files (`watch/index.html`, `beta/index.html`) — always regenerate them.
 
 ---
 
