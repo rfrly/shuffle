@@ -1016,13 +1016,10 @@
       background: #fff;
     }
 
-    /* ── Beat group wrapper (Metronome mode) ──────────────────── */
-    .beat-group {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      width: 100%;
-      margin: auto 0;
+    /* ── Metronome display variant ─────────────────────────────── */
+    .display--metro {
+      gap: 0.35rem;
+      justify-content: center;
     }
 
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
