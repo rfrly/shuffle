@@ -1029,11 +1029,10 @@
       margin-bottom: 0.5rem;
     }
     .beat-dots.tappable .beat-dot {
-      flex: 1;
-      width: auto;
-      max-width: 44px;
+      flex: 0 1 44px;
+      height: auto;
       aspect-ratio: 1;
-      min-width: 20px;
+      min-width: 0;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }

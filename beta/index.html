@@ -1054,11 +1054,10 @@
       margin-bottom: 0.5rem;
     }
     .beat-dots.tappable .beat-dot {
-      flex: 1;
-      width: auto;
-      max-width: 44px;
+      flex: 0 1 44px;
+      height: auto;
       aspect-ratio: 1;
-      min-width: 20px;
+      min-width: 0;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
@@ -2772,7 +2771,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
