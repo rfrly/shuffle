@@ -1043,12 +1043,19 @@
 
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
     .beat-dots.tappable {
-      gap: 1rem;
+      gap: 0.5rem;
       max-width: none;
+      flex-wrap: nowrap;
+      width: 100%;
+      padding: 0 0.5rem;
+      box-sizing: border-box;
     }
     .beat-dots.tappable .beat-dot {
-      width: 44px;
+      flex: 1;
+      width: auto;
+      max-width: 44px;
       height: 44px;
+      min-width: 28px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
@@ -2762,7 +2769,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.8.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.8.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
