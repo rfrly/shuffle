@@ -13,11 +13,6 @@ import { BarProgress } from './BarProgress.jsx';
 import { CompactSelector } from './CompactSelector.jsx';
 import '../styles.css';
 
-function defaultBeatStates(timeSigLabel) {
-  const sig = TIME_SIGS.find(s => s.label === timeSigLabel) ?? TIME_SIGS[2];
-  return Array.from({ length: sig.beats }, (_, i) => i === 0 ? 'accent' : 'normal');
-}
-
 export function App() {
   const [saved] = useState(() => ({ ...(loadSettings() || {}), ...(loadUrlParams() || {}) }));
 
@@ -62,8 +57,6 @@ export function App() {
   const [pickedNums,      setPickedNums]      = useState(() => Array.isArray(saved?.pickedNums) ? saved.pickedNums.map(Number) : []);
   const [pickerOpen,      setPickerOpen]      = useState(false);
   const [showMuteHint,    setShowMuteHint]    = useState(false);
-  const [subdivision,     setSubdivision]     = useState(() => saved?.subdivision ?? 1);
-  const [beatStates,      setBeatStates]      = useState(() => Array.isArray(saved?.beatStates) ? saved.beatStates : defaultBeatStates(saved?.timeSig ?? '4/4'));
   const [letterMode,          setLetterMode]          = useState(() => saved?.letterMode ?? false);
   const [showLetterModePopup, setShowLetterModePopup] = useState(false);
   const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
@@ -84,17 +77,12 @@ export function App() {
   useEffect(() => {
     saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                    minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                   exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                   subdivision, beatStates });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates]);
+                   exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref });
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
   }, []);
-
-  useEffect(() => {
-    setBeatStates(defaultBeatStates(timeSig.label));
-  }, [timeSig]);
 
   useEffect(() => {
     if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
@@ -145,7 +133,7 @@ export function App() {
     setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
   }, []);
 
-  const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
+  const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
     bpm,
     beatsPerBar: timeSig.beats,
     barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
@@ -157,7 +145,7 @@ export function App() {
     countInBars,
     countInEveryRound: countInEvery,
     mode, volume, looping, infinite, setComplete,
-    exMode, pickedNums, subdivision, beatStates,
+    exMode, pickedNums,
   });
 
   useEffect(() => {
@@ -259,14 +247,6 @@ export function App() {
   const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
   const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);
   const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);
-  const cycleBeatState = useCallback((i) => {
-    setBeatStates(prev => {
-      const next = [...prev];
-      const order = ['accent', 'normal', 'silent'];
-      next[i] = order[(order.indexOf(prev[i]) + 1) % 3];
-      return next;
-    });
-  }, []);
   const incBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
   const decBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
   const bpmIncHandlers  = useLongPress(incBpm);
@@ -417,8 +397,6 @@ export function App() {
                     setExMode('range');
                     setPickedNums([]);
                     setLetterMode(false);
-                    setSubdivision(1);
-                    setBeatStates(defaultBeatStates('4/4'));
                     showAppToast("Settings reset");
                   }}>Reset to defaults</button>
                 </div>
@@ -502,24 +480,36 @@ export function App() {
           <div className="exercise-number done">
             done
           </div>
+        ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
+          <div className="exercise-number" style={{ letterSpacing: 0 }}>
+            {Math.floor(elapsedSeconds / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String(elapsedSeconds % 60).padStart(2, "0")}
+          </div>
         ) : (
           <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-            {mode === MODE_CLICKONLY && stopwatch && phase !== "idle"
-              ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
-              : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
+            {exercise !== null ? (mode === MODE_CLICKONLY ? fmt(exercise) : fmtEx(exercise, letterMode)) : "--"}
           </div>
         )}
 
         {phase === "idle" ? (
           setComplete ? (
             <div className="idle-summary">&nbsp;</div>
-          ) : mode === MODE_CLICKONLY ? null : (
+          ) : (
             <div className="idle-summary">
-              {exMode === 'pick'
-                ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+              {mode === MODE_CLICKONLY
+                ? `${bpm} bpm · ${timeSig.label} · metronome${stopwatch ? " \u23F1\uFE0E" : ""}`
+                : exMode === 'pick'
+                  ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                  : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
             </div>
           )
+        ) : mode === MODE_CLICKONLY ? (
+          <div className="next-exercise">
+            {paused
+              ? <span className="status-label">paused</span>
+              : isResuming
+                ? <span className="status-label">resuming</span>
+                : "\u00A0"}
+          </div>
         ) : (
           <div key={nextEx} className="next-exercise" style={{ opacity: paused ? 1 : isResuming ? 1 : nextEx === -1 ? 1 : looping ? 1 : nextOpacity }}>
             {paused
@@ -537,37 +527,10 @@ export function App() {
         )}
 
         {!setComplete && (
-          <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
-            {Array.from({ length: timeSig.beats }).map((_, i) => {
-              const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
-              const isActive = phase === "playing" && !paused && currentBeat === i;
-              return (
-                <div
-                  key={i}
-                  className={[
-                    'beat-dot',
-                    phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
-                    i === 0 ? 'beat1' : '',
-                    isActive ? 'active' : '',
-                    bState ? bState : '',
-                  ].filter(Boolean).join(' ')}
-                  onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
-                />
-              );
-            })}
-          </div>
-        )}
-        {mode === MODE_CLICKONLY && subdivision > 1 && (
-          <div className="subdiv-dots">
-            {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
-              const beatIndex = Math.floor(i / subdivision);
-              const subIndex = i % subdivision;
-              const isActive = phase === "playing" && !paused && currentBeat === beatIndex && (subIndex === 0 ? true : currentSubdiv === subIndex);
-              const isBeat = subIndex === 0;
-              return (
-                <div key={i} className={`subdiv-dot${isBeat ? ' beat' : ''}${isActive ? ' active' : ''}`} />
-              );
-            })}
+          <div className="beat-dots">
+            {Array.from({ length: timeSig.beats }).map((_, i) => (
+              <div key={i} className={`beat-dot${phase === "idle" ? " inactive" : ""}${i === 0 ? " beat1" : ""}${phase === "playing" && !paused && currentBeat === i ? " active" : ""}`} />
+            ))}
           </div>
         )}
 
@@ -585,6 +548,11 @@ export function App() {
             barFlash={barFlash}
           />
         )}
+        {(!setComplete && mode === MODE_CLICKONLY) && <div style={{ height: "5px" }} />}
+        {showMuteHint && phase !== "idle" && (
+          <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
+        )}
+        {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
       </div>
 
       <div className="controls">
@@ -679,93 +647,66 @@ export function App() {
             />
           </div>
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-              <label>Exercise length</label>
-              <CompactSelector
-                id="exLength"
-                value={exerciseLength}
-                options={[1, 2, 4]}
-                onChange={setExerciseLength}
-                disabled={running || exMode === 'pick'}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              />
-            </div>
-          )}
+          <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === 'pick' ? " dimmed" : ""}`}>
+            <label>Exercise length</label>
+            <CompactSelector
+              id="exLength"
+              value={exerciseLength}
+              options={[1, 2, 4]}
+              onChange={setExerciseLength}
+              disabled={running || mode === MODE_CLICKONLY || exMode === 'pick'}
+              openSelector={openSelector}
+              setOpenSelector={setOpenSelector}
+              getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+            />
+          </div>
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group${running ? " dimmed" : ""}`}>
-              <label>Exercises</label>
-              <div className="ex-control-row">
-                {exMode === 'range' ? (
-                  <div className="range-row">
-                    <input type="text" readOnly value={letterMode ? numToLetter(minEx) : String(minEx)}
-                      className={!validRange && exMode === 'range' && !running ? 'invalid' : undefined}
-                      {...minSwipeHandlers}
-                      disabled={running} />
-                    <span>to</span>
-                    <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : String(maxEx)}
-                      className={!validRange && exMode === 'range' && !running ? 'invalid' : undefined}
-                      {...maxSwipeHandlers}
-                      disabled={running} />
+          <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>
+                <label>Exercises</label>
+                <div className="ex-control-row">
+                  {exMode === 'range' ? (
+                    <div className="range-row">
+                      <input type="text" readOnly value={letterMode ? numToLetter(minEx) : String(minEx)}
+                        className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                        {...minSwipeHandlers}
+                        disabled={running || mode === MODE_CLICKONLY} />
+                      <span>to</span>
+                      <input type="text" readOnly value={letterMode ? numToLetter(maxEx) : String(maxEx)}
+                        className={!validRange && exMode === 'range' && !running && mode !== MODE_CLICKONLY ? 'invalid' : undefined}
+                        {...maxSwipeHandlers}
+                        disabled={running || mode === MODE_CLICKONLY} />
+                    </div>
+                  ) : (
+                    <button
+                      className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running && mode !== MODE_CLICKONLY ? ' invalid' : ''}`}
+                      disabled={running || mode === MODE_CLICKONLY}
+                      onClick={() => setPickerOpen(true)}>
+                      {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')}
+                    </button>
+                  )}
+                  <div className="ex-mode-toggle">
+                    <button className={`ex-mode-btn${exMode === 'range' ? ' active' : ''}`}
+                      disabled={running || mode === MODE_CLICKONLY}
+                      onClick={() => setExMode('range')}>Range</button>
+                    <button className={`ex-mode-btn${exMode === 'pick' ? ' active' : ''}`}
+                      disabled={running || mode === MODE_CLICKONLY}
+                      onClick={() => { setExMode('pick'); setExerciseLength(1); }}>Pick</button>
                   </div>
-                ) : (
-                  <button
-                    className={`pick-trigger-btn${pickedNums.length === 0 ? ' empty' : ''}${pickedNums.length === 0 && !running ? ' invalid' : ''}`}
-                    disabled={running}
-                    onClick={() => setPickerOpen(true)}>
-                    {pickedNums.length === 0 ? 'Tap to select...' : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')}
-                  </button>
-                )}
-                <div className="ex-mode-toggle">
-                  <button className={`ex-mode-btn${exMode === 'range' ? ' active' : ''}`}
-                    disabled={running}
-                    onClick={() => setExMode('range')}>Range</button>
-                  <button className={`ex-mode-btn${exMode === 'pick' ? ' active' : ''}`}
-                    disabled={running}
-                    onClick={() => { setExMode('pick'); setExerciseLength(1); }}>Pick</button>
                 </div>
               </div>
-            </div>
-          )}
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group${running ? " dimmed" : ""}`}>
-              <label>Rounds</label>
-              <div className="stepper">
-                <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
-                <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
-                <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
-              </div>
+          <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>
+            <label>Rounds</label>
+            <div className="stepper">
+              <button className="stepper-btn left" disabled={running || mode === MODE_CLICKONLY} {...barsDecHandlers}>−</button>
+              <div className="stepper-val" style={mode === MODE_CLICKONLY || running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
+              <button className="stepper-btn right" disabled={running || mode === MODE_CLICKONLY} {...barsIncHandlers}>+</button>
             </div>
-          )}
-
-          {mode === MODE_CLICKONLY && (
-            <div className={`control-group full-width${running ? " dimmed" : ""}`}>
-              <label>Subdivision</label>
-              <div className="selector-row">
-                {[{v:1,l:"None"},{v:2,l:"8ths"},{v:3,l:"Triplets"},{v:4,l:"16ths"}].map(opt => (
-                  <button key={opt.v}
-                    className={`sel-btn${subdivision === opt.v ? " active" : ""}`}
-                    disabled={running}
-                    onClick={() => setSubdivision(opt.v)}>
-                    {opt.l}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          </div>
 
         </div>
 
       </div>
-
-      {showMuteHint && phase !== "idle" && (
-        <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
-      )}
-      {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
 
       <div className="btn-row">
         {!running ? (
@@ -812,7 +753,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.8.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.8.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

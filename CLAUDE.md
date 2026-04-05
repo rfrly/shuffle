@@ -29,9 +29,8 @@ Source file structure:
 - Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
 - To preview changes locally: `npm run dev` — opens a live-reloading dev server
 - All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
-- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate `beta/index.html` only — **never regenerates `watch/index.html` on dev**
-- `watch/index.html` is only rebuilt when merging to `main`: run `python3 build-watch.sh --watch` (or `npm run generate:watch`) at that point
-- To test on device before merging: push to `dev` — GitHub Actions deploys automatically, then open `shuffleclick.com/beta/` (allow 2–3 minutes). The live app at `shuffleclick.com` and watch at `shuffleclick.com/watch/` are unaffected — the deploy copies `watch/index.html` from the repo as-is, which is always the last shipped main version
+- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate both files and commit them together
+- To test on device before merging: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta with full version string. The live app at `shuffleclick.com` is unaffected until `dev` is merged to `main`
 - When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
@@ -64,58 +63,8 @@ Source file structure:
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — full-screen view with large tappable beat tiles; bar counter or stopwatch (tap Metronome again to toggle); see **Metronome View** section below for full details
+- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars
 - ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive.
-
----
-
-## Metronome View
-
-When `mode === MODE_CLICKONLY`, the normal `.display` + `.controls-grid` is replaced by a dedicated full-screen `MetronomeView` component. All other modes render the existing layout unchanged.
-
-### Layout
-- **Beat tiles** (`MetronomeBeatTiles`) — large tappable buttons filling the upper area, one per beat. Tap cycles: accent → normal → silent. Active beat lights up while playing.
-- **Subdivision row** — three buttons: None / 8ths / Triplets (values 1 / 2 / 3)
-- **Mode row** — Shuffle / Sequence / Metronome selector (same logic as the main controls grid mode row, including ∞ and stopwatch sub-states)
-- **Controls row** (`metro-controls-row`) — BPM stepper (with tap-to-set), Time sig CompactSelector, Count in CompactSelector
-
-### Beat tile states
-| State  | Visual                          | Audio                     |
-|--------|---------------------------------|---------------------------|
-| accent | amber fill/border, amber text   | 1000 Hz, 0.9× vol         |
-| normal | dark border, grey text          | 700 Hz, 0.5× vol          |
-| silent | dashed dark border, dim text    | no click                  |
-
-Beat 1 defaults to accent, others to normal. When time sig changes, `beatStates` resets to defaults for the new beat count.
-
-### State
-- `subdivision` — `1` (none) / `2` (8ths) / `3` (triplets); persisted to localStorage
-- `beatStates` — array of `"accent" | "normal" | "silent"`, length = `timeSig.beats`; persisted to localStorage
-- Both are passed to `useDrumTimer` via `stateRef`
-
-### Audio: scheduleMetronomeClick signature
-Updated to: `scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSubdivision)`
-- `beatStateOrDownbeat`: `"accent" | "normal" | "silent"` (new) or `true/false` boolean (legacy, maps to accent/normal)
-- `isSubdivision`: if true, plays 500 Hz at 0.22× vol regardless of beat state
-- Silent beat state returns immediately (no oscillator created)
-
-### Scheduler changes (useDrumTimer.js)
-In the play loop, when `mode === MODE_CLICKONLY`:
-- Looks up `bStates[beatInBar]` to get the beat state; falls back to accent/normal for non-metro modes
-- Fires subdivision clicks at `nextBeatTime + subdivLen * s` for `s = 1..subdiv-1`
-
-### CSS classes
-`.metro-view`, `.metro-display-row`, `.metro-display-label`, `.metro-display-value`, `.metro-beat-tiles`, `.metro-beat-tile`, `.metro-beat-tile--accent/normal/silent`, `.metro-beat-tile--active`, `.metro-subdiv-row`, `.metro-subdiv-btn`, `.metro-controls-row`
-
-### Mute hint and toast
-Moved outside the mode conditional — appear in both Metronome and non-Metronome layouts.
-
-### build-watch.sh patches affected
-- Stopwatch display: patches `metro-display-value` div to add `stopwatch-time` class when `sw` is true
-- Mute hint: patches the new location (outside `.display`, 10-space indent)
-- `useDrumTimer` signature patch updated to include `subdivision, beatStates` before `keepCtxAlive`
-- Call site patch updated to match `subdivision, beatStates,` before `keepCtxAlive`
-- `getCtx` is now always returned by `useDrumTimer` in source — no longer needs a return-value patch, only the destructure call site patch remains
 
 ---
 
@@ -222,15 +171,13 @@ The watch app has its own version number displayed on the home screen (e.g. `v1.
 
 All watch-specific behaviour (student control dimming, teacher UI, Firebase logic) must be implemented as `src.replace()` patches inside `build-watch.sh`.
 
-**On dev:** After making changes to `src/`, run:
+After making changes to `src/` (main app changes), run:
 ```
 python3 build-watch.sh
 ```
-Or equivalently: `npm run generate`. This regenerates **`beta/index.html` only**. Commit `src/` changes and `beta/index.html` together. Do **not** commit `watch/index.html` on dev.
+Or equivalently: `npm run generate`. Commit `src/` changes, `beta/index.html`, and `watch/index.html` together.
 
-**On merge to main:** Run `python3 build-watch.sh --watch` (or `npm run generate:watch`) to rebuild both `beta/index.html` and `watch/index.html`, then commit both before merging.
-
-For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh --watch`. Commit `build-watch.sh` and `watch/index.html` only (beta is unaffected by watch patches).
+For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh`, `beta/index.html`, and `watch/index.html`.
 
 ### Firebase
 - Project: `shuffle-watch-d578b` (Firebase console)
