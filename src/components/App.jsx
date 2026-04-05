@@ -491,7 +491,7 @@ export function App() {
 
       <div className="display">
         <div className="exercise-label">
-          {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : "exercise"}
+          {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -504,20 +504,20 @@ export function App() {
           </div>
         ) : (
           <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-            {exercise !== null ? fmtEx(exercise, letterMode) : "--"}
+            {mode === MODE_CLICKONLY && stopwatch && phase !== "idle"
+              ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
+              : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
           </div>
         )}
 
         {phase === "idle" ? (
           setComplete ? (
             <div className="idle-summary">&nbsp;</div>
-          ) : (
+          ) : mode === MODE_CLICKONLY ? null : (
             <div className="idle-summary">
-              {mode === MODE_CLICKONLY
-                ? `${timeSig.label} · ${subdivision === 1 ? "no subdivision" : subdivision === 2 ? "8ths" : "triplets"} · ${stopwatch ? "stopwatch" : "bar counter"}`
-                : exMode === 'pick'
-                  ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
-                  : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
+              {exMode === 'pick'
+                ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
+                : `${letterMode ? numToLetter(minEx) : String(minEx)}–${letterMode ? numToLetter(maxEx) : String(maxEx)} · ${exerciseLength}-bar ex · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`}
             </div>
           )
         ) : (
@@ -744,16 +744,16 @@ export function App() {
           {mode === MODE_CLICKONLY && (
             <div className={`control-group full-width${running ? " dimmed" : ""}`}>
               <label>Subdivision</label>
-              <CompactSelector
-                id="subdivision"
-                value={subdivision}
-                options={[1, 2, 3]}
-                onChange={setSubdivision}
-                disabled={running}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={n => n === 1 ? "None" : n === 2 ? "8ths" : "Triplets"}
-              />
+              <div className="selector-row">
+                {[{v:1,l:"None"},{v:2,l:"8ths"},{v:3,l:"Triplets"},{v:4,l:"16ths"}].map(opt => (
+                  <button key={opt.v}
+                    className={`sel-btn${subdivision === opt.v ? " active" : ""}`}
+                    disabled={running}
+                    onClick={() => setSubdivision(opt.v)}>
+                    {opt.l}
+                  </button>
+                ))}
+              </div>
             </div>
           )}
 
@@ -811,7 +811,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.8.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.8.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

@@ -989,7 +989,13 @@
     @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
+    .beat-dots.tappable {
+      gap: 1rem;
+      max-width: none;
+    }
     .beat-dots.tappable .beat-dot {
+      width: 44px;
+      height: 44px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
