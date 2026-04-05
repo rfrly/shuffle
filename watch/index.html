@@ -1427,7 +1427,7 @@
           <div className="watching-banner">
             <div className="watching-banner-right">
               <span className="watching-code-text">watching <span>{code}</span></span>
-              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); _db.ref("sessions/" + code).remove(); onDisconnect(); }}>stop</button>
+              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); _db.ref("sessions/" + code).remove(); onDisconnect(); }}>End session</button>
             </div>
             <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
               onClick={() => setMenuOpen(v => !v)}>☰</button>
