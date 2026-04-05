@@ -25,14 +25,21 @@ Source file structure:
 
 ## Claude Code workflow
 
-- All development happens on the `dev` branch — never commit directly to `main`
+- All development happens on the `dev` branch — **never commit directly to `main`**
 - Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
 - To preview changes locally: `npm run dev` — opens a live-reloading dev server
 - All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
-- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate both files and commit them together
-- To test on device before merging: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta with full version string. The live app at `shuffleclick.com` is unaffected until `dev` is merged to `main`
-- When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers automatic deployment to shuffleclick.com
+- After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate `beta/index.html` and commit it
+- To test on device: push to `dev`, then open `shuffleclick.com/beta/` — shows the current beta. Allow 2–3 minutes for GitHub Actions to deploy
+- When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
+
+**CRITICAL — beta/live/watch separation:**
+- `shuffleclick.com` (live) and `shuffleclick.com/watch/` are NEVER touched by `dev` pushes
+- The deploy workflow always builds the live app and watch from `main`'s source — never from `dev`
+- Only `shuffleclick.com/beta/` is updated when pushing to `dev`
+- **Never merge `dev` → `main` until beta features are confirmed working** — merging is what ships to the live app
+- Do not suggest or perform a `dev` → `main` merge unless the user explicitly asks to ship
 
 ---
 
