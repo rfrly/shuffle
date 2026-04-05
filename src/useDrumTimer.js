@@ -33,12 +33,13 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
   const stoppedRef        = useRef(false);
   const wasRunningRef     = useRef(false);
 
-  const [currentBeat,  setCurrentBeat]  = useState(0);
-  const [currentBar,   setCurrentBar]   = useState(0);
-  const [phase,        setPhase]        = useState("idle");
-  const [flashOn,      setFlashOn]      = useState(false);
-  const [countInBeat,  setCountInBeat]  = useState(0);
-  const [isResuming,   setIsResuming]   = useState(false);
+  const [currentBeat,   setCurrentBeat]   = useState(0);
+  const [currentBar,    setCurrentBar]    = useState(0);
+  const [currentSubdiv, setCurrentSubdiv] = useState(0);
+  const [phase,         setPhase]         = useState("idle");
+  const [flashOn,       setFlashOn]       = useState(false);
+  const [countInBeat,   setCountInBeat]   = useState(0);
+  const [isResuming,    setIsResuming]    = useState(false);
 
   const getCtx = useCallback(() => {
     if (!audioCtx.current)
@@ -289,6 +290,11 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
                   scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                  const tSub = nextBeatTime.current + subdivLen * s;
+                  setTimeout(() => {
+                    if (stoppedRef.current) return;
+                    setCurrentSubdiv(s);
+                  }, Math.max(0, (tSub - ctx.currentTime) * 1000));
                 }
               }
             }
@@ -296,6 +302,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             setTimeout(() => {
               if (stoppedRef.current) return;
               setCurrentBeat(beatInBar);
+              setCurrentSubdiv(0);
               setCurrentBar(barInExercise);
               if (currentMode !== MODE_CLICKONLY && isDownbeat && barInExercise === 0 && playBeat > 0) {
                 setFlashOn(true);
@@ -401,5 +408,5 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     return () => clearInterval(schedulerRef.current);
   }, [running, getCtx, pickNext]);
 
-  return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };
+  return { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx };
 }
