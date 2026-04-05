@@ -1017,6 +1017,8 @@
     .subdiv-dots {
       display: flex;
       gap: 0.25rem;
+      padding-top: 0.25rem;
+      padding-bottom: 0.25rem;
       justify-content: center;
       margin-top: 0.3rem;
       width: 100%;
@@ -1049,13 +1051,14 @@
       width: 100%;
       padding: 0 0.5rem;
       box-sizing: border-box;
+      margin-bottom: 0.5rem;
     }
     .beat-dots.tappable .beat-dot {
       flex: 1;
       width: auto;
       max-width: 44px;
-      height: 44px;
-      min-width: 28px;
+      aspect-ratio: 1;
+      min-width: 20px;
       cursor: pointer;
       -webkit-tap-highlight-color: transparent;
     }
@@ -2769,7 +2772,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
