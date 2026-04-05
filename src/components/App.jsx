@@ -812,7 +812,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.8.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.8.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
