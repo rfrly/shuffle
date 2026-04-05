@@ -988,6 +988,32 @@
     @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
+    /* ── Subdivision dots row (Metronome mode) ─────────────────── */
+    .subdiv-dots {
+      display: flex;
+      gap: 0.3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+      max-width: 320px;
+    }
+    .subdiv-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #333;
+      transition: background 0.05s;
+    }
+    .subdiv-dot.beat {
+      background: #555;
+    }
+    .subdiv-dot.active {
+      background: #ff4500;
+    }
+    .subdiv-dot.beat.active {
+      background: #fff;
+    }
+
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
     .beat-dots.tappable {
       gap: 1rem;

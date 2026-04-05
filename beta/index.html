@@ -1013,6 +1013,32 @@
     @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
 
+    /* ── Subdivision dots row (Metronome mode) ─────────────────── */
+    .subdiv-dots {
+      display: flex;
+      gap: 0.3rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 0.2rem;
+      max-width: 320px;
+    }
+    .subdiv-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: #333;
+      transition: background 0.05s;
+    }
+    .subdiv-dot.beat {
+      background: #555;
+    }
+    .subdiv-dot.active {
+      background: #ff4500;
+    }
+    .subdiv-dot.beat.active {
+      background: #fff;
+    }
+
     /* ── Beat dot states (Metronome mode) ──────────────────────── */
     .beat-dots.tappable {
       gap: 1rem;
@@ -2463,36 +2489,37 @@
                 {Array.from({ length: timeSig.beats }).map((_, i) => {
                   const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
                   const isActive = phase === "playing" && !paused && currentBeat === i;
-                  const showSubdivs = mode === MODE_CLICKONLY && subdivision > 1;
                   return (
-                    <React.Fragment key={i}>
-                      <div
-                        className={[
-                          'beat-dot',
-                          phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
-                          i === 0 ? 'beat1' : '',
-                          isActive ? 'active' : '',
-                          bState ? bState : '',
-                        ].filter(Boolean).join(' ')}
-                        onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
-                      />
-                      {showSubdivs && Array.from({ length: subdivision - 1 }).map((__, s) => {
-                        const subSlot = s + 1;
-                        const isSubActive = phase === "playing" && !paused && currentBeat === i && currentSubdiv === subSlot;
-                        return (
-                          <div
-                            key={`sub-${i}-${s}`}
-                            className={`beat-dot subdiv${isSubActive ? ' active' : ''}`}
-                          />
-                        );
-                      })}
-                    </React.Fragment>
+                    <div
+                      key={i}
+                      className={[
+                        'beat-dot',
+                        phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
+                        i === 0 ? 'beat1' : '',
+                        isActive ? 'active' : '',
+                        bState ? bState : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
+                    />
+                  );
+                })}
+              </div>
+            )}
+            {mode === MODE_CLICKONLY && subdivision > 1 && (
+              <div className="subdiv-dots">
+                {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
+                  const beatIndex = Math.floor(i / subdivision);
+                  const subIndex = i % subdivision;
+                  const isActive = phase === "playing" && !paused && currentBeat === beatIndex && (subIndex === 0 ? true : currentSubdiv === subIndex);
+                  const isBeat = subIndex === 0;
+                  return (
+                    <div key={i} className={`subdiv-dot${isBeat ? ' beat' : ''}${isActive ? ' active' : ''}`} />
                   );
                 })}
               </div>
             )}
 
-            {!setComplete && (
+            {!setComplete && mode !== MODE_CLICKONLY && (
               <BarProgress
                 barsPerExercise={barsPerExercise}
                 currentRound={currentRound}
@@ -2733,7 +2760,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.8.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.8.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
