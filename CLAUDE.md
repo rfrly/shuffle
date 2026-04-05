@@ -70,7 +70,7 @@ Source file structure:
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars
+- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars. Beat dots are 44px tappable circles — tap to cycle accent → normal → silent per beat. Accent dots are amber, silent dots are dim with a dashed outline. Subdivision row (8ths/Triplets/16ths/None) appears below the beat dots when subdivision > 1 — pills fill the row width up to a per-pill max, shrinking on narrow screens. In Metronome mode the controls grid shows only BPM, Time sig, Count in, and Subdivision (Exercise length, Exercises, Rounds are hidden). No idle summary is shown. BarProgress is hidden.
 - ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive.
 
 ---
@@ -78,7 +78,7 @@ Source file structure:
 ## UI and behaviour
 
 - Single unified controls grid — no section divider; 3-col on tablet/desktop, 2-col on mobile
-- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds
+- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds. In Metronome mode: Mode, BPM, Time sig, Count in, Subdivision (Exercise length/Exercises/Rounds hidden).
 - Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
 - Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
 - No dimming of fixed controls — all controls same visual weight
