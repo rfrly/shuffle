@@ -33,9 +33,9 @@ function BpmAutoPopup({
       });
     }
     // Seed random range from current BPM each time popup opens
-    const span = Math.round(bpm * 0.07);
-    setBpmAutoMin(Math.max(BPM_MIN, bpm - span));
-    setBpmAutoMax(Math.min(BPM_MAX, bpm + span));
+    const halfSpan = Math.round(bpm * 0.035);
+    setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
+    setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
   }, []);
 
   const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
@@ -1046,7 +1046,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
