@@ -882,6 +882,8 @@
       border-color: #f5c842; color: #f5c842; background: #1e1c12;
     }
 
+    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; }
+
     .bpm-auto-trigger-label {
       font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
     }

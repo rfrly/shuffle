@@ -44,7 +44,7 @@ function BpmAutoPopup({
 
   const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
   const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
-  const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 20, v + 1)));
+  const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
   const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
   const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
   const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
@@ -63,8 +63,10 @@ function BpmAutoPopup({
           className={`bpm-auto-master-toggle${bpmAuto ? " active" : ""}`}
           onClick={() => setBpmAuto(v => !v)}
         >
-          Auto BPM &nbsp;{bpmAuto ? "On" : "Off"}
+          Auto BPM
         </button>
+
+        <div className={bpmAuto ? undefined : "bpm-auto-disabled"}>
 
         {/* Trigger interval — Metronome only */}
         {isMetronome && (
@@ -132,6 +134,8 @@ function BpmAutoPopup({
             </div>
           )}
         </div>
+
+        </div>{/* end bpm-auto-disabled wrapper */}
 
       </div>
     </>,
@@ -216,8 +220,8 @@ export function App() {
   const [bpmAutoTrigger,   setBpmAutoTrigger]   = useState(() => saved?.bpmAutoTrigger ?? 'set');
   const [bpmAutoInterval,  setBpmAutoInterval]  = useState(() => saved?.bpmAutoInterval ?? 8);
   const [bpmAutoRandom,    setBpmAutoRandom]    = useState(() => saved?.bpmAutoRandom ?? false);
-  const [bpmAutoMin,       setBpmAutoMin]       = useState(() => saved?.bpmAutoMin ?? 70);
-  const [bpmAutoMax,       setBpmAutoMax]       = useState(() => saved?.bpmAutoMax ?? 90);
+  const [bpmAutoMin,       setBpmAutoMin]       = useState(() => saved?.bpmAutoMin ?? 78);
+  const [bpmAutoMax,       setBpmAutoMax]       = useState(() => saved?.bpmAutoMax ?? 82);
   const [bpmAutoOpen,      setBpmAutoOpen]      = useState(false);
   const autoBarCountRef  = useRef(0);
   const autoTimerRef     = useRef(null);
@@ -1032,7 +1036,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
