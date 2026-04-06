@@ -1473,7 +1473,7 @@
 
           <div className="display">
             <div className="exercise-label">
-              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? "time" : "exercise"}
+              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : "exercise"}
             </div>
 
             {isCountIn ? (
@@ -3160,7 +3160,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.8 · watch 1.46</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.8 · watch 1.49</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3380,7 +3380,7 @@
                 done
               </div>
             ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (
-              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>
+              <div className="exercise-number" style={{ letterSpacing: 0 }}>
                 {Math.floor(elapsedSeconds / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String(elapsedSeconds % 60).padStart(2, "0")}
               </div>
             ) : (
