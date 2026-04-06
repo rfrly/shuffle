@@ -75,6 +75,11 @@ function BpmAutoPopup({
           Auto BPM
         </button>
 
+        {/* Trigger label — infinite modes */}
+        {!isMetronome && (
+          <div className="bpm-auto-trigger-label">Changes every set</div>
+        )}
+
         <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
 
         {/* Trigger interval — Metronome only */}
@@ -95,11 +100,6 @@ function BpmAutoPopup({
                 onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
             </div>
           </div>
-        )}
-
-        {/* Trigger label — infinite modes */}
-        {!isMetronome && (
-          <div className="bpm-auto-trigger-label">Changes every set</div>
         )}
 
         {/* Step / direction — primary controls */}
@@ -1046,7 +1046,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.23 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.24 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
