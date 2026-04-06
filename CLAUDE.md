@@ -47,20 +47,20 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 **Beta update workflow:**
 1. Work on `dev` — edit `src/`, run `python3 build-watch.sh`, commit, push
 2. Beta updates at `shuffleclick.com/beta/` within ~3 minutes
-3. When ready to ship: PR `dev` → `main` — live and watch update
+3. When ready to ship beta: apply any pending watch fixes to `dev`'s `build-watch.sh` first (so watch stays in sync), run `python3 build-watch.sh`, then PR `dev` → `main`
 
 **Watch update workflow:**
 1. Branch off `main`: `git checkout main && git checkout -b hotfix/description`
 2. Edit `build-watch.sh` only — never edit `src/`
-3. Run `python3 build-watch.sh`, commit, push, PR to `main`
-4. Watch updates at `shuffleclick.com/watch/` within ~3 minutes
-5. **After merging, sync to `dev`**: `git checkout dev && git merge main && git push` — this ensures the watch fix isn't lost when beta eventually ships
+3. Run `python3 build-watch.sh --watch`, commit `build-watch.sh` and `watch/index.html`, push, open PR to `main`
+4. Merge the PR — watch updates at `shuffleclick.com/watch/` within ~3 minutes
+5. Switch back to `dev`: `git checkout dev` — **do not merge `main` into `dev`**. Instead, manually apply the same `build-watch.sh` change to `dev` so it stays in sync. Run `python3 build-watch.sh`, commit, push.
 
 **Never:**
-- Merge `dev` → `main` to ship a watch fix — use a hotfix branch off `main`
+- Merge `dev` → `main` to ship a watch fix — always use a hotfix branch off `main`
 - Edit `src/` in a watch hotfix branch — watch logic lives in `build-watch.sh` patches
 - Cherry-pick generated files (`watch/index.html`, `beta/index.html`) — always regenerate with `python3 build-watch.sh`
-- Merge `dev` → `main` without first running `git merge main` into `dev` — ensures no watch fixes are overwritten when shipping beta
+- Merge `main` into `dev` while beta is in progress — `dev` has diverged too far and this will cause conflicts in generated files. Manually apply watch fixes to `dev`'s `build-watch.sh` instead.
 
 ---
 
