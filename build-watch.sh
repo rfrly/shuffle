@@ -425,16 +425,18 @@ src = patch(src,
     "      const handleTap = useCallback(() => {\n        if (running || watchScreen === \"app\") return;"
 )
 
-# incBpm / decBpm / incBars / decBars guards
-src = patch(src, 
-    "      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));\n"
+# incBpm / decBpm guards
+src = patch(src,
     "      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);\n"
-    "      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);\n"
+    "      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);",
+    "      const incBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b + 1)); }, [watchScreen]);\n"
+    "      const decBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b - 1)); }, [watchScreen]);"
+)
+
+# incBars / decBars guards
+src = patch(src,
     "      const incBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);\n"
     "      const decBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);",
-    "      const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));\n"
-    "      const incBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b + 1)); }, [watchScreen]);\n"
-    "      const decBpm  = useCallback(() => { if (watchScreen === \"app\") return; setBpm(b => clampBpm(b - 1)); }, [watchScreen]);\n"
     "      const incBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running, watchScreen]);\n"
     "      const decBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running, watchScreen]);"
 )
@@ -489,19 +491,19 @@ src = patch(src,
 )
 
 # Exercise length control group
-src = patch(src, 
+src = patch(src,
     '              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>'
 )
 
 # Exercises control group
-src = patch(src, 
+src = patch(src,
     '              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>'
 )
 
 # Rounds control group
-src = patch(src, 
+src = patch(src,
     '              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
 )
@@ -533,11 +535,7 @@ src = patch(src,
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
 
-# Stopwatch display: add stopwatch-time class so watch CSS can shrink it relative to exercise numbers
-src = patch(src,
-    '            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (\n              <div className="exercise-number" style={{ letterSpacing: 0 }}>',
-    '            ) : mode === MODE_CLICKONLY && stopwatch && phase !== "idle" ? (\n              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>'
-)
+# Stopwatch display: stopwatch-time class is applied via exercise-number in source — no patch needed
 
 # Paused state: make "paused" text amber in watch student view (inline color overrides CSS class)
 src = patch(src,
@@ -1381,8 +1379,8 @@ src = patch(src,
     "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
 )
 src = patch(src, 
-    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
-    "      const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
+    "const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
+    "const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
 
 # ── 6c. Prevent AudioContext close when student is sharing ───────────────────
@@ -1443,7 +1441,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.8 · watch 1.48</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.8 · watch 1.49</div>
           </div>
         )}
         {watchScreen === "share" && (
