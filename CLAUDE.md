@@ -42,7 +42,7 @@ Source file structure:
 | Watch | `shuffleclick.com/watch/` | `main` |
 | Beta | `shuffleclick.com/beta/` | `dev` |
 
-The deploy workflow runs on every push to `main` or `dev`. Live and watch always come from `main`. Beta always comes from `dev`. A push to `dev` never touches live or watch. A merge to `main` never touches beta.
+The deploy workflow runs on every push to `main` or `dev`. Live and watch always come from `main`. Beta always comes from `dev` (hardcoded via `ref: dev` in `.github/workflows/deploy.yml` — do not change this). A push to `dev` never touches live or watch. A merge to `main` never touches beta.
 
 **Beta update workflow:**
 1. Work on `dev` — edit `src/`, run `python3 build-watch.sh`, commit, push
@@ -52,15 +52,17 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 **Watch update workflow:**
 1. Branch off `main`: `git checkout main && git checkout -b hotfix/description`
 2. Edit `build-watch.sh` only — never edit `src/`
-3. Run `python3 build-watch.sh --watch`, commit `build-watch.sh` and `watch/index.html`, push, open PR to `main`
-4. Merge the PR — watch updates at `shuffleclick.com/watch/` within ~3 minutes
-5. Switch back to `dev`: `git checkout dev` — **do not merge `main` into `dev`**. Instead, manually apply the same `build-watch.sh` change to `dev` so it stays in sync. Run `python3 build-watch.sh`, commit, push.
+3. **Always bump the watch version number** in `build-watch.sh` (e.g. `watch 1.48` → `watch 1.49`) — this confirms the deployment worked
+4. Run `python3 build-watch.sh --watch`, commit `build-watch.sh`, `watch/index.html`, and `beta/index.html`, push, open PR to `main`
+5. Merge the PR — watch updates at `shuffleclick.com/watch/` within ~3 minutes
+6. Switch back to `dev`: `git checkout dev` — **do not merge `main` into `dev`**. Instead, manually apply the same `build-watch.sh` changes to `dev` so it stays in sync. Run `python3 build-watch.sh`, commit, push.
 
 **Never:**
 - Merge `dev` → `main` to ship a watch fix — always use a hotfix branch off `main`
 - Edit `src/` in a watch hotfix branch — watch logic lives in `build-watch.sh` patches
 - Cherry-pick generated files (`watch/index.html`, `beta/index.html`) — always regenerate with `python3 build-watch.sh`
-- Merge `main` into `dev` while beta is in progress — `dev` has diverged too far and this will cause conflicts in generated files. Manually apply watch fixes to `dev`'s `build-watch.sh` instead.
+- Merge `main` into `dev` while beta is in progress — this causes conflicts in generated files. Manually apply watch fixes to `dev`'s `build-watch.sh` instead.
+- Skip bumping the watch version — without it there's no way to confirm the deployment worked
 
 ---
 
