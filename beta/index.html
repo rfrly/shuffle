@@ -907,7 +907,8 @@
       border-color: #f5c842; color: #f5c842; background: #1e1c12;
     }
 
-    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; }
+    .bpm-auto-inner { display: flex; flex-direction: column; gap: 1.2rem; }
+    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 1.2rem; }
 
     .bpm-auto-trigger-label {
       font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
@@ -2118,7 +2119,7 @@
               Auto BPM
             </button>
 
-            <div className={bpmAuto ? undefined : "bpm-auto-disabled"}>
+            <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
 
             {/* Trigger interval — Metronome only */}
             {isMetronome && (
@@ -3089,7 +3090,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.18 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.19 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
