@@ -14,9 +14,11 @@ import { CompactSelector } from './CompactSelector.jsx';
 import '../styles.css';
 
 function BpmAutoPopup({
-  mode, bpmAuto, setBpmAuto,
+  mode, bpm, bpmAuto, setBpmAuto,
   bpmAutoStep, setBpmAutoStep, bpmAutoDir, setBpmAutoDir,
-  bpmAutoTrigger, setBpmAutoTrigger, bpmAutoInterval, setBpmAutoInterval,
+  bpmAutoTrigger, setBpmAutoTrigger,
+  bpmAutoBarInterval, setBpmAutoBarInterval,
+  bpmAutoSecInterval, setBpmAutoSecInterval,
   bpmAutoRandom, setBpmAutoRandom, bpmAutoMin, setBpmAutoMin, bpmAutoMax, setBpmAutoMax,
   anchorRef, onClose,
 }) {
@@ -30,6 +32,10 @@ function BpmAutoPopup({
         bottom: window.innerHeight - rect.top + 6,
       });
     }
+    // Seed random range from current BPM each time popup opens
+    const span = Math.round(bpm * 0.07);
+    setBpmAutoMin(Math.max(BPM_MIN, bpm - span));
+    setBpmAutoMax(Math.min(BPM_MAX, bpm + span));
   }, []);
 
   const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
@@ -37,8 +43,11 @@ function BpmAutoPopup({
   const stepIncHandlers = useLongPressSimple(stepInc);
   const stepDecHandlers = useLongPressSimple(stepDec);
 
-  const intervalInc = () => setBpmAutoInterval(s => Math.min(mode === MODE_CLICKONLY && bpmAutoTrigger === 'seconds' ? 3600 : 999, s + 1));
-  const intervalDec = () => setBpmAutoInterval(s => Math.max(1, s - 1));
+  const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
+  const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
+  const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
+  const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
+  const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
   const intervalIncHandlers = useLongPressSimple(intervalInc);
   const intervalDecHandlers = useLongPressSimple(intervalDec);
 
@@ -75,7 +84,7 @@ function BpmAutoPopup({
             <div className="bpm-auto-stepper">
               <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
               <span className="bpm-auto-step-val">
-                {bpmAutoInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
+                {activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
               </span>
               <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
             </div>
@@ -215,13 +224,14 @@ export function App() {
   const letterModeMountedRef = useRef(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [bpmAuto,          setBpmAuto]          = useState(() => saved?.bpmAuto ?? false);
-  const [bpmAutoStep,      setBpmAutoStep]      = useState(() => saved?.bpmAutoStep ?? 1);
-  const [bpmAutoDir,       setBpmAutoDir]       = useState(() => saved?.bpmAutoDir ?? 'up');
-  const [bpmAutoTrigger,   setBpmAutoTrigger]   = useState(() => saved?.bpmAutoTrigger ?? 'set');
-  const [bpmAutoInterval,  setBpmAutoInterval]  = useState(() => saved?.bpmAutoInterval ?? 8);
-  const [bpmAutoRandom,    setBpmAutoRandom]    = useState(() => saved?.bpmAutoRandom ?? false);
-  const [bpmAutoMin,       setBpmAutoMin]       = useState(() => saved?.bpmAutoMin ?? 78);
-  const [bpmAutoMax,       setBpmAutoMax]       = useState(() => saved?.bpmAutoMax ?? 82);
+  const [bpmAutoStep,        setBpmAutoStep]        = useState(() => saved?.bpmAutoStep ?? 2);
+  const [bpmAutoDir,         setBpmAutoDir]         = useState(() => saved?.bpmAutoDir ?? 'up');
+  const [bpmAutoTrigger,     setBpmAutoTrigger]     = useState(() => saved?.bpmAutoTrigger ?? 'set');
+  const [bpmAutoBarInterval, setBpmAutoBarInterval] = useState(() => saved?.bpmAutoBarInterval ?? 8);
+  const [bpmAutoSecInterval, setBpmAutoSecInterval] = useState(() => saved?.bpmAutoSecInterval ?? 30);
+  const [bpmAutoRandom,      setBpmAutoRandom]      = useState(() => saved?.bpmAutoRandom ?? false);
+  const [bpmAutoMin,         setBpmAutoMin]         = useState(bpm);
+  const [bpmAutoMax,         setBpmAutoMax]         = useState(bpm);
   const [bpmAutoOpen,      setBpmAutoOpen]      = useState(false);
   const autoBarCountRef  = useRef(0);
   const autoTimerRef     = useRef(null);
@@ -243,9 +253,9 @@ export function App() {
                    minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                    exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
                    subdivision, beatStates,
-                   bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoInterval,
-                   bpmAutoRandom, bpmAutoMin, bpmAutoMax });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoInterval, bpmAutoRandom, bpmAutoMin, bpmAutoMax]);
+                   bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
+                   bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -365,7 +375,7 @@ export function App() {
     if (!bpmAuto || mode !== MODE_CLICKONLY || phase !== "playing" || paused) return;
     if (bpmAutoTrigger !== "bars") return;
     autoBarCountRef.current += 1;
-    if (autoBarCountRef.current >= bpmAutoInterval) {
+    if (autoBarCountRef.current >= bpmAutoBarInterval) {
       autoBarCountRef.current = 0;
       applyBpmStep();
     }
@@ -377,10 +387,10 @@ export function App() {
       clearInterval(autoTimerRef.current); autoTimerRef.current = null;
       return;
     }
-    const intervalMs = Math.max(1, bpmAutoInterval) * 1000;
+    const intervalMs = Math.max(1, bpmAutoSecInterval) * 1000;
     autoTimerRef.current = setInterval(applyBpmStep, intervalMs);
     return () => { clearInterval(autoTimerRef.current); autoTimerRef.current = null; };
-  }, [bpmAuto, mode, phase, paused, bpmAutoTrigger, bpmAutoInterval, applyBpmStep]);
+  }, [bpmAuto, mode, phase, paused, bpmAutoTrigger, bpmAutoSecInterval, applyBpmStep]);
 
   // Reset bar counter when trigger type changes
   useEffect(() => { autoBarCountRef.current = 0; }, [bpmAutoTrigger]);
@@ -1036,7 +1046,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
@@ -1067,12 +1077,13 @@ export function App() {
 
       {bpmAutoOpen && (mode === MODE_CLICKONLY || infinite) && ReactDOM.createPortal(
         <BpmAutoPopup
-          mode={mode}
+          mode={mode} bpm={bpm}
           bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
           bpmAutoStep={bpmAutoStep} setBpmAutoStep={setBpmAutoStep}
           bpmAutoDir={bpmAutoDir} setBpmAutoDir={setBpmAutoDir}
           bpmAutoTrigger={bpmAutoTrigger} setBpmAutoTrigger={setBpmAutoTrigger}
-          bpmAutoInterval={bpmAutoInterval} setBpmAutoInterval={setBpmAutoInterval}
+          bpmAutoBarInterval={bpmAutoBarInterval} setBpmAutoBarInterval={setBpmAutoBarInterval}
+          bpmAutoSecInterval={bpmAutoSecInterval} setBpmAutoSecInterval={setBpmAutoSecInterval}
           bpmAutoRandom={bpmAutoRandom} setBpmAutoRandom={setBpmAutoRandom}
           bpmAutoMin={bpmAutoMin} setBpmAutoMin={setBpmAutoMin}
           bpmAutoMax={bpmAutoMax} setBpmAutoMax={setBpmAutoMax}
