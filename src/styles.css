@@ -843,7 +843,7 @@
       background: #1c1c1c; border: 1px solid #383838;
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
       border-radius: 6px; padding: 0.9rem 0.9rem;
-      display: flex; flex-direction: column; gap: 0.9rem;
+      display: flex; flex-direction: column; gap: 1.2rem;
       min-width: 240px;
     }
     .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
