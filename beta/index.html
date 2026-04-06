@@ -896,6 +896,33 @@
     .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
     .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
 
+    .bpm-auto-master-toggle {
+      width: 100%; padding: 0.45rem 0.6rem;
+      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
+      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
+      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .bpm-auto-master-toggle:active { background: #252525; }
+    .bpm-auto-master-toggle.active {
+      border-color: #f5c842; color: #f5c842; background: #1e1c12;
+    }
+
+    .bpm-auto-trigger-label {
+      font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
+    }
+
+    .bpm-auto-secondary {
+      border-top: 1px solid #2a2a2a; padding-top: 0.4rem; margin-top: 0.1rem;
+    }
+    .bpm-auto-random-toggle {
+      background: none; border: none; color: #555;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      cursor: pointer; padding: 0.2rem 0; text-align: left;
+      transition: color 0.1s;
+    }
+    .bpm-auto-random-toggle:active { color: #888; }
+    .bpm-auto-random-toggle.active { color: #aaa; }
+
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
     }
@@ -2070,21 +2097,24 @@
         <>
           <div className="bpm-auto-backdrop" onClick={onClose} />
           <div className="bpm-auto-popup" style={popupStyle}>
-            <div className="bpm-auto-row">
-              <span className="bpm-auto-label">Auto BPM</span>
-              <button
-                className={`sel-btn${bpmAuto ? " active" : ""}`}
-                style={{ flex: 'none', minWidth: 52, height: 32, fontSize: '0.7rem' }}
-                onClick={() => setBpmAuto(v => !v)}
-              >{bpmAuto ? "On" : "Off"}</button>
-            </div>
 
+            {/* Master toggle — prominent header */}
+            <button
+              className={`bpm-auto-master-toggle${bpmAuto ? " active" : ""}`}
+              onClick={() => setBpmAuto(v => !v)}
+            >
+              Auto BPM &nbsp;{bpmAuto ? "On" : "Off"}
+            </button>
+
+            {/* Trigger interval — Metronome only */}
             {isMetronome && (
               <div className="bpm-auto-row">
                 <span className="bpm-auto-label">Every</span>
                 <div className="bpm-auto-stepper">
                   <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoInterval}</span>
+                  <span className="bpm-auto-step-val">
+                    {bpmAutoInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
+                  </span>
                   <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
                 </div>
                 <div className="bpm-auto-unit-row">
@@ -2096,28 +2126,13 @@
               </div>
             )}
 
-            <div className="bpm-auto-row">
-              <button className={`sel-btn${bpmAutoRandom ? " active" : ""}`}
-                style={{ flex: 'none', minWidth: 64, height: 32, fontSize: '0.7rem' }}
-                onClick={() => setBpmAutoRandom(v => !v)}>~ Random</button>
-            </div>
+            {/* Trigger label — infinite modes */}
+            {!isMetronome && (
+              <div className="bpm-auto-trigger-label">Changes every set</div>
+            )}
 
-            {bpmAutoRandom ? (
-              <div className="bpm-auto-row">
-                <span className="bpm-auto-label">Min</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMin}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
-                </div>
-                <span className="bpm-auto-label">Max</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMax}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
-                </div>
-              </div>
-            ) : (
+            {/* Step / direction — primary controls */}
+            {!bpmAutoRandom && (
               <div className="bpm-auto-row">
                 <span className="bpm-auto-label">Step</span>
                 <div className="bpm-auto-stepper">
@@ -2133,6 +2148,31 @@
                 </div>
               </div>
             )}
+
+            {/* Random — secondary section */}
+            <div className="bpm-auto-secondary">
+              <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
+                onClick={() => setBpmAutoRandom(v => !v)}>
+                {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
+              </button>
+              {bpmAutoRandom && (
+                <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
+                  <span className="bpm-auto-label">Min</span>
+                  <div className="bpm-auto-stepper">
+                    <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
+                    <span className="bpm-auto-step-val">{bpmAutoMin}</span>
+                    <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+                  </div>
+                  <span className="bpm-auto-label">Max</span>
+                  <div className="bpm-auto-stepper">
+                    <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
+                    <span className="bpm-auto-step-val">{bpmAutoMax}</span>
+                    <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
+                  </div>
+                </div>
+              )}
+            </div>
+
           </div>
         </>,
         document.body
@@ -2214,7 +2254,7 @@
       const [bpmAutoStep,      setBpmAutoStep]      = useState(() => saved?.bpmAutoStep ?? 1);
       const [bpmAutoDir,       setBpmAutoDir]       = useState(() => saved?.bpmAutoDir ?? 'up');
       const [bpmAutoTrigger,   setBpmAutoTrigger]   = useState(() => saved?.bpmAutoTrigger ?? 'set');
-      const [bpmAutoInterval,  setBpmAutoInterval]  = useState(() => saved?.bpmAutoInterval ?? 4);
+      const [bpmAutoInterval,  setBpmAutoInterval]  = useState(() => saved?.bpmAutoInterval ?? 8);
       const [bpmAutoRandom,    setBpmAutoRandom]    = useState(() => saved?.bpmAutoRandom ?? false);
       const [bpmAutoMin,       setBpmAutoMin]       = useState(() => saved?.bpmAutoMin ?? 70);
       const [bpmAutoMax,       setBpmAutoMax]       = useState(() => saved?.bpmAutoMax ?? 90);
@@ -3032,7 +3072,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.11 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

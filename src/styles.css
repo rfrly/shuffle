@@ -871,6 +871,33 @@
     .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
     .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
 
+    .bpm-auto-master-toggle {
+      width: 100%; padding: 0.45rem 0.6rem;
+      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
+      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
+      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .bpm-auto-master-toggle:active { background: #252525; }
+    .bpm-auto-master-toggle.active {
+      border-color: #f5c842; color: #f5c842; background: #1e1c12;
+    }
+
+    .bpm-auto-trigger-label {
+      font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
+    }
+
+    .bpm-auto-secondary {
+      border-top: 1px solid #2a2a2a; padding-top: 0.4rem; margin-top: 0.1rem;
+    }
+    .bpm-auto-random-toggle {
+      background: none; border: none; color: #555;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      cursor: pointer; padding: 0.2rem 0; text-align: left;
+      transition: color 0.1s;
+    }
+    .bpm-auto-random-toggle:active { color: #888; }
+    .bpm-auto-random-toggle.active { color: #aaa; }
+
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
     }
