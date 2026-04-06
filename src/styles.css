@@ -882,8 +882,8 @@
       border-color: #f5c842; color: #f5c842; background: #1e1c12;
     }
 
-    .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.75rem; }
-    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.75rem; }
+    .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
+    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
 
     .bpm-auto-trigger-label {
       font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
