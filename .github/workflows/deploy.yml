@@ -23,6 +23,7 @@ jobs:
       - name: Checkout dev (for beta/)
         uses: actions/checkout@v4
         with:
+          ref: dev
           path: dev-checkout
 
       - name: Checkout main (for live app build)

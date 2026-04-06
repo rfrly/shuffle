@@ -34,13 +34,33 @@ Source file structure:
 - When changes are confirmed working, open a PR from `dev` → `main` on GitHub — merging triggers deployment to shuffleclick.com
 - If working across two Macs, always push before switching machines and pull before starting work on the other
 
-**CRITICAL — beta/live/watch separation:**
-- `shuffleclick.com` (live) and `shuffleclick.com/watch/` are NEVER touched by `dev` pushes
-- The deploy workflow always builds the live app and watch from `main`'s source — never from `dev`
-- Only `shuffleclick.com/beta/` is updated when pushing to `dev`
-- **Never merge `dev` → `main` until beta features are confirmed working** — merging is what ships to the live app
-- Do not suggest or perform a `dev` → `main` merge unless the user explicitly asks to ship
-- **Hotfix workflow (watch/live fixes while beta is in progress):** create a branch off `main` (`git checkout main && git checkout -b hotfix/description`), apply only the targeted fix to `build-watch.sh`, run `python3 build-watch.sh --watch`, commit, push, and open a PR to `main`. Then merge the hotfix into `dev` to keep in sync (`git checkout dev && git merge hotfix/description`). Never cherry-pick generated files (`watch/index.html`, `beta/index.html`) — always regenerate them.
+**CRITICAL — what deploys where:**
+
+| App | URL | Always deployed from |
+|-----|-----|---------------------|
+| Live | `shuffleclick.com/` | `main` |
+| Watch | `shuffleclick.com/watch/` | `main` |
+| Beta | `shuffleclick.com/beta/` | `dev` |
+
+The deploy workflow runs on every push to `main` or `dev`. Live and watch always come from `main`. Beta always comes from `dev`. A push to `dev` never touches live or watch. A merge to `main` never touches beta.
+
+**Beta update workflow:**
+1. Work on `dev` — edit `src/`, run `python3 build-watch.sh`, commit, push
+2. Beta updates at `shuffleclick.com/beta/` within ~3 minutes
+3. When ready to ship: PR `dev` → `main` — live and watch update
+
+**Watch update workflow:**
+1. Branch off `main`: `git checkout main && git checkout -b hotfix/description`
+2. Edit `build-watch.sh` only — never edit `src/`
+3. Run `python3 build-watch.sh`, commit, push, PR to `main`
+4. Watch updates at `shuffleclick.com/watch/` within ~3 minutes
+5. **After merging, sync to `dev`**: `git checkout dev && git merge main && git push` — this ensures the watch fix isn't lost when beta eventually ships
+
+**Never:**
+- Merge `dev` → `main` to ship a watch fix — use a hotfix branch off `main`
+- Edit `src/` in a watch hotfix branch — watch logic lives in `build-watch.sh` patches
+- Cherry-pick generated files (`watch/index.html`, `beta/index.html`) — always regenerate with `python3 build-watch.sh`
+- Merge `dev` → `main` without first running `git merge main` into `dev` — ensures no watch fixes are overwritten when shipping beta
 
 ---
 
