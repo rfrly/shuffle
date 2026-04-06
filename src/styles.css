@@ -824,6 +824,53 @@
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
 
+    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
+    .bpm-widget-row .bpm-widget { flex: 1; }
+
+    .bpm-gear-btn {
+      width: 36px; height: 44px; flex-shrink: 0;
+      background: #1a1a1a; border: 1px solid #333; color: #777;
+      font-size: 1rem; cursor: pointer; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, color 0.1s;
+    }
+    .bpm-gear-btn:active { background: #2a2a2a; }
+    .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
+
+    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; }
+    .bpm-auto-popup {
+      position: fixed; z-index: 50;
+      background: #1c1c1c; border: 1px solid #383838;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+      border-radius: 6px; padding: 0.6rem 0.7rem;
+      display: flex; flex-direction: column; gap: 0.5rem;
+      min-width: 240px;
+    }
+    .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
+    .bpm-auto-label { font-size: 0.65rem; color: #888; white-space: nowrap; min-width: 28px; }
+    .bpm-auto-stepper { display: flex; align-items: center; height: 32px; }
+    .bpm-auto-step-btn {
+      width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.1s; flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+    .bpm-auto-step-btn:active { background: #2a2a2a; color: #fff; }
+    .bpm-auto-step-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .bpm-auto-step-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
+    .bpm-auto-step-val {
+      min-width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333;
+      border-left: none; border-right: none;
+      color: #e8e8e8; font-family: var(--font-mono);
+      font-size: 0.85rem; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
+    .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
+
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
     }
