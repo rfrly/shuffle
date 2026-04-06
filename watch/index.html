@@ -2851,7 +2851,7 @@
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
 
-      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
+      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({
         bpm,
         beatsPerBar: timeSig.beats,
         barsPerExercise: barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength),
@@ -3206,8 +3206,8 @@
       }, [running]);
 
       const clampBpm = (v) => Math.min(BPM_MAX, Math.max(BPM_MIN, v));
-      const incBpm  = useCallback(() => setBpm(b => clampBpm(b + 1)), []);
-      const decBpm  = useCallback(() => setBpm(b => clampBpm(b - 1)), []);
+      const incBpm  = useCallback(() => { if (watchScreen === "app") return; setBpm(b => clampBpm(b + 1)); }, [watchScreen]);
+      const decBpm  = useCallback(() => { if (watchScreen === "app") return; setBpm(b => clampBpm(b - 1)); }, [watchScreen]);
       const cycleBeatState = useCallback((i) => {
         setBeatStates(prev => {
           const next = [...prev];
@@ -3216,8 +3216,8 @@
           return next;
         });
       }, []);
-      const incBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running]);
-      const decBars   = useCallback(() => { if (!running) setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running]);
+      const incBars   = useCallback(() => { if (!running && watchScreen !== "app") setBarsPerExercise(b => Math.min(BARS_MAX, b + 1)); }, [running, watchScreen]);
+      const decBars   = useCallback(() => { if (!running && watchScreen !== "app") setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running, watchScreen]);
       const bpmIncHandlers  = useLongPress(incBpm);
       const bpmDecHandlers  = useLongPress(decBpm);
       const barsIncHandlers = useLongPress(incBars);
@@ -3288,7 +3288,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.48</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.49</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -3687,7 +3687,7 @@
               </div>
 
               {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
+                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || exMode === 'pick' ? " dimmed" : ""}`}>
                   <label>Exercise length</label>
                   <CompactSelector
                     id="exLength"
@@ -3703,7 +3703,7 @@
               )}
 
               {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running ? " dimmed" : ""}`}>
+                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>
                   <label>Exercises</label>
                   <div className="ex-control-row">
                     {exMode === 'range' ? (
@@ -3739,7 +3739,7 @@
               )}
 
               {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running ? " dimmed" : ""}`}>
+                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>
                   <label>Rounds</label>
                   <div className="stepper">
                     <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
