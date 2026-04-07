@@ -674,13 +674,13 @@ export function App() {
             </div>
             <div className="help-section">
               <h3>BPM automation</h3>
-              <p>Tap the <strong>⚙</strong> button next to the BPM control to open automation settings. The ⚙ button is only shown in Metronome mode and Shuffle/Sequence ∞ mode.</p>
+              <p>Tap the <strong>⚙&#xFE0E;</strong> button next to the BPM control to open automation settings. The ⚙&#xFE0E; button is only shown in Metronome mode and Shuffle/Sequence ∞ mode.</p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li><strong>Shuffle/Sequence ∞</strong> — BPM steps up or down by the chosen amount after each full set.</li>
                 <li><strong>Metronome</strong> — BPM steps every N bars or every N seconds.</li>
                 <li><strong>Random</strong> — instead of stepping, BPM randomises within a range (up to 20 BPM wide) at each trigger point.</li>
               </ul>
-              <p>BPM stops changing when it reaches 30 or 300. Turn automation off with the On/Off toggle in the ⚙ popup.</p>
+              <p>BPM stops changing when it reaches 30 or 300. Turn automation off with the On/Off toggle in the ⚙&#xFE0E; popup.</p>
             </div>
             <div className="help-section">
               <h3>Loop / Pause / Stop</h3>
@@ -871,7 +871,7 @@ export function App() {
                   className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
                   onClick={() => setBpmAutoOpen(v => !v)}
                   title="BPM automation"
-                >⚙</button>
+                >⚙&#xFE0E;</button>
               )}
             </div>
           </div>
