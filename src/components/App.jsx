@@ -980,13 +980,12 @@ export function App() {
           )}
 
           {mode === MODE_CLICKONLY && (
-            <div className={`control-group full-width${running ? " dimmed" : ""}`}>
+            <div className="control-group full-width">
               <label>Subdivision</label>
               <div className="selector-row">
                 {[{v:1,l:"None"},{v:2,l:"8ths"},{v:3,l:"Triplets"},{v:4,l:"16ths"}].map(opt => (
                   <button key={opt.v}
                     className={`sel-btn${subdivision === opt.v ? " active" : ""}`}
-                    disabled={running}
                     onClick={() => setSubdivision(opt.v)}>
                     {opt.l}
                   </button>
