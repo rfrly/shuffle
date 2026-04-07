@@ -887,7 +887,7 @@
 
     .bpm-auto-trigger-label {
       font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
-      padding: 0.2rem 0;
+      padding: 0.1rem 0; margin-bottom: -0.4rem;
     }
 
     .bpm-auto-secondary {
