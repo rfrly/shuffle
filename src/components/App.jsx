@@ -498,6 +498,7 @@ export function App() {
     }
   }, [currentBar, currentBeat, phase, paused]);
 
+
   const exInputDisabled = running || mode === MODE_CLICKONLY;
   const minSwipeHandlers = useSwipeInput({
     disabled: exInputDisabled,
@@ -1089,7 +1090,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.32 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.34 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
