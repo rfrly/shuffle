@@ -340,7 +340,7 @@
 
     @media (max-width: 767px) {
       .controls-grid {
-        grid-template-columns: 3fr 2fr;
+        grid-template-columns: 1fr 1fr;
       }
     }
 
@@ -851,11 +851,18 @@
 
     .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
     .bpm-widget-row .bpm-widget { flex: 1; }
+    .gear-visible .bpm-widget-row { gap: 2px; }
+    .gear-visible .bpm-btn.right { border-radius: 0 4px 4px 0; }
+    .bpm-timesig-row { display: flex; gap: 0.75rem; grid-column: 1 / -1; }
+    .bpm-timesig-row .bpm-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
+    .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
 
     .bpm-gear-btn {
       width: 36px; height: 44px; flex-shrink: 0;
       background: #1a1a1a; border: 1px solid #333; color: #777;
-      font-size: 1.25rem; cursor: pointer; border-radius: 4px;
+      font-size: 1.25rem; line-height: 1; cursor: pointer; border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.1s, color 0.1s;
     }
@@ -2896,45 +2903,47 @@
                 </div>
               </div>
 
-              <div className="control-group">
-                <label>BPM</label>
-                <div className="bpm-widget-row">
-                  <div className="bpm-widget">
-                    <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                    <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                      onClick={!running ? handleTap : undefined}
-                      onMouseDown={e => e.preventDefault()}
-                      style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                        <span>{bpm}</span>
-                        {!running && <span className="bpm-tap-label">tap to set</span>}
+              <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || infinite) ? " gear-visible" : ""}`}>
+                <div className="control-group bpm-group">
+                  <label>BPM</label>
+                  <div className="bpm-widget-row">
+                    <div className="bpm-widget">
+                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                        onClick={!running ? handleTap : undefined}
+                        onMouseDown={e => e.preventDefault()}
+                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                          <span>{bpm}</span>
+                          {!running && <span className="bpm-tap-label">tap to set</span>}
+                        </div>
                       </div>
+                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                     </div>
-                    <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+                    {(mode === MODE_CLICKONLY || infinite) && (
+                      <button
+                        ref={bpmGearBtnRef}
+                        className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
+                        onClick={() => setBpmAutoOpen(v => !v)}
+                        title="BPM automation"
+                      >⚙&#xFE0E;</button>
+                    )}
                   </div>
-                  {(mode === MODE_CLICKONLY || infinite) && (
-                    <button
-                      ref={bpmGearBtnRef}
-                      className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
-                      onClick={() => setBpmAutoOpen(v => !v)}
-                      title="BPM automation"
-                    >⚙&#xFE0E;</button>
-                  )}
                 </div>
-              </div>
 
-              <div className={`control-group${running ? " dimmed" : ""}`}>
-                <label>Time signature</label>
-                <CompactSelector
-                  id="timeSig"
-                  value={timeSig}
-                  options={TIME_SIGS}
-                  onChange={setTimeSig}
-                  disabled={running}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={ts => ts.label}
-                />
+                <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>
+                  <label>Time signature</label>
+                  <CompactSelector
+                    id="timeSig"
+                    value={timeSig}
+                    options={TIME_SIGS}
+                    onChange={setTimeSig}
+                    disabled={running}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={ts => ts.label}
+                  />
+                </div>
               </div>
 
               <div className={`control-group${running ? " dimmed" : ""}`}>
@@ -3092,7 +3101,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.24 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.31 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

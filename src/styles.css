@@ -315,7 +315,7 @@
 
     @media (max-width: 767px) {
       .controls-grid {
-        grid-template-columns: 3fr 2fr;
+        grid-template-columns: 1fr 1fr;
       }
     }
 
@@ -826,11 +826,18 @@
 
     .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
     .bpm-widget-row .bpm-widget { flex: 1; }
+    .gear-visible .bpm-widget-row { gap: 2px; }
+    .gear-visible .bpm-btn.right { border-radius: 0 4px 4px 0; }
+    .bpm-timesig-row { display: flex; gap: 0.75rem; grid-column: 1 / -1; }
+    .bpm-timesig-row .bpm-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
+    .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
 
     .bpm-gear-btn {
       width: 36px; height: 44px; flex-shrink: 0;
       background: #1a1a1a; border: 1px solid #333; color: #777;
-      font-size: 1.25rem; cursor: pointer; border-radius: 4px;
+      font-size: 1.25rem; line-height: 1; cursor: pointer; border-radius: 4px;
       display: flex; align-items: center; justify-content: center;
       transition: background 0.1s, color 0.1s;
     }

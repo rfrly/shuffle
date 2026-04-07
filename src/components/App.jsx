@@ -852,45 +852,47 @@ export function App() {
             </div>
           </div>
 
-          <div className="control-group">
-            <label>BPM</label>
-            <div className="bpm-widget-row">
-              <div className="bpm-widget">
-                <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                  onClick={!running ? handleTap : undefined}
-                  onMouseDown={e => e.preventDefault()}
-                  style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                    <span>{bpm}</span>
-                    {!running && <span className="bpm-tap-label">tap to set</span>}
+          <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || infinite) ? " gear-visible" : ""}`}>
+            <div className="control-group bpm-group">
+              <label>BPM</label>
+              <div className="bpm-widget-row">
+                <div className="bpm-widget">
+                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!running ? handleTap : undefined}
+                    onMouseDown={e => e.preventDefault()}
+                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                      <span>{bpm}</span>
+                      {!running && <span className="bpm-tap-label">tap to set</span>}
+                    </div>
                   </div>
+                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                 </div>
-                <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+                {(mode === MODE_CLICKONLY || infinite) && (
+                  <button
+                    ref={bpmGearBtnRef}
+                    className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
+                    onClick={() => setBpmAutoOpen(v => !v)}
+                    title="BPM automation"
+                  >⚙&#xFE0E;</button>
+                )}
               </div>
-              {(mode === MODE_CLICKONLY || infinite) && (
-                <button
-                  ref={bpmGearBtnRef}
-                  className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
-                  onClick={() => setBpmAutoOpen(v => !v)}
-                  title="BPM automation"
-                >⚙&#xFE0E;</button>
-              )}
             </div>
-          </div>
 
-          <div className={`control-group${running ? " dimmed" : ""}`}>
-            <label>Time signature</label>
-            <CompactSelector
-              id="timeSig"
-              value={timeSig}
-              options={TIME_SIGS}
-              onChange={setTimeSig}
-              disabled={running}
-              openSelector={openSelector}
-              setOpenSelector={setOpenSelector}
-              getLabel={ts => ts.label}
-            />
+            <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>
+              <label>Time signature</label>
+              <CompactSelector
+                id="timeSig"
+                value={timeSig}
+                options={TIME_SIGS}
+                onChange={setTimeSig}
+                disabled={running}
+                openSelector={openSelector}
+                setOpenSelector={setOpenSelector}
+                getLabel={ts => ts.label}
+              />
+            </div>
           </div>
 
           <div className={`control-group${running ? " dimmed" : ""}`}>
@@ -1048,7 +1050,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.24 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.31 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
