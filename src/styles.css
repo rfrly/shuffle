@@ -418,6 +418,9 @@
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
     .sel-btn:disabled { opacity: 0.25; cursor: default; }
 
+    .subdiv-btn { padding: 0; }
+    .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
+
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
       font-size: 0.75rem; color: #aaa;
@@ -833,6 +836,12 @@
     .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
     .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
     .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
+
+    @media (min-width: 768px) {
+      .bpm-timesig-row { display: contents; }
+      .bpm-timesig-row .bpm-group { min-width: 0; }
+      .bpm-timesig-row .timesig-group { min-width: 0; }
+    }
 
     .bpm-gear-btn {
       width: 36px; height: 44px; flex-shrink: 0;

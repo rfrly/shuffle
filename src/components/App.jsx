@@ -985,13 +985,52 @@ export function App() {
             <div className="control-group full-width">
               <label>Subdivision</label>
               <div className="selector-row">
-                {[{v:1,l:"None"},{v:2,l:"8ths"},{v:3,l:"Triplets"},{v:4,l:"16ths"}].map(opt => (
-                  <button key={opt.v}
-                    className={`sel-btn${subdivision === opt.v ? " active" : ""}`}
-                    onClick={() => setSubdivision(opt.v)}>
-                    {opt.l}
-                  </button>
-                ))}
+                {/* Quarter note — no subdivision */}
+                <button className={`sel-btn subdiv-btn${subdivision === 1 ? " active" : ""}`} onClick={() => setSubdivision(1)}>
+                  <svg viewBox="0 0 16 36" className="subdiv-svg">
+                    <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
+                    <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                  </svg>
+                </button>
+                {/* Two beamed 8th notes */}
+                <button className={`sel-btn subdiv-btn${subdivision === 2 ? " active" : ""}`} onClick={() => setSubdivision(2)}>
+                  <svg viewBox="0 0 30 36" className="subdiv-svg">
+                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                    <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                  </svg>
+                </button>
+                {/* Three beamed triplet 8th notes with bracket+3 */}
+                <button className={`sel-btn subdiv-btn${subdivision === 3 ? " active" : ""}`} onClick={() => setSubdivision(3)}>
+                  <svg viewBox="0 -10 46 46" className="subdiv-svg">
+                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                    <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+                    <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
+                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                    <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
+                    <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
+                  </svg>
+                </button>
+                {/* Four beamed 16th notes (two beams) */}
+                <button className={`sel-btn subdiv-btn${subdivision === 4 ? " active" : ""}`} onClick={() => setSubdivision(4)}>
+                  <svg viewBox="0 0 46 36" className="subdiv-svg">
+                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                    <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
+                    <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
+                    <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
+                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                    <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                    <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
+                  </svg>
+                </button>
               </div>
             </div>
           )}
@@ -1050,7 +1089,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.31 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.32 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
