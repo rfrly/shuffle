@@ -26,7 +26,7 @@ Source file structure:
 ## Claude Code workflow
 
 - All development happens on the `dev` branch — **never commit directly to `main`**
-- Before making any changes, confirm the current version number in `src/components/App.jsx` (in the footer JSX)
+- Before making any changes, check the current version in `src/components/App.jsx` (footer JSX) against the latest git commit message. If they don't match, update the footer to the correct beta number first.
 - To preview changes locally: `npm run dev` — opens a live-reloading dev server
 - All changes to the main app go in `src/` files only — never edit `beta/index.html` or `watch/index.html` (generated files) directly
 - After any main app changes, run `python3 build-watch.sh` (or `npm run generate`) to regenerate `beta/index.html` and commit it
@@ -143,7 +143,8 @@ Development builds (dev branch):
 - All new development happens in `src/` files on the `dev` branch
 - Version number lives in the footer JSX in `src/components/App.jsx`
 - Use the next target version with a beta suffix while in development: if live is v1.5.33 and the next version will be v1.5.34, use v1.5.34.beta.1, v1.5.34.beta.2, etc.
-- Increment the beta suffix with each meaningful change on dev
+- Increment the beta suffix with each meaningful change on dev — always before committing, never after
+- The footer version in `src/components/App.jsx` must match the commit message version. Never commit with a stale version number.
 - Never change the version to a release number until the PR is being merged to main
 
 After shipping (merging dev → main):
