@@ -120,7 +120,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Terminology: "Rounds" not "repetitions", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
 - Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (disabled in Metronome mode)
 - All controls 44px minimum height
-- Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries
+- Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries. **Caveat:** newer iPads may not match `(pointer: coarse)` — use `(min-width: 768px) and (max-width: 1024px) and (orientation: portrait/landscape)` for iPad-specific layout rules rather than relying on pointer/hover conditions
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
