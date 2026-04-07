@@ -418,6 +418,10 @@
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
     .sel-btn:disabled { opacity: 0.25; cursor: default; }
 
+    .subdiv-group { grid-column: 1 / -1; }
+    @media (max-width: 767px) {
+      .subdiv-group { grid-column: auto; }
+    }
     .subdiv-btn { padding: 0; }
     .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
 
