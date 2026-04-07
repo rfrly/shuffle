@@ -849,8 +849,8 @@
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
 
-    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
-    .bpm-widget-row .bpm-widget { flex: 1; }
+    .time-sig-row { display: flex; align-items: center; gap: 0.4rem; }
+    .time-sig-row .compact-sel-btn { flex: 1; }
 
     .bpm-gear-btn {
       width: 36px; height: 44px; flex-shrink: 0;
@@ -919,13 +919,14 @@
       border-top: 1px solid #2a2a2a; padding-top: 0.6rem;
     }
     .bpm-auto-random-toggle {
-      background: none; border: none; color: #555;
-      font-family: var(--font-mono); font-size: 0.65rem;
-      cursor: pointer; padding: 0.2rem 0; text-align: left;
-      transition: color 0.1s;
+      width: 100%; padding: 0.35rem 0.6rem;
+      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
+      color: #777; font-family: var(--font-mono); font-size: 0.7rem;
+      cursor: pointer; text-align: center;
+      transition: background 0.1s, border-color 0.1s, color 0.1s;
     }
-    .bpm-auto-random-toggle:active { color: #888; }
-    .bpm-auto-random-toggle.active { color: #aaa; }
+    .bpm-auto-random-toggle:active { background: #2a2a2a; }
+    .bpm-auto-random-toggle.active { border-color: #f5c842; color: #f5c842; background: #1e1c12; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
@@ -2071,8 +2072,11 @@
       useEffect(() => {
         if (anchorRef.current) {
           const rect = anchorRef.current.getBoundingClientRect();
+          const popupWidth = 260;
+          const centreLeft = Math.round((window.innerWidth - popupWidth) / 2);
+          const anchorLeft = Math.min(rect.left, window.innerWidth - popupWidth - 8);
           setPopupStyle({
-            left: Math.min(rect.left, window.innerWidth - 260),
+            left: Math.max(8, window.innerWidth < 500 ? centreLeft : anchorLeft),
             bottom: window.innerHeight - rect.top + 6,
           });
         }
@@ -2168,7 +2172,7 @@
             <div className="bpm-auto-secondary">
               <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
                 onClick={() => setBpmAutoRandom(v => !v)}>
-                {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
+                Random tempo
               </button>
               {bpmAutoRandom && (
                 <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
@@ -2895,20 +2899,24 @@
 
               <div className="control-group">
                 <label>BPM</label>
-                <div className="bpm-widget-row">
-                  <div className="bpm-widget">
-                    <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                    <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                      onClick={!running ? handleTap : undefined}
-                      onMouseDown={e => e.preventDefault()}
-                      style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                        <span>{bpm}</span>
-                        {!running && <span className="bpm-tap-label">tap to set</span>}
-                      </div>
+                <div className="bpm-widget">
+                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!running ? handleTap : undefined}
+                    onMouseDown={e => e.preventDefault()}
+                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                      <span>{bpm}</span>
+                      {!running && <span className="bpm-tap-label">tap to set</span>}
                     </div>
-                    <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                   </div>
+                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+                </div>
+              </div>
+
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Time signature</label>
+                <div className="time-sig-row">
                   {(mode === MODE_CLICKONLY || infinite) && (
                     <button
                       ref={bpmGearBtnRef}
@@ -2917,21 +2925,17 @@
                       title="BPM automation"
                     >⚙&#xFE0E;</button>
                   )}
+                  <CompactSelector
+                    id="timeSig"
+                    value={timeSig}
+                    options={TIME_SIGS}
+                    onChange={setTimeSig}
+                    disabled={running}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={ts => ts.label}
+                  />
                 </div>
-              </div>
-
-              <div className={`control-group${running ? " dimmed" : ""}`}>
-                <label>Time signature</label>
-                <CompactSelector
-                  id="timeSig"
-                  value={timeSig}
-                  options={TIME_SIGS}
-                  onChange={setTimeSig}
-                  disabled={running}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={ts => ts.label}
-                />
               </div>
 
               <div className={`control-group${running ? " dimmed" : ""}`}>
