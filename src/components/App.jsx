@@ -127,7 +127,7 @@ function BpmAutoPopup({
         <div className="bpm-auto-secondary">
           <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
             onClick={() => setBpmAutoRandom(v => !v)}>
-            Random tempo
+            {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
           </button>
           {bpmAutoRandom && (
             <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
@@ -854,24 +854,20 @@ export function App() {
 
           <div className="control-group">
             <label>BPM</label>
-            <div className="bpm-widget">
-              <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-              <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                onClick={!running ? handleTap : undefined}
-                onMouseDown={e => e.preventDefault()}
-                style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                  <span>{bpm}</span>
-                  {!running && <span className="bpm-tap-label">tap to set</span>}
+            <div className="bpm-widget-row">
+              <div className="bpm-widget">
+                <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                  onClick={!running ? handleTap : undefined}
+                  onMouseDown={e => e.preventDefault()}
+                  style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                    <span>{bpm}</span>
+                    {!running && <span className="bpm-tap-label">tap to set</span>}
+                  </div>
                 </div>
+                <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
               </div>
-              <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
-            </div>
-          </div>
-
-          <div className={`control-group${running ? " dimmed" : ""}`}>
-            <label>Time signature</label>
-            <div className="time-sig-row">
               {(mode === MODE_CLICKONLY || infinite) && (
                 <button
                   ref={bpmGearBtnRef}
@@ -880,17 +876,21 @@ export function App() {
                   title="BPM automation"
                 >⚙&#xFE0E;</button>
               )}
-              <CompactSelector
-                id="timeSig"
-                value={timeSig}
-                options={TIME_SIGS}
-                onChange={setTimeSig}
-                disabled={running}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={ts => ts.label}
-              />
             </div>
+          </div>
+
+          <div className={`control-group${running ? " dimmed" : ""}`}>
+            <label>Time signature</label>
+            <CompactSelector
+              id="timeSig"
+              value={timeSig}
+              options={TIME_SIGS}
+              onChange={setTimeSig}
+              disabled={running}
+              openSelector={openSelector}
+              setOpenSelector={setOpenSelector}
+              getLabel={ts => ts.label}
+            />
           </div>
 
           <div className={`control-group${running ? " dimmed" : ""}`}>

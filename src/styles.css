@@ -315,7 +315,7 @@
 
     @media (max-width: 767px) {
       .controls-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 3fr 2fr;
       }
     }
 
@@ -824,8 +824,8 @@
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
 
-    .time-sig-row { display: flex; align-items: center; gap: 0.4rem; }
-    .time-sig-row .compact-sel-btn { flex: 1; }
+    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
+    .bpm-widget-row .bpm-widget { flex: 1; }
 
     .bpm-gear-btn {
       width: 36px; height: 44px; flex-shrink: 0;
@@ -894,14 +894,13 @@
       border-top: 1px solid #2a2a2a; padding-top: 0.6rem;
     }
     .bpm-auto-random-toggle {
-      width: 100%; padding: 0.35rem 0.6rem;
-      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
-      color: #777; font-family: var(--font-mono); font-size: 0.7rem;
-      cursor: pointer; text-align: center;
-      transition: background 0.1s, border-color 0.1s, color 0.1s;
+      background: none; border: none; color: #555;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      cursor: pointer; padding: 0.2rem 0; text-align: left;
+      transition: color 0.1s;
     }
-    .bpm-auto-random-toggle:active { background: #2a2a2a; }
-    .bpm-auto-random-toggle.active { border-color: #f5c842; color: #f5c842; background: #1e1c12; }
+    .bpm-auto-random-toggle:active { color: #888; }
+    .bpm-auto-random-toggle.active { color: #bbb; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
