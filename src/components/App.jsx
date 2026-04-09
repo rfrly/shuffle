@@ -687,7 +687,7 @@ export function App() {
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li><strong>Shuffle/Sequence ∞</strong> — BPM steps up or down by the chosen amount after each full set.</li>
                 <li><strong>Metronome</strong> — BPM steps every N bars or every N seconds.</li>
-                <li><strong>Random</strong> — instead of stepping, BPM randomises within a range (up to 20 BPM wide) at each trigger point.</li>
+                <li><strong>Random</strong> (Shuffle/Sequence ∞ only) — instead of stepping, BPM randomises within a range (up to 20 BPM wide) at each trigger point.</li>
               </ul>
               <p>BPM stops changing when it reaches 30 or 300. Turn automation off with the On/Off toggle in the ⚙&#xFE0E; popup.</p>
             </div>
@@ -1095,7 +1095,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.37 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.38 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

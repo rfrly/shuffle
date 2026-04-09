@@ -104,7 +104,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - A master **Auto BPM** toggle (full-width button; amber fill = on, dim = off — same pattern as mode buttons)
 - **Shuffle/Sequence ∞**: step amount (1–10, default 2) + ▲ Up / ▼ Down direction; triggers after each full set completes via `onSetLoop` callback in `useDrumTimer` → `handleSetLoop` in App; set completion detected by counting playing bars (`playingBars` ref) and firing when `playingBars % totalBarsPerSet === 0` where `totalBarsPerSet = totalInSet * bpe`
 - **Metronome**: same step/direction controls plus an "Every N bars/sec" trigger; bars and seconds have independent state (`bpmAutoBarInterval` default 8, `bpmAutoSecInterval` default 30); bar trigger uses a `useEffect` watching `exercise` state (increments each bar in Metronome mode); `'set'` trigger value is treated as `'bars'` in Metronome mode; time trigger uses `setInterval`
-- **Random tempo** (secondary/niche): demoted below a divider; seeds min/max from `bpm ± 7%` each time the popup opens (not persisted); max span 8 BPM
+- **Random tempo** (Shuffle/Sequence ∞ only; secondary/niche): demoted below a divider; hidden in Metronome mode (popup uses `isMetronome` guard); `applyBpmStep` also guards on `mode !== MODE_CLICKONLY` so persisted random state can't apply in Metronome; seeds min/max from `bpm ± 7%` each time the popup opens (not persisted); max span 8 BPM
 - All controls below the master toggle are greyed out (`bpm-auto-disabled` class) when Auto BPM is off
 - Settings persisted to localStorage except `bpmAutoMin`/`bpmAutoMax` (always recomputed from current BPM)
 
