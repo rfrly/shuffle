@@ -125,29 +125,31 @@ function BpmAutoPopup({
           </div>
         )}
 
-        {/* Random — secondary section */}
-        <div className="bpm-auto-secondary">
-          <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
-            onClick={() => setBpmAutoRandom(v => !v)}>
-            {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
-          </button>
-          {bpmAutoRandom && (
-            <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
-              <span className="bpm-auto-label">Min</span>
-              <div className="bpm-auto-stepper">
-                <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
-                <span className="bpm-auto-step-val">{bpmAutoMin}</span>
-                <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+        {/* Random — secondary section, Shuffle/Sequence ∞ only */}
+        {!isMetronome && (
+          <div className="bpm-auto-secondary">
+            <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
+              onClick={() => setBpmAutoRandom(v => !v)}>
+              {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
+            </button>
+            {bpmAutoRandom && (
+              <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
+                <span className="bpm-auto-label">Min</span>
+                <div className="bpm-auto-stepper">
+                  <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
+                  <span className="bpm-auto-step-val">{bpmAutoMin}</span>
+                  <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+                </div>
+                <span className="bpm-auto-label">Max</span>
+                <div className="bpm-auto-stepper">
+                  <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
+                  <span className="bpm-auto-step-val">{bpmAutoMax}</span>
+                  <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
+                </div>
               </div>
-              <span className="bpm-auto-label">Max</span>
-              <div className="bpm-auto-stepper">
-                <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
-                <span className="bpm-auto-step-val">{bpmAutoMax}</span>
-                <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
-              </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         </div>{/* end bpm-auto-disabled wrapper */}
 
@@ -314,7 +316,7 @@ export function App() {
   const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
 
   const applyBpmStep = useCallback(() => {
-    if (bpmAutoRandom) {
+    if (bpmAutoRandom && mode !== MODE_CLICKONLY) {
       const lo = Math.min(bpmAutoMin, bpmAutoMax);
       const hi = Math.max(bpmAutoMin, bpmAutoMax);
       setBpm(Math.floor(Math.random() * (hi - lo + 1)) + lo);
@@ -322,7 +324,7 @@ export function App() {
       const delta = bpmAutoDir === 'up' ? bpmAutoStep : -bpmAutoStep;
       setBpm(b => clampBpm(b + delta));
     }
-  }, [bpmAutoRandom, bpmAutoMin, bpmAutoMax, bpmAutoDir, bpmAutoStep]);
+  }, [bpmAutoRandom, mode, bpmAutoMin, bpmAutoMax, bpmAutoDir, bpmAutoStep]);
 
   const handleSetComplete  = useCallback(() => {
     setRunning(false); setPaused(false); setLooping(false); setResuming(false);
@@ -1093,7 +1095,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.36 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.37 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
