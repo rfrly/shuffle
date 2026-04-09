@@ -364,6 +364,7 @@ export function App() {
     }
     setSetComplete(false);
     setExercise(null); setNextEx(null);
+    autoBarCountRef.current = 0;
     setPaused(false); setLooping(false); setResuming(false); setRunning(true);
   };
 
@@ -1092,7 +1093,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.35 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.36 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
