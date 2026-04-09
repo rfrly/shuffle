@@ -97,7 +97,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars. Beat dots are 44px tappable circles — tap to cycle accent → normal → silent per beat. Accent dots are amber, silent dots are dim with a dashed outline. Subdivision row (8ths/Triplets/16ths/None) appears below the beat dots when subdivision > 1 — pills fill the row width up to a per-pill max, shrinking on narrow screens. In Metronome mode the controls grid shows only BPM, Time sig, Count in, and Subdivision (Exercise length, Exercises, Rounds are hidden). No idle summary is shown. BarProgress is hidden.
+- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars. Beat dots are 44px tappable circles — tap to cycle accent → normal → silent per beat. Accent dots are amber, silent dots are dim with a dashed outline. Subdivision row (8ths/Triplets/16ths/None) appears below the beat dots when subdivision > 1 — pills fill the row width up to a per-pill max, shrinking on narrow screens. In Metronome mode the controls grid shows only BPM, Time sig, Count in, and Subdivision (Exercise length, Exercises, Rounds Per Exercise are hidden). No idle summary is shown. BarProgress is hidden.
 - ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive.
 
 **BPM automation** — a ⚙ gear button appears next to the BPM widget when in Metronome mode or Shuffle/Sequence ∞ mode. Tapping it opens a portal-rendered popup (`BpmAutoPopup` component in `App.jsx`) with:
@@ -113,7 +113,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 ## UI and behaviour
 
 - Single unified controls grid — no section divider; 3-col on tablet/desktop, 2-col on mobile
-- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds. In Metronome mode: Mode, BPM, Time sig, Count in, Subdivision (Exercise length/Exercises/Rounds hidden).
+- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds Per Exercise. In Metronome mode: Mode, BPM, Time sig, Count in, Subdivision (Exercise length/Exercises/Rounds Per Exercise hidden).
 - Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
 - Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
 - No dimming of fixed controls — all controls same visual weight
@@ -121,7 +121,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Start button amber filled, only visible when idle
 - Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
 - Idle state shows a one-line summary of current settings
-- Terminology: "Rounds" not "repetitions", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
+- Terminology: "Rounds Per Exercise" not "repetitions" or "rounds", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
 - Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (disabled in Metronome mode)
 - All controls 44px minimum height
 - Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries. **Caveat:** newer iPads may not match `(pointer: coarse)` — use `(min-width: 768px) and (max-width: 1024px) and (orientation: portrait/landscape)` for iPad-specific layout rules rather than relying on pointer/hover conditions

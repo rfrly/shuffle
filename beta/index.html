@@ -2766,7 +2766,7 @@
                 </div>
                 <div className="help-section">
                   <h3>Set up</h3>
-                  <p>Choose your mode, then configure your session: exercise range (swipe up/down to nudge) or pick specific exercises, BPM, time signature, exercise length (always 1 bar in pick mode), and rounds.</p>
+                  <p>Choose your mode, then configure your session: exercise range (swipe up/down to nudge) or pick specific exercises, BPM, time signature, exercise length (always 1 bar in pick mode), and rounds per exercise.</p>
                   <p>Tap Count in to set the count-in length. Enable "count in every exercise" if you want a count-in before each exercise, not just the first.</p>
                 </div>
                 <div className="help-section">
@@ -2790,7 +2790,7 @@
                 <div className="help-section">
                   <h3>Loop / Pause / Stop</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                    <li>Loop — repeats the current exercise indefinitely. Tap again to turn off loop mode; it will exit at the end of the current round.</li>
+                    <li>Loop — repeats the current exercise indefinitely. Tap again to turn off loop mode; it will exit at the end of the current rounds per exercise.</li>
                     <li>Pause — stops the metronome. Resuming restarts the current exercise from the beginning with a count-in.</li>
                     <li>Stop — ends the session and resets everything.</li>
                   </ul>
@@ -2913,6 +2913,10 @@
                 beatsPerBar={timeSig.beats}
                 barFlash={barFlash}
               />
+            )}
+
+            {showMuteHint && phase !== "idle" && (
+              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
             )}
           </div>
 
@@ -3128,7 +3132,7 @@
 
               {mode !== MODE_CLICKONLY && (
                 <div className={`control-group${running ? " dimmed" : ""}`}>
-                  <label>Rounds</label>
+                  <label>Rounds Per Exercise</label>
                   <div className="stepper">
                     <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
                     <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
@@ -3141,9 +3145,6 @@
 
           </div>
 
-          {showMuteHint && phase !== "idle" && (
-            <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
-          )}
           {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
 
           <div className="btn-row">
@@ -3191,7 +3192,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.38 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.39 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
