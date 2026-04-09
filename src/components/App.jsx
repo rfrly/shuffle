@@ -39,6 +39,8 @@ function BpmAutoPopup({
     const halfSpan = Math.round(bpm * 0.035);
     setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
     setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
+    // In Metronome mode, 'set' trigger is invalid — default to 'bars'
+    if (isMetronome && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
   }, []);
 
   const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
@@ -329,10 +331,9 @@ export function App() {
     setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
   }, []);
 
-  const handleSetCompleteAuto = useCallback(() => {
-    handleSetComplete();
-    if (bpmAuto && infinite && mode !== MODE_CLICKONLY) applyBpmStep();
-  }, [handleSetComplete, bpmAuto, infinite, mode, applyBpmStep]);
+  const handleSetLoop = useCallback(() => {
+    if (bpmAuto) applyBpmStep();
+  }, [bpmAuto, applyBpmStep]);
 
   const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
     bpm,
@@ -341,7 +342,8 @@ export function App() {
     minEx, maxEx,
     onNewExercise: handleNewExercise,
     onNextExercise: handleNextExercise,
-    onSetComplete: handleSetCompleteAuto,
+    onSetComplete: handleSetComplete,
+    onSetLoop: handleSetLoop,
     running, paused, resuming,
     countInBars,
     countInEveryRound: countInEvery,
@@ -376,13 +378,13 @@ export function App() {
   // Metronome bar-count BPM automation
   useEffect(() => {
     if (!bpmAuto || mode !== MODE_CLICKONLY || phase !== "playing" || paused) return;
-    if (bpmAutoTrigger !== "bars") return;
+    if (bpmAutoTrigger !== "bars" && bpmAutoTrigger !== "set") return;
     autoBarCountRef.current += 1;
     if (autoBarCountRef.current >= bpmAutoBarInterval) {
       autoBarCountRef.current = 0;
       applyBpmStep();
     }
-  }, [currentBar]);
+  }, [exercise]);
 
   // Metronome time-based BPM automation
   useEffect(() => {
@@ -1090,7 +1092,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.34 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.35 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

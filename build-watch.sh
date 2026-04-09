@@ -1391,13 +1391,13 @@ src = patch(src,
 # that can't be resumed outside a user gesture. Keep it alive instead.
 src = patch(src,
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
-    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
     "                            exMode, pickedNums, subdivision, beatStates }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
-    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"

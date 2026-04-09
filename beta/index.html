@@ -1406,7 +1406,7 @@
     }
 
     function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
-                            onNewExercise, onNextExercise, onSetComplete,
+                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, infinite, setComplete,
@@ -1422,6 +1422,7 @@
       const deckRef           = useRef([]);
       const seqIndex          = useRef(0);
       const exercisesPlayed   = useRef(0);
+      const playingBars       = useRef(0);
       const loopingRef        = useRef(looping);
       const infiniteRef       = useRef(infinite);
       const countInProgress   = useRef(false);
@@ -1499,7 +1500,7 @@
       const stateRef = useRef({});
       useEffect(() => {
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
-                             onNewExercise, onNextExercise, onSetComplete,
+                             onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                              countInBars, countInEveryRound,
                              mode, volume, exMode, pickedNums, subdivision, beatStates };
       });
@@ -1565,7 +1566,7 @@
           }
           setPhase("idle");
           setCurrentBeat(0); setCurrentBar(0); setCountInBeat(0); setIsResuming(false);
-          beatCount.current = 0; playBeatCount.current = 0; exercisesPlayed.current = 0;
+          beatCount.current = 0; playBeatCount.current = 0; exercisesPlayed.current = 0; playingBars.current = 0;
           lastExercise.current = null; nextExercise.current = null;
           deckRef.current = []; seqIndex.current = 0;
           countInProgress.current = false; countInBeatPos.current = 0;
@@ -1622,7 +1623,7 @@
           const { bpm: b, beatsPerBar: bpb2, barsPerExercise: bpe,
                   minEx: min, maxEx: max,
                   onNewExercise: onChange, onNextExercise: onNext,
-                  onSetComplete: onDone,
+                  onSetComplete: onDone, onSetLoop: onLoop,
                   countInBars: cib2, countInEveryRound: cier,
                   mode: currentMode, volume: vol } = stateRef.current;
 
@@ -1709,6 +1710,16 @@
                   }
                 }, Math.max(0, (t - ctx.currentTime) * 1000));
 
+                // ∞ set-loop detection: count playing bars, fire onLoop every totalBarsPerSet bars
+                if (currentMode !== MODE_CLICKONLY && infiniteRef.current && isDownbeat && playBeat > 0 && onLoop) {
+                  playingBars.current++;
+                  const totalBarsPerSet = totalInSet * bpe;
+                  if (playingBars.current % totalBarsPerSet === 0) {
+                    const t2 = t;
+                    setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+                  }
+                }
+
                 if (currentMode === MODE_CLICKONLY) {
                   if (isDownbeat && playBeat > 0) {
                     const newBarCount = lastExercise.current + 1;
@@ -1734,9 +1745,9 @@
                     setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                     playBeatCount.current = 1;
                   } else {
-                    const setDone = (currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL)
-                      && exercisesPlayed.current >= totalInSet - 1
-                      && !infiniteRef.current;
+                    const isShuffleSeq = currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL;
+                    const setFinished = isShuffleSeq && exercisesPlayed.current >= totalInSet - 1;
+                    const setDone = setFinished && !infiniteRef.current;
 
                     if (setDone) {
                       const incoming = nextExercise.current;
@@ -1769,6 +1780,7 @@
                       exercisesPlayed.current++;
                       const incoming = nextExercise.current;
                       lastExercise.current = incoming;
+
                       const upcoming = pickNext(min, max, incoming, currentMode);
                       nextExercise.current = upcoming;
 
@@ -2123,6 +2135,8 @@
         const halfSpan = Math.round(bpm * 0.035);
         setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
         setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
+        // In Metronome mode, 'set' trigger is invalid — default to 'bars'
+        if (isMetronome && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
       }, []);
 
       const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
@@ -2413,10 +2427,9 @@
         setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
       }, []);
 
-      const handleSetCompleteAuto = useCallback(() => {
-        handleSetComplete();
-        if (bpmAuto && infinite && mode !== MODE_CLICKONLY) applyBpmStep();
-      }, [handleSetComplete, bpmAuto, infinite, mode, applyBpmStep]);
+      const handleSetLoop = useCallback(() => {
+        if (bpmAuto) applyBpmStep();
+      }, [bpmAuto, applyBpmStep]);
 
       const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
         bpm,
@@ -2425,7 +2438,8 @@
         minEx, maxEx,
         onNewExercise: handleNewExercise,
         onNextExercise: handleNextExercise,
-        onSetComplete: handleSetCompleteAuto,
+        onSetComplete: handleSetComplete,
+        onSetLoop: handleSetLoop,
         running, paused, resuming,
         countInBars,
         countInEveryRound: countInEvery,
@@ -2460,13 +2474,13 @@
       // Metronome bar-count BPM automation
       useEffect(() => {
         if (!bpmAuto || mode !== MODE_CLICKONLY || phase !== "playing" || paused) return;
-        if (bpmAutoTrigger !== "bars") return;
+        if (bpmAutoTrigger !== "bars" && bpmAutoTrigger !== "set") return;
         autoBarCountRef.current += 1;
         if (autoBarCountRef.current >= bpmAutoBarInterval) {
           autoBarCountRef.current = 0;
           applyBpmStep();
         }
-      }, [currentBar]);
+      }, [exercise]);
 
       // Metronome time-based BPM automation
       useEffect(() => {
@@ -3174,7 +3188,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.34 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.35 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
