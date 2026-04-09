@@ -45,9 +45,13 @@ Source file structure:
 The deploy workflow runs on every push to `main` or `dev`. Live and watch always come from `main`. Beta always comes from `dev` (hardcoded via `ref: dev` in `.github/workflows/deploy.yml` — do not change this). A push to `dev` never touches live or watch. A merge to `main` never touches beta.
 
 **Beta update workflow:**
-1. Work on `dev` — edit `src/`, run `python3 build-watch.sh`, commit, push
-2. Beta updates at `shuffleclick.com/beta/` within ~3 minutes
-3. When ready to ship beta: apply any pending watch fixes to `dev`'s `build-watch.sh` first (so watch stays in sync), run `python3 build-watch.sh`, then PR `dev` → `main`
+1. Work on `dev` — edit `src/` only
+2. Run `python3 build-watch.sh` (no `--watch` flag) — this regenerates `beta/index.html` only; `watch/index.html` is intentionally skipped
+3. Commit `src/` changes, `build-watch.sh` (if changed), and `beta/index.html` — **never include `watch/index.html` in a beta commit**
+4. Push to `dev` — beta updates at `shuffleclick.com/beta/` within ~3 minutes
+5. When ready to ship beta: apply any pending watch fixes to `dev`'s `build-watch.sh` first (so watch stays in sync), run `python3 build-watch.sh`, then PR `dev` → `main`
+
+**Key rule:** Beta updates never touch `watch/index.html`. The watch app is a live app on `main` — it never receives beta features. `python3 build-watch.sh` without `--watch` is always safe to run on `dev`.
 
 **Watch update workflow:**
 1. Branch off `main`: `git checkout main && git checkout -b hotfix/description`
@@ -214,7 +218,7 @@ After making changes to `src/` (main app changes), run:
 ```
 python3 build-watch.sh
 ```
-Or equivalently: `npm run generate`. Commit `src/` changes, `beta/index.html`, and `watch/index.html` together.
+Or equivalently: `npm run generate`. On `dev`, this only regenerates `beta/index.html` — commit `src/` changes and `beta/index.html` together. `watch/index.html` is only regenerated and committed as part of a watch hotfix on a branch off `main`.
 
 For watch-only changes (e.g. teacher UI, Firebase logic), edit `build-watch.sh` and run `python3 build-watch.sh`. Commit only `build-watch.sh`, `beta/index.html`, and `watch/index.html`.
 
