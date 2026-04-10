@@ -450,62 +450,62 @@ src = patch(src,
 # Mode buttons: no disabled for watchScreen (pointer-events: none on parent handles it)
 # (leave disabled={running} as-is; the watch-locked class already blocks interaction)
 
-# BPM control group
-src = patch(src, 
-    '              <div className="control-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
+# BPM control group (inside bpm-timesig-row > bpm-group)
+src = patch(src,
+    '                <div className="control-group bpm-group">\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
+    '                <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
 )
 
-# Time signature control group
-src = patch(src, 
-    '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Time signature</label>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Time signature</label>'
+# Time signature control group (inside bpm-timesig-row, has timesig-group class)
+src = patch(src,
+    '                <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>',
+    '                <div className={`control-group timesig-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>'
 )
 
 # Count in control group
-src = patch(src, 
+src = patch(src,
     '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Count in</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Count in</label>'
 )
 
 # Exercise length control group
 src = patch(src,
-    '              <div className={`control-group${mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running || exMode === \'pick\' ? " dimmed" : ""}`}>'
+    '                <div className={`control-group${running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>',
+    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>'
 )
 
 # Exercises control group
 src = patch(src,
-    '              <div className={`control-group${running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || mode === MODE_CLICKONLY ? " dimmed" : ""}`}>\n                    <label>Exercises</label>'
+    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>',
+    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
 )
 
-# Rounds control group
+# Rounds Per Exercise control group
 src = patch(src,
-    '              <div className={`control-group${mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : mode === MODE_CLICKONLY || running ? " dimmed" : ""}`}>\n                <label>Rounds</label>'
+    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>',
+    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>'
 )
 
 # Settings menu: replace with sharing indicator when student is sharing
@@ -581,7 +581,7 @@ src = patch(src,
 )
 
 # Mute hint: suppress when sharing
-src = patch(src, 
+src = patch(src,
     '            {showMuteHint && phase !== "idle" && (\n'
     '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
     '            )}',
@@ -1374,32 +1374,30 @@ src = patch(src,
 # ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
 # getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
 # in App scope to create the silent loop that keeps the AudioContext alive.
-src = patch(src, 
-    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };",
-    "      return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx };"
-)
-src = patch(src, 
-    "const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
-    "const { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
+# getCtx is already returned by useDrumTimer in the current source — no patch needed.
+# The return line now reads: { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx }
+src = patch(src,
+    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
+    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
 
 # ── 6c. Prevent AudioContext close when student is sharing ───────────────────
 # When the student is sharing (watchScreen === "app"), closing the AudioContext
 # on stop means the next teacher-triggered Start creates a new suspended context
 # that can't be resumed outside a user gesture. Keep it alive instead.
-src = patch(src, 
+src = patch(src,
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
-    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums }) {",
+    "                            exMode, pickedNums, subdivision, beatStates }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
-    "                            onNewExercise, onNextExercise, onSetComplete,\n"
+    "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1419,9 +1417,9 @@ src = patch(src,
     "            }\n"
     "          }"
 )
-src = patch(src, 
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n      });",
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+src = patch(src,
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n      });",
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
@@ -1441,7 +1439,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.8 · watch 1.49</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.9 · watch 1.50</div>
           </div>
         )}
         {watchScreen === "share" && (

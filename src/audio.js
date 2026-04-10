@@ -49,12 +49,23 @@ export function scheduleEndBell(ctx, time, vol) {
   src.start(time); src.stop(time + 0.09);
 }
 
-export function scheduleMetronomeClick(ctx, time, isDownbeat, vol) {
+export function scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSubdivision) {
+  // beatStateOrDownbeat: "accent" | "normal" | "silent" | true (downbeat) | false (non-downbeat)
+  // Legacy boolean usage (non-metronome-view paths): true = downbeat, false = normal
+  const beatState = typeof beatStateOrDownbeat === 'string'
+    ? beatStateOrDownbeat
+    : beatStateOrDownbeat ? 'accent' : 'normal';
+  if (beatState === 'silent') return;
   const osc = ctx.createOscillator();
   const gain = ctx.createGain();
   osc.connect(gain); gain.connect(getCompressor(ctx));
-  osc.frequency.value = isDownbeat ? 1000 : 700;
-  gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.5) * vol, time);
+  if (isSubdivision) {
+    osc.frequency.value = 500;
+    gain.gain.setValueAtTime(0.22 * vol, time);
+  } else {
+    osc.frequency.value = beatState === 'accent' ? 1000 : 700;
+    gain.gain.setValueAtTime((beatState === 'accent' ? 0.9 : 0.5) * vol, time);
+  }
   gain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
   osc.start(time); osc.stop(time + 0.09);
 }
