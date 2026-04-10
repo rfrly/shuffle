@@ -123,12 +123,20 @@
     }
 
     .exercise-label {
-      font-size: 0.6rem;
+      font-size: 0.75rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
       font-family: var(--font-mono);
       min-height: 1em;
+      animation: label-fade-in 0.2s ease;
+    }
+    @keyframes label-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+    .exercise-label--set {
+      color: #f5c842;
     }
 
     .exercise-number {
@@ -315,7 +323,13 @@
 
     @media (max-width: 767px) {
       .controls-grid {
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+      .controls-grid {
+        grid-template-columns: 1fr 1fr;
       }
     }
 
@@ -417,6 +431,16 @@
     .sel-btn:active { background: #252525; }
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
     .sel-btn:disabled { opacity: 0.25; cursor: default; }
+
+    .subdiv-group { grid-column: 1 / -1; }
+    @media (max-width: 767px) {
+      .subdiv-group { grid-column: auto; }
+    }
+    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+      .subdiv-group { grid-column: auto; }
+    }
+    .subdiv-btn { padding: 0; }
+    .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
 
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
@@ -723,8 +747,11 @@
       .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
+      .controls-grid { column-gap: 0.5rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
       .idle-summary { font-size: 0.85rem; }
+      .bpm-btn { width: 40px; }
+      .stepper-btn { width: 40px; }
     }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
@@ -758,6 +785,14 @@
       .stepper { height: 58px; }
       .stepper-btn { width: 58px; height: 58px; }
       .stepper-val { height: 58px; }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+      .app-header { max-width: 640px; }
+      .display { max-width: 640px; }
+      .controls { max-width: 640px; }
+      .btn-row { max-width: 640px; }
+      .vol-slider-row { max-width: 640px; }
     }
 
     @media (hover: hover) and (min-width: 1024px) {
@@ -823,6 +858,97 @@
       padding: 0.5rem; z-index: 50; border-radius: 4px;
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
+
+    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
+    .bpm-widget-row .bpm-widget { flex: 1; }
+    .gear-visible .bpm-widget-row { gap: 2px; }
+    .gear-visible .bpm-btn.right { border-radius: 0 4px 4px 0; }
+    .bpm-timesig-row { display: flex; gap: 0.75rem; grid-column: 1 / -1; }
+    .bpm-timesig-row .bpm-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
+    .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
+
+    @media (min-width: 768px) {
+      .bpm-timesig-row { display: contents; }
+      .bpm-timesig-row .bpm-group { min-width: 0; }
+      .bpm-timesig-row .timesig-group { min-width: 0; }
+    }
+
+    .bpm-gear-btn {
+      width: 36px; height: 44px; flex-shrink: 0;
+      background: #1a1a1a; border: 1px solid #333; color: #777;
+      font-size: 1.25rem; line-height: 1; cursor: pointer; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, color 0.1s;
+    }
+    .bpm-gear-btn:active { background: #2a2a2a; }
+    .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
+
+    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; }
+    .bpm-auto-popup {
+      position: fixed; z-index: 50;
+      background: #1c1c1c; border: 1px solid #383838;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+      border-radius: 6px; padding: 0.9rem 0.9rem;
+      display: flex; flex-direction: column; gap: 0.8rem;
+      min-width: 240px;
+    }
+    .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
+    .bpm-auto-label { font-size: 0.65rem; color: #888; white-space: nowrap; min-width: 28px; }
+    .bpm-auto-stepper { display: flex; align-items: center; height: 32px; }
+    .bpm-auto-step-btn {
+      width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.1s; flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+    .bpm-auto-step-btn:active { background: #2a2a2a; color: #fff; }
+    .bpm-auto-step-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .bpm-auto-step-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
+    .bpm-auto-step-val {
+      min-width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333;
+      border-left: none; border-right: none;
+      color: #e8e8e8; font-family: var(--font-mono);
+      font-size: 0.85rem; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
+    .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
+
+    .bpm-auto-master-toggle {
+      width: 100%; padding: 0.45rem 0.6rem;
+      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
+      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
+      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .bpm-auto-master-toggle:active { background: #252525; }
+    .bpm-auto-master-toggle.active {
+      border-color: #f5c842; color: #f5c842; background: #1e1c12;
+    }
+
+    .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
+    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
+
+    .bpm-auto-trigger-label {
+      font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
+      padding: 0.1rem 0; margin-bottom: -0.4rem;
+    }
+
+    .bpm-auto-secondary {
+      border-top: 1px solid #2a2a2a; padding-top: 0.6rem;
+    }
+    .bpm-auto-random-toggle {
+      background: none; border: none; color: #555;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      cursor: pointer; padding: 0.2rem 0; text-align: left;
+      transition: color 0.1s;
+    }
+    .bpm-auto-random-toggle:active { color: #888; }
+    .bpm-auto-random-toggle.active { color: #bbb; }
 
     @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
@@ -987,4 +1113,84 @@
     .mute-hint.fading { animation: mute-hint-out 0.4s ease forwards; }
     @keyframes mute-hint-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes mute-hint-out { from { opacity: 1; } to { opacity: 0; } }
+
+    /* ── Subdivision dots row (Metronome mode) ─────────────────── */
+    .subdiv-dots {
+      display: flex;
+      gap: 0.25rem;
+      justify-content: center;
+      padding: 1.5rem 0.5rem 0.5rem;
+      box-sizing: border-box;
+      width: 100%;
+    }
+    .subdiv-dot {
+      flex: 0 1 16px;
+      min-width: 4px;
+      height: 8px;
+      max-width: 12px;
+      border-radius: 3px;
+      background: #333;
+      transition: background 0.05s;
+    }
+    .subdiv-dot.beat {
+      background: #555;
+    }
+    .subdiv-dot.active {
+      background: #ff4500;
+    }
+    .subdiv-dot.beat.active {
+      background: #fff;
+    }
+
+    /* ── Metronome display variant ─────────────────────────────── */
+    .display--metro {
+      gap: 0.35rem;
+      justify-content: center;
+    }
+    .display--metro .next-exercise {
+      font-size: 0.85rem;
+      min-height: 0;
+    }
+
+    /* ── Beat dot states (Metronome mode) ──────────────────────── */
+    .beat-dots.tappable {
+      gap: 0.5rem;
+      max-width: none;
+      flex-wrap: nowrap;
+      width: 100%;
+      padding: 0 0.5rem;
+      box-sizing: border-box;
+    }
+    .beat-dots.tappable .beat-dot {
+      flex: 0 1 44px;
+      height: auto;
+      aspect-ratio: 1;
+      min-width: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .beat-dot.accent {
+      background: #f5c842;
+    }
+    .beat-dot.accent.active {
+      background: #fff;
+      box-shadow: 0 0 6px rgba(245, 200, 66, 0.7);
+    }
+    .beat-dot.silent {
+      background: #2a2a2a;
+      outline: 1px dashed #444;
+      outline-offset: -1px;
+    }
+    .beat-dot.silent.active {
+      background: #2a2a2a;
+    }
+    .beat-dot.subdiv {
+      width: 5px;
+      height: 5px;
+      background: #3a3a3a;
+      cursor: default;
+    }
+    .beat-dot.subdiv.active {
+      background: #666;
+    }
 

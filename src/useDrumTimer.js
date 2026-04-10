@@ -7,11 +7,11 @@ import {
 import { scheduleWoodblock, scheduleEndBell, scheduleMetronomeClick, startSilentLoop } from './audio.js';
 
 export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
-                        onNewExercise, onNextExercise, onSetComplete,
+                        onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                         running, paused, resuming,
                         countInBars, countInEveryRound,
                         mode, volume, looping, infinite, setComplete,
-                        exMode, pickedNums }) {
+                        exMode, pickedNums, subdivision, beatStates }) {
 
   const audioCtx          = useRef(null);
   const silentLoop        = useRef(null);
@@ -23,6 +23,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
   const deckRef           = useRef([]);
   const seqIndex          = useRef(0);
   const exercisesPlayed   = useRef(0);
+  const playingBars       = useRef(0);
   const loopingRef        = useRef(looping);
   const infiniteRef       = useRef(infinite);
   const countInProgress   = useRef(false);
@@ -33,12 +34,13 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
   const stoppedRef        = useRef(false);
   const wasRunningRef     = useRef(false);
 
-  const [currentBeat,  setCurrentBeat]  = useState(0);
-  const [currentBar,   setCurrentBar]   = useState(0);
-  const [phase,        setPhase]        = useState("idle");
-  const [flashOn,      setFlashOn]      = useState(false);
-  const [countInBeat,  setCountInBeat]  = useState(0);
-  const [isResuming,   setIsResuming]   = useState(false);
+  const [currentBeat,   setCurrentBeat]   = useState(0);
+  const [currentBar,    setCurrentBar]    = useState(0);
+  const [currentSubdiv, setCurrentSubdiv] = useState(0);
+  const [phase,         setPhase]         = useState("idle");
+  const [flashOn,       setFlashOn]       = useState(false);
+  const [countInBeat,   setCountInBeat]   = useState(0);
+  const [isResuming,    setIsResuming]    = useState(false);
 
   const getCtx = useCallback(() => {
     if (!audioCtx.current)
@@ -99,9 +101,9 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
   const stateRef = useRef({});
   useEffect(() => {
     stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
-                         onNewExercise, onNextExercise, onSetComplete,
+                         onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                          countInBars, countInEveryRound,
-                         mode, volume, exMode, pickedNums };
+                         mode, volume, exMode, pickedNums, subdivision, beatStates };
   });
 
   const resumingRef = useRef(false);
@@ -134,6 +136,14 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       countInProgress.current = false;
       countInBeatPos.current = 0;
       nextBeatTime.current = Infinity;
+      // Resync playingBars to where we are in the current set so that ∞ set-loop
+      // and "last exercise" signals fire correctly after resume.
+      {
+        const { barsPerExercise: bpe, minEx: mn, maxEx: mx, exMode: em, pickedNums: pn } = stateRef.current;
+        const totalInSet = (em === 'pick' && pn && pn.length > 0) ? pn.length : mx - mn + 1;
+        const posInSet = (exercisesPlayed.current - 1) % totalInSet;
+        playingBars.current = posInSet * bpe;
+      }
       setIsResuming(true);
       setPhase("countin");
       const { onNextExercise: onNext } = stateRef.current;
@@ -165,7 +175,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       }
       setPhase("idle");
       setCurrentBeat(0); setCurrentBar(0); setCountInBeat(0); setIsResuming(false);
-      beatCount.current = 0; playBeatCount.current = 0; exercisesPlayed.current = 0;
+      beatCount.current = 0; playBeatCount.current = 0; exercisesPlayed.current = 0; playingBars.current = 0;
       lastExercise.current = null; nextExercise.current = null;
       deckRef.current = []; seqIndex.current = 0;
       countInProgress.current = false; countInBeatPos.current = 0;
@@ -222,7 +232,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       const { bpm: b, beatsPerBar: bpb2, barsPerExercise: bpe,
               minEx: min, maxEx: max,
               onNewExercise: onChange, onNextExercise: onNext,
-              onSetComplete: onDone,
+              onSetComplete: onDone, onSetLoop: onLoop,
               countInBars: cib2, countInEveryRound: cier,
               mode: currentMode, volume: vol } = stateRef.current;
 
@@ -280,18 +290,49 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             const isDownbeat    = beatInBar === 0;
 
             if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-              scheduleMetronomeClick(ctx, nextBeatTime.current, isDownbeat, vol);
+              const { subdivision: subdiv, beatStates: bStates, mode: clickMode } = stateRef.current;
+              const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
+                ? bStates[beatInBar]
+                : (isDownbeat ? 'accent' : 'normal');
+              scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
+              if (clickMode === MODE_CLICKONLY && subdiv > 1) {
+                const subdivLen = (60 / b) / subdiv;
+                for (let s = 1; s < subdiv; s++) {
+                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                  const tSub = nextBeatTime.current + subdivLen * s;
+                  setTimeout(() => {
+                    if (stoppedRef.current) return;
+                    setCurrentSubdiv(s);
+                  }, Math.max(0, (tSub - ctx.currentTime) * 1000));
+                }
+              }
             }
             const t = nextBeatTime.current;
             setTimeout(() => {
               if (stoppedRef.current) return;
               setCurrentBeat(beatInBar);
+              setCurrentSubdiv(0);
               setCurrentBar(barInExercise);
               if (currentMode !== MODE_CLICKONLY && isDownbeat && barInExercise === 0 && playBeat > 0) {
                 setFlashOn(true);
                 setTimeout(() => setFlashOn(false), FLASH_DURATION_MS);
               }
             }, Math.max(0, (t - ctx.currentTime) * 1000));
+
+            // ∞ set-loop detection: count playing bars, fire onLoop every totalBarsPerSet bars
+            if (currentMode !== MODE_CLICKONLY && infiniteRef.current && isDownbeat && playBeat > 0 && onLoop) {
+              playingBars.current++;
+              const totalBarsPerSet = totalInSet * bpe;
+              if (playingBars.current % totalBarsPerSet === 0) {
+                const t2 = t;
+                setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+              }
+              // Signal last exercise of the set so UI can show "last exercise"
+              if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
+                const t2 = t;
+                setTimeout(() => { if (stoppedRef.current) return; onNext(-1); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+              }
+            }
 
             if (currentMode === MODE_CLICKONLY) {
               if (isDownbeat && playBeat > 0) {
@@ -318,9 +359,9 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                 setTimeout(() => { if (stoppedRef.current) return; onChange(current); }, Math.max(0, (t - ctx.currentTime) * 1000));
                 playBeatCount.current = 1;
               } else {
-                const setDone = (currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL)
-                  && exercisesPlayed.current >= totalInSet - 1
-                  && !infiniteRef.current;
+                const isShuffleSeq = currentMode === MODE_FULLSET || currentMode === MODE_SEQUENTIAL;
+                const setFinished = isShuffleSeq && exercisesPlayed.current >= totalInSet - 1;
+                const setDone = setFinished && !infiniteRef.current;
 
                 if (setDone) {
                   const incoming = nextExercise.current;
@@ -353,6 +394,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                   exercisesPlayed.current++;
                   const incoming = nextExercise.current;
                   lastExercise.current = incoming;
+
                   const upcoming = pickNext(min, max, incoming, currentMode);
                   nextExercise.current = upcoming;
 
@@ -391,5 +433,5 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     return () => clearInterval(schedulerRef.current);
   }, [running, getCtx, pickNext]);
 
-  return { currentBeat, currentBar, phase, flashOn, countInBeat, isResuming };
+  return { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx };
 }
