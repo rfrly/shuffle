@@ -419,12 +419,6 @@ src = patch(src, "  </style>", watch_css + "  </style>")
 # controls to add watch-locked class (opacity 0.6, pointer-events none) without
 # adding disabled attributes — disabled causes its own opacity: 0.25 override.
 
-# handleSetLoop: skip applyBpmStep when sharing (teacher sends BPM cmd); broadcast setLoopTs so teacher can trigger BPM step
-src = patch(src,
-    "      const handleSetLoop = useCallback(() => {\n        if (bpmAuto) applyBpmStep();\n        setSetCount(c => c + 1);\n        setIsFirstExOfSet(true);\n      }, [bpmAuto, applyBpmStep]);",
-    "      const handleSetLoop = useCallback(() => {\n        if (bpmAuto && watchScreen !== \"app\") applyBpmStep();\n        setSetCount(c => c + 1);\n        setIsFirstExOfSet(true);\n        if (watchScreen === \"app\") setSetLoopTs(Date.now());\n      }, [bpmAuto, applyBpmStep, watchScreen]);"
-)
-
 # handleTap guard
 src = patch(src,
     "      const handleTap = useCallback(() => {\n        if (running) return;",
@@ -660,7 +654,6 @@ firebase_and_observer = r"""
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
         bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
         isFirstExOfSet: obsIsFirstExOfSet, setCount: obsSetCount,
-        setLoopTs: obsSetLoopTs,
         disconnected,
       } = state || {};
 
@@ -757,19 +750,6 @@ firebase_and_observer = r"""
         obsAutoTimerRef.current = setInterval(applyObsBpmStep, intervalMs);
         return () => { clearInterval(obsAutoTimerRef.current); obsAutoTimerRef.current = null; };
       }, [localBpmAuto, obsMode, phase, obsPaused, localBpmAutoTrigger, localBpmAutoSecInterval, applyObsBpmStep]);
-
-      // Set-loop BPM automation (Shuffle/Sequence ∞, teacher side)
-      // Set-loop BPM automation (Shuffle/Sequence ∞, teacher side)
-      // obsSetLoopTs is a timestamp set by the student's handleSetLoop — changes once per set loop
-      const obsLastSetLoopTsRef = React.useRef(obsSetLoopTs);
-      React.useEffect(() => {
-        const prev = obsLastSetLoopTsRef.current;
-        obsLastSetLoopTsRef.current = obsSetLoopTs;
-        if (prev == null || obsSetLoopTs === prev) return;
-        if (!localBpmAuto || !obsInfiniteEff || isObsMetronome) return;
-        if (localBpmAutoTrigger !== "set") return;
-        applyObsBpmStep();
-      }, [obsSetLoopTs, localBpmAuto, obsInfiniteEff, isObsMetronome, localBpmAutoTrigger, applyObsBpmStep]);
 
       React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
 
@@ -1295,7 +1275,6 @@ watch_state = """
       // ── Watch mode state ───────────────────────────────────────────────────
       // "home" | "share" | "watch-entry" | "watching"
       const [watchScreen,     setWatchScreen]     = useState("home");
-      const [setLoopTs,       setSetLoopTs]       = useState(null);
       const [shareCode,       setShareCode]       = useState("");
       const [watchEntryCode,  setWatchEntryCode]  = useState("");
       const [watchEntryError, setWatchEntryError] = useState("");
@@ -1366,7 +1345,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
-          isFirstExOfSet, setCount, setLoopTs,
+          isFirstExOfSet, setCount,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
@@ -1375,7 +1354,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
-          isFirstExOfSet, setCount, setLoopTs,
+          isFirstExOfSet, setCount,
           watchScreen]);
 
 
@@ -1670,7 +1649,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.57</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.58</div>
           </div>
         )}
         {watchScreen === "share" && (
