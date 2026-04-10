@@ -890,7 +890,7 @@ firebase_and_observer = r"""
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className="display">
+          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
             <div className="exercise-label">
               {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : "exercise"}
             </div>
@@ -901,26 +901,24 @@ firebase_and_observer = r"""
               </div>
             ) : sc ? (
               <div className="exercise-number done">done</div>
-            ) : obsMode === "clickonly" && obsStopwatch && phase !== "idle" ? (
-              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>
-                {Math.floor((obsElapsed || 0) / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String((obsElapsed || 0) % 60).padStart(2, "0")}
-              </div>
             ) : (
               <div className={`exercise-number${isIdle ? " idle" : ""}`}>
-                {exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
+                {obsMode === "clickonly" && obsStopwatch && phase !== "idle"
+                  ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
+                  : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
               </div>
             )}
 
             {!sc && (
               isIdle ? (
-                <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}
-                >
-                  {obsMode === "clickonly"
-                    ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
-                    : exMode === "pick"
+                sc ? <div className="idle-summary">&nbsp;</div>
+                : obsMode === "clickonly" ? null : (
+                  <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
+                    {exMode === "pick"
                       ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`
                       : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`}
-                </div>
+                  </div>
+                )
               ) : (
                 <div className="next-exercise">
                   {obsPaused
@@ -1140,66 +1138,72 @@ firebase_and_observer = r"""
                 </div>
               )}
 
-              <div className={`control-group${obsMode === "clickonly" || obsRunning || exMode === "pick" ? " dimmed" : ""}`}>
-                <label>Exercise length</label>
-                <CompactSelector
-                  id="obs-exLength"
-                  value={obsExLen || 1}
-                  options={[1, 2, 4]}
-                  onChange={n => onSendCmd({ exerciseLength: n })}
-                  disabled={disabled || obsRunning || obsMode === "clickonly" || exMode === "pick"}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
-                />
-              </div>
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning || exMode === "pick" ? " dimmed" : ""}`}>
+                  <label>Exercise length</label>
+                  <CompactSelector
+                    id="obs-exLength"
+                    value={obsExLen || 1}
+                    options={[1, 2, 4]}
+                    onChange={n => onSendCmd({ exerciseLength: n })}
+                    disabled={disabled || obsRunning || exMode === "pick"}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={n => n === 1 ? "1 bar" : n + " bars"}
+                  />
+                </div>
+              )}
 
-              <div className={`control-group${obsRunning || obsMode === "clickonly" ? " dimmed" : ""}`}>
-                <label>Exercises</label>
-                <div className="ex-control-row">
-                  {exMode !== "pick" ? (
-                    <div className="range-row">
-                      <input type="text" readOnly
-                        value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
-                        disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("min"); }}
-                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
-                      <span>to</span>
-                      <input type="text" readOnly
-                        value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
-                        disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("max"); }}
-                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                  <label>Exercises</label>
+                  <div className="ex-control-row">
+                    {exMode !== "pick" ? (
+                      <div className="range-row">
+                        <input type="text" readOnly
+                          value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
+                          disabled={disabled || obsRunning}
+                          onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning) setNumpadOpen("min"); }}
+                          style={{ cursor: disabled || obsRunning ? "default" : "pointer" }} />
+                        <span>to</span>
+                        <input type="text" readOnly
+                          value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
+                          disabled={disabled || obsRunning}
+                          onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning) setNumpadOpen("max"); }}
+                          style={{ cursor: disabled || obsRunning ? "default" : "pointer" }} />
+                      </div>
+                    ) : (
+                      <button
+                        className={"pick-trigger-btn" + (pickedNums.length === 0 ? " empty" : "") + (pickedNums.length === 0 && !obsRunning ? " invalid" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => setPickerOpen(true)}>
+                        {pickedNums.length === 0 ? "Tap to select..." : pickedNums.map(n => effectiveLm ? String.fromCharCode(64 + n) : (n < 10 ? "0" + n : "" + n)).join(", ")}
+                      </button>
+                    )}
+                    <div className="ex-mode-toggle">
+                      <button className={"ex-mode-btn" + (exMode !== "pick" ? " active" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => onSendCmd({ exMode: "range" })}>Range</button>
+                      <button className={"ex-mode-btn" + (exMode === "pick" ? " active" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => onSendCmd({ exMode: "pick", exerciseLength: 1 })}>Pick</button>
                     </div>
-                  ) : (
-                    <button
-                      className={"pick-trigger-btn" + (pickedNums.length === 0 ? " empty" : "") + (pickedNums.length === 0 && !obsRunning && obsMode !== "clickonly" ? " invalid" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => setPickerOpen(true)}>
-                      {pickedNums.length === 0 ? "Tap to select..." : pickedNums.map(n => effectiveLm ? String.fromCharCode(64 + n) : (n < 10 ? "0" + n : "" + n)).join(", ")}
-                    </button>
-                  )}
-                  <div className="ex-mode-toggle">
-                    <button className={"ex-mode-btn" + (exMode !== "pick" ? " active" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => onSendCmd({ exMode: "range" })}>Range</button>
-                    <button className={"ex-mode-btn" + (exMode === "pick" ? " active" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => onSendCmd({ exMode: "pick", exerciseLength: 1 })}>Pick</button>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className={`control-group${obsMode === "clickonly" || obsRunning ? " dimmed" : ""}`}>
-                <label>Rounds</label>
-                <div className="stepper">
-                  <button className="stepper-btn left" disabled={disabled || obsRunning || obsMode === "clickonly"}
-                    onClick={() => onSendCmd({ barsPerExercise: Math.max(1, (obsBpe || 4) - 1) })}>−</button>
-                  <div className="stepper-val" style={obsMode === "clickonly" || obsRunning ? { opacity: 0.25 } : {}}>{obsBpe || "--"}</div>
-                  <button className="stepper-btn right" disabled={disabled || obsRunning || obsMode === "clickonly"}
-                    onClick={() => onSendCmd({ barsPerExercise: Math.min(32, (obsBpe || 4) + 1) })}>+</button>
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                  <label>Rounds Per Exercise</label>
+                  <div className="stepper">
+                    <button className="stepper-btn left" disabled={disabled || obsRunning}
+                      onClick={() => onSendCmd({ barsPerExercise: Math.max(1, (obsBpe || 4) - 1) })}>−</button>
+                    <div className="stepper-val" style={obsRunning ? { opacity: 0.25 } : {}}>{obsBpe || "--"}</div>
+                    <button className="stepper-btn right" disabled={disabled || obsRunning}
+                      onClick={() => onSendCmd({ barsPerExercise: Math.min(32, (obsBpe || 4) + 1) })}>+</button>
+                  </div>
                 </div>
-              </div>
+              )}
 
             </div>
           </div>
@@ -1208,6 +1212,9 @@ firebase_and_observer = r"""
             {!obsRunning ? (
               <button className="action-btn" disabled={disabled || !validRange}
                 onClick={() => onSendCmd({ tcmd: "start", tseq: Date.now() })}>Start</button>
+            ) : obsMode === "clickonly" ? (
+              <button className="action-btn stop" disabled={disabled}
+                onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
             ) : (
               <>
                 <div className="btn-group">
@@ -1215,10 +1222,10 @@ firebase_and_observer = r"""
                     onClick={() => onSendCmd({ tcmd: obsPaused ? "resume" : "pause", tseq: Date.now() })}>
                     {obsPaused ? "Resume" : "Pause"}
                   </button>
-                  {obsMode !== "clickonly" && (
-                    <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
-                      onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
-                  )}
+                  <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
+                    onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
+                </div>
+                <div className="btn-group-stop">
                   <button className="action-btn stop" disabled={disabled}
                     onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
                 </div>
@@ -1649,7 +1656,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.52</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.53</div>
           </div>
         )}
         {watchScreen === "share" && (
