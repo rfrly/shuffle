@@ -419,8 +419,14 @@ src = patch(src, "  </style>", watch_css + "  </style>")
 # controls to add watch-locked class (opacity 0.6, pointer-events none) without
 # adding disabled attributes — disabled causes its own opacity: 0.25 override.
 
+# handleSetLoop: skip applyBpmStep when sharing — teacher controls BPM via observer
+src = patch(src,
+    "      const handleSetLoop = useCallback(() => {\n        if (bpmAuto) applyBpmStep();\n        setSetCount(c => c + 1);\n        setIsFirstExOfSet(true);\n      }, [bpmAuto, applyBpmStep]);",
+    "      const handleSetLoop = useCallback(() => {\n        if (bpmAuto && watchScreen !== \"app\") applyBpmStep();\n        setSetCount(c => c + 1);\n        setIsFirstExOfSet(true);\n      }, [bpmAuto, applyBpmStep, watchScreen]);"
+)
+
 # handleTap guard
-src = patch(src, 
+src = patch(src,
     "      const handleTap = useCallback(() => {\n        if (running) return;",
     "      const handleTap = useCallback(() => {\n        if (running || watchScreen === \"app\") return;"
 )
@@ -1494,8 +1500,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
             lastTSeq.current = cmd.tseq;
             setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
-            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
-            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); }
+            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setSetCount(1); setIsFirstExOfSet(false); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); setSetCount(1); setIsFirstExOfSet(false); }
             else if (cmd.tcmd === "end-session") { handleStopSharing(); return; }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
             else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
@@ -1659,7 +1665,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.54</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.55</div>
           </div>
         )}
         {watchScreen === "share" && (
