@@ -21,8 +21,6 @@ generate-source.py) and then injects:
 
 import re, sys, os
 
-build_watch = "--watch" in sys.argv
-
 _patch_warnings = []
 
 def patch(src, old, new, count=None, label=""):
@@ -142,11 +140,6 @@ src = _build_source()
 BETA_DEST = os.path.join(os.path.dirname(__file__), "beta", "index.html")
 with open(BETA_DEST, "w", encoding="utf-8") as f:
     f.write(src)
-print(f"Built {BETA_DEST} ({len(src):,} bytes)")
-
-if not build_watch:
-    print("Skipping watch/index.html (pass --watch to build it)")
-    sys.exit(0)
 
 # ── 1. Head patches ──────────────────────────────────────────────────────────
 
@@ -457,42 +450,42 @@ src = patch(src,
 # Mode buttons: no disabled for watchScreen (pointer-events: none on parent handles it)
 # (leave disabled={running} as-is; the watch-locked class already blocks interaction)
 
-# BPM control group
-src = patch(src, 
-    '              <div className="control-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
+# BPM control group (inside bpm-timesig-row > bpm-group)
+src = patch(src,
+    '                <div className="control-group bpm-group">\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
+    '                <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
 )
 
-# Time signature control group
-src = patch(src, 
-    '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Time signature</label>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Time signature</label>'
+# Time signature control group (inside bpm-timesig-row, has timesig-group class)
+src = patch(src,
+    '                <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>',
+    '                <div className={`control-group timesig-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>'
 )
 
 # Count in control group
-src = patch(src, 
+src = patch(src,
     '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Count in</label>',
     '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Count in</label>'
 )
@@ -509,10 +502,10 @@ src = patch(src,
     '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
 )
 
-# Rounds control group
+# Rounds Per Exercise control group
 src = patch(src,
-    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Rounds</label>',
-    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Rounds</label>'
+    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>',
+    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>'
 )
 
 # Settings menu: replace with sharing indicator when student is sharing
@@ -589,12 +582,12 @@ src = patch(src,
 
 # Mute hint: suppress when sharing
 src = patch(src,
-    '          {showMuteHint && phase !== "idle" && (\n'
-    '            <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
-    '          )}',
-    '          {showMuteHint && phase !== "idle" && watchScreen !== "app" && (\n'
-    '            <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
-    '          )}'
+    '            {showMuteHint && phase !== "idle" && (\n'
+    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '            )}',
+    '            {showMuteHint && phase !== "idle" && watchScreen !== "app" && (\n'
+    '              <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>\n'
+    '            )}'
 )
 
 # ── 4. Firebase init + ObserverDisplay component ─────────────────────────────
@@ -1379,10 +1372,13 @@ src = patch(src,
 )
 
 # ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
-# getCtx is now always returned by useDrumTimer; just patch the destructure call site.
+# getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
+# in App scope to create the silent loop that keeps the AudioContext alive.
+# getCtx is already returned by useDrumTimer in the current source — no patch needed.
+# The return line now reads: { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx }
 src = patch(src,
-    "const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
-    "const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
+    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
+    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
 )
 
 # ── 6c. Prevent AudioContext close when student is sharing ───────────────────
@@ -1443,7 +1439,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.7 · watch 1.49</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.9 · watch 1.50</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1504,6 +1500,7 @@ src = re.sub(r'(v\d+\.\d+\.\d+)\.beta\.\d+', r'\1', src)
 with open(DEST, "w") as f:
     f.write(src)
 
+print(f"Built {BETA_DEST} ({len(src):,} bytes)")
 print(f"Built {DEST} ({len(src):,} bytes)")
 
 # Sanity checks
