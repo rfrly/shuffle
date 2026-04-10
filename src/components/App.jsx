@@ -707,7 +707,7 @@ export function App() {
               <h3>Loop / Pause / Stop</h3>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li>Loop — repeats the current exercise indefinitely. Tap again to turn off loop mode; it will exit at the end of the current rounds per exercise.</li>
-                <li>Pause — stops the metronome. Resuming restarts the current exercise from the beginning with a count-in.</li>
+                <li>Pause — stops playback. Resuming restarts the current exercise from the beginning with a count-in. Not available in Metronome mode.</li>
                 <li>Stop — ends the session and resets everything.</li>
               </ul>
             </div>
@@ -1077,21 +1077,27 @@ export function App() {
           </>
         ) : (
           <>
-            <div className="btn-group">
-              <button className={`action-btn${paused ? " pause-active" : " secondary"}`} onClick={handlePause}>
-                {paused ? "Resume" : "Pause"}
-              </button>
-              {mode !== MODE_CLICKONLY && (
-                <button className={`action-btn${looping ? " loop-active" : " secondary"}`} onClick={handleLoop}>
-                  Loop
-                </button>
-              )}
-            </div>
-            <div className="btn-group-stop">
+            {mode === MODE_CLICKONLY ? (
               <button className="action-btn stop" onClick={handleStop}>
                 Stop
               </button>
-            </div>
+            ) : (
+              <>
+                <div className="btn-group">
+                  <button className={`action-btn${paused ? " pause-active" : " secondary"}`} onClick={handlePause}>
+                    {paused ? "Resume" : "Pause"}
+                  </button>
+                  <button className={`action-btn${looping ? " loop-active" : " secondary"}`} onClick={handleLoop}>
+                    Loop
+                  </button>
+                </div>
+                <div className="btn-group-stop">
+                  <button className="action-btn stop" onClick={handleStop}>
+                    Stop
+                  </button>
+                </div>
+              </>
+            )}
             <div className="vol-wrap">
               <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
                 {volIcon}&nbsp;vol
@@ -1108,7 +1114,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.10.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.10.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
