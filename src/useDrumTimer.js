@@ -319,6 +319,11 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                 const t2 = t;
                 setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
               }
+              // Signal last exercise of the set so UI can show "last exercise"
+              if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
+                const t2 = t;
+                setTimeout(() => { if (stoppedRef.current) return; onNext(-1); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
+              }
             }
 
             if (currentMode === MODE_CLICKONLY) {

@@ -205,6 +205,8 @@ export function App() {
   const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
   const [exercise,        setExercise]        = useState(null);
   const [nextEx,          setNextEx]          = useState(null);
+  const [setCount,        setSetCount]        = useState(1);
+  const [isFirstExOfSet,  setIsFirstExOfSet]  = useState(false);
   const [tapped,          setTapped]          = useState(false);
   const [showVolume,      setShowVolume]      = useState(false);
   const [showHelp,        setShowHelp]        = useState(false);
@@ -329,12 +331,15 @@ export function App() {
   const handleSetComplete  = useCallback(() => {
     setRunning(false); setPaused(false); setLooping(false); setResuming(false);
     setExercise(null); setNextEx(null);
+    setSetCount(1); setIsFirstExOfSet(false);
     setSetComplete(true);
     setTimeout(() => setSetComplete(false), SET_COMPLETE_DISPLAY_MS);
   }, []);
 
   const handleSetLoop = useCallback(() => {
     if (bpmAuto) applyBpmStep();
+    setSetCount(c => c + 1);
+    setIsFirstExOfSet(true);
   }, [bpmAuto, applyBpmStep]);
 
   const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({
@@ -359,6 +364,11 @@ export function App() {
     return () => clearTimeout(t);
   }, [phase, showMuteHint]);
 
+  // Clear set label after the first bar of the new set
+  useEffect(() => {
+    if (isFirstExOfSet && phase === "playing" && currentBar > 0) setIsFirstExOfSet(false);
+  }, [isFirstExOfSet, phase, currentBar]);
+
   const handleStart = () => {
     if (!localStorage.getItem('muteHintSeen')) {
       localStorage.setItem('muteHintSeen', '1');
@@ -366,6 +376,7 @@ export function App() {
     }
     setSetComplete(false);
     setExercise(null); setNextEx(null);
+    setSetCount(1); setIsFirstExOfSet(false);
     autoBarCountRef.current = 0;
     setPaused(false); setLooping(false); setResuming(false); setRunning(true);
   };
@@ -373,6 +384,7 @@ export function App() {
   const handleStop = () => {
     setRunning(false); setPaused(false); setLooping(false); setResuming(false);
     setExercise(null); setNextEx(null); setSetComplete(false);
+    setSetCount(1); setIsFirstExOfSet(false);
     timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
     autoBarCountRef.current = 0;
     clearInterval(autoTimerRef.current); autoTimerRef.current = null;
@@ -723,8 +735,8 @@ export function App() {
       )}
 
       <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-        <div className="exercise-label">
-          {phase === "countin" ? "count in" : phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : "exercise"}
+        <div className={`exercise-label${isFirstExOfSet && phase !== "idle" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
+          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -1096,7 +1108,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.39 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.40 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

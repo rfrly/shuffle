@@ -123,12 +123,16 @@
     }
 
     .exercise-label {
-      font-size: 0.6rem;
+      font-size: 0.75rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
       font-family: var(--font-mono);
       min-height: 1em;
+      transition: color 0.15s;
+    }
+    .exercise-label--set {
+      color: #f5c842;
     }
 
     .exercise-number {
