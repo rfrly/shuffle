@@ -154,7 +154,11 @@
       color: #aaa;
       font-family: var(--font-mono);
       min-height: 1em;
-      transition: color 0.15s;
+      animation: label-fade-in 0.2s ease;
+    }
+    @keyframes label-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
     .exercise-label--set {
       color: #f5c842;
@@ -1539,6 +1543,14 @@
           countInProgress.current = false;
           countInBeatPos.current = 0;
           nextBeatTime.current = Infinity;
+          // Resync playingBars to where we are in the current set so that ∞ set-loop
+          // and "last exercise" signals fire correctly after resume.
+          {
+            const { barsPerExercise: bpe, minEx: mn, maxEx: mx, exMode: em, pickedNums: pn } = stateRef.current;
+            const totalInSet = (em === 'pick' && pn && pn.length > 0) ? pn.length : mx - mn + 1;
+            const posInSet = (exercisesPlayed.current - 1) % totalInSet;
+            playingBars.current = posInSet * bpe;
+          }
           setIsResuming(true);
           setPhase("countin");
           const { onNextExercise: onNext } = stateRef.current;
@@ -2840,8 +2852,8 @@
           )}
 
           <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-            <div className={`exercise-label${isFirstExOfSet && phase !== "idle" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+            <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
+              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
             </div>
 
             {phase === "countin" ? (
@@ -3213,7 +3225,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.9.beta.40 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.9.beta.41 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

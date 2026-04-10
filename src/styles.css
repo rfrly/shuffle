@@ -129,7 +129,11 @@
       color: #aaa;
       font-family: var(--font-mono);
       min-height: 1em;
-      transition: color 0.15s;
+      animation: label-fade-in 0.2s ease;
+    }
+    @keyframes label-fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
     }
     .exercise-label--set {
       color: #f5c842;

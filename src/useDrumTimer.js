@@ -136,6 +136,14 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       countInProgress.current = false;
       countInBeatPos.current = 0;
       nextBeatTime.current = Infinity;
+      // Resync playingBars to where we are in the current set so that ∞ set-loop
+      // and "last exercise" signals fire correctly after resume.
+      {
+        const { barsPerExercise: bpe, minEx: mn, maxEx: mx, exMode: em, pickedNums: pn } = stateRef.current;
+        const totalInSet = (em === 'pick' && pn && pn.length > 0) ? pn.length : mx - mn + 1;
+        const posInSet = (exercisesPlayed.current - 1) % totalInSet;
+        playingBars.current = posInSet * bpe;
+      }
       setIsResuming(true);
       setPhase("countin");
       const { onNextExercise: onNext } = stateRef.current;

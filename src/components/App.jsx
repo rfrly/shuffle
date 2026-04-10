@@ -735,8 +735,8 @@ export function App() {
       )}
 
       <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-        <div className={`exercise-label${isFirstExOfSet && phase !== "idle" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+        <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
+          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -1108,7 +1108,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.9.beta.40 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.9.beta.41 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
