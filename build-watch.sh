@@ -653,6 +653,7 @@ firebase_and_observer = r"""
         bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
         bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
+        isFirstExOfSet: obsIsFirstExOfSet, setCount: obsSetCount,
         disconnected,
       } = state || {};
 
@@ -751,14 +752,14 @@ firebase_and_observer = r"""
       }, [localBpmAuto, obsMode, phase, obsPaused, localBpmAutoTrigger, localBpmAutoSecInterval, applyObsBpmStep]);
 
       // Set-loop BPM automation (Shuffle/Sequence ∞, teacher side)
-      const obsLastExerciseRef = React.useRef(exercise);
+      const obsLastSetCountRef = React.useRef(obsSetCount);
       React.useEffect(() => {
-        const prev = obsLastExerciseRef.current;
-        obsLastExerciseRef.current = exercise;
+        const prev = obsLastSetCountRef.current;
+        obsLastSetCountRef.current = obsSetCount;
         if (!localBpmAuto || !obsInfiniteEff || isObsMetronome || !obsRunning || obsPaused) return;
         if (localBpmAutoTrigger !== "set") return;
-        if (prev != null && exercise != null && exercise < prev) applyObsBpmStep();
-      }, [exercise]);
+        if (prev != null && obsSetCount != null && obsSetCount > prev) applyObsBpmStep();
+      }, [obsSetCount]);
 
       React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
 
@@ -891,8 +892,8 @@ firebase_and_observer = r"""
           {disconnected && <div className="observer-offline">Session ended</div>}
 
           <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
-            <div className="exercise-label">
-              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : "exercise"}
+            <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
+              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
 
             {isCountIn ? (
@@ -1354,6 +1355,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+          isFirstExOfSet, setCount,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
@@ -1362,6 +1364,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+          isFirstExOfSet, setCount,
           watchScreen]);
 
 
@@ -1656,7 +1659,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.53</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.54</div>
           </div>
         )}
         {watchScreen === "share" && (
