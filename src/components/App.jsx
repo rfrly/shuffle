@@ -678,36 +678,35 @@ export function App() {
             <button className="help-close-x" onClick={() => setShowHelp(false)}>✕</button>
             <div className="help-title">How to use Shuffle</div>
             <div className="help-section">
-              <p>Shuffle randomises your exercises to help you practise more effectively.</p>
-            </div>
-            <div className="help-section">
               <h3>Set up</h3>
-              <p>Choose your mode, then configure your session: exercise range (swipe up/down to nudge) or pick specific exercises, BPM, time signature, exercise length (always 1 bar in pick mode), and rounds per exercise.</p>
-              <p>Tap Count in to set the count-in length. Enable "count in every exercise" if you want a count-in before each exercise, not just the first.</p>
+              <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
+                <li>Choose your mode, then set BPM, time signature, exercise length, and rounds per exercise.</li>
+                <li>Set your exercise range (swipe up/down to nudge) or switch to Pick to choose specific exercises.</li>
+                <li>Tap Count in to set the count-in length — optionally enable it before every exercise.</li>
+              </ul>
             </div>
             <div className="help-section">
               <h3>Modes</h3>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to turn on ∞ mode — it loops continuously.</li>
-                <li>Sequence — plays exercises in order, then stops. Tap Sequence again to turn on ∞ mode — it loops continuously.</li>
-                <li>Metronome — bar counter, runs until you stop it. Tap Metronome again to switch to stopwatch mode — shows elapsed time instead of bars.</li>
+                <li>Shuffle — plays every exercise in random order, then stops. Tap again for ∞ mode — loops continuously.</li>
+                <li>Sequence — plays exercises in order, then stops. Tap again for ∞ mode.</li>
+                <li>Metronome — runs until stopped. Tap again for stopwatch mode.</li>
               </ul>
             </div>
             <div className="help-section">
               <h3>BPM automation</h3>
-              <p>Tap the <strong>⚙&#xFE0E;</strong> button next to the BPM control to open automation settings. The ⚙&#xFE0E; button is only shown in Metronome mode and Shuffle/Sequence ∞ mode.</p>
+              <p>Tap <strong>⚙&#xFE0E;</strong> next to BPM to open automation settings (available in Metronome and ∞ modes).</p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li><strong>Shuffle/Sequence ∞</strong> — BPM steps up or down by the chosen amount after each full set.</li>
-                <li><strong>Metronome</strong> — BPM steps every N bars or every N seconds.</li>
-                <li><strong>Random</strong> (Shuffle/Sequence ∞ only) — instead of stepping, BPM randomises within a range (up to 20 BPM wide) at each trigger point.</li>
+                <li><strong>Shuffle/Sequence ∞</strong> — steps BPM up or down after each full set.</li>
+                <li><strong>Metronome</strong> — steps every N bars or every N seconds.</li>
+                <li><strong>Random</strong> (∞ only) — randomises BPM within a range instead of stepping.</li>
               </ul>
-              <p>BPM stops changing when it reaches 30 or 300. Turn automation off with the On/Off toggle in the ⚙&#xFE0E; popup.</p>
             </div>
             <div className="help-section">
               <h3>Loop / Pause / Stop</h3>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li>Loop — repeats the current exercise indefinitely. Tap again to turn off loop mode; it will exit at the end of the current rounds per exercise.</li>
-                <li>Pause — stops playback. Resuming restarts the current exercise from the beginning with a count-in. Not available in Metronome mode.</li>
+                <li>Loop — repeats the current exercise. Tap again to exit at the end of the current exercise.</li>
+                <li>Pause — restarts the current exercise with a count-in on resume.</li>
                 <li>Stop — ends the session and resets everything.</li>
               </ul>
             </div>
@@ -715,9 +714,7 @@ export function App() {
               <h3>Tips</h3>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li>If you can't hear anything, check your device isn't in silent mode.</li>
-                <li>Keep the app on screen while practising — audio may stop if you switch away or lock your device.</li>
-                <li>For the best experience on iPhone, use Safari or add Shuffle to your home screen.</li>
-                <li>Tap <strong>☰</strong> to switch to letter mode, share your settings as a link, or reset all settings to defaults.</li>
+                <li>Keep the app on screen — audio may stop if you switch away or lock your device.</li>
               </ul>
             </div>
             <div className="help-section">
@@ -1114,7 +1111,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.10.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.10.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
