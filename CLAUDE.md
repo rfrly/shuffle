@@ -117,7 +117,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
 - Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
 - No dimming of fixed controls — all controls same visual weight
-- Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop
+- Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop. In Metronome mode, Pause and Loop are hidden — Stop fills the full transport bar width
 - Start button amber filled, only visible when idle
 - Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
 - Idle state shows a one-line summary of current settings
