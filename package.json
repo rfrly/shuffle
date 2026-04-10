@@ -7,8 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "generate": "python3 build-watch.sh",
-    "generate:watch": "python3 build-watch.sh --watch"
+    "generate": "python3 build-watch.sh"
   },
   "repository": {
     "type": "git",
