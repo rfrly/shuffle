@@ -323,7 +323,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             if (currentMode !== MODE_CLICKONLY && infiniteRef.current && isDownbeat && playBeat > 0 && onLoop) {
               playingBars.current++;
               const totalBarsPerSet = totalInSet * bpe;
-              if (playingBars.current % totalBarsPerSet === 0) {
+              if (totalInSet > 1 && playingBars.current % totalBarsPerSet === 0) {
                 const t2 = t;
                 setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
               }
