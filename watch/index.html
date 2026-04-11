@@ -2121,13 +2121,13 @@
             <BpmAutoPopup
               mode={obsMode === "clickonly" ? "clickonly" : "fullset"}
               bpm={obsBpm || 80}
-              bpmAuto={localBpmAuto} setBpmAuto={v => { setLocalBpmAuto(v); onSendCmd({ bpmAuto: v }); }}
+              bpmAuto={localBpmAuto} setBpmAuto={v => { setLocalBpmAuto(v); const val = typeof v === 'function' ? v(localBpmAuto) : v; onSendCmd({ bpmAuto: val }); }}
               bpmAutoStep={localBpmAutoStep} setBpmAutoStep={v => { setLocalBpmAutoStep(v); onSendCmd({ bpmAutoStep: v }); }}
               bpmAutoDir={localBpmAutoDir} setBpmAutoDir={v => { setLocalBpmAutoDir(v); onSendCmd({ bpmAutoDir: v }); }}
               bpmAutoTrigger={localBpmAutoTrigger} setBpmAutoTrigger={v => { setLocalBpmAutoTrigger(v); onSendCmd({ bpmAutoTrigger: v }); }}
               bpmAutoBarInterval={localBpmAutoBarInterval} setBpmAutoBarInterval={v => { setLocalBpmAutoBarInterval(v); onSendCmd({ bpmAutoBarInterval: v }); }}
               bpmAutoSecInterval={localBpmAutoSecInterval} setBpmAutoSecInterval={v => { setLocalBpmAutoSecInterval(v); onSendCmd({ bpmAutoSecInterval: v }); }}
-              bpmAutoRandom={localBpmAutoRandom} setBpmAutoRandom={v => { setLocalBpmAutoRandom(v); onSendCmd({ bpmAutoRandom: v }); }}
+              bpmAutoRandom={localBpmAutoRandom} setBpmAutoRandom={v => { setLocalBpmAutoRandom(v); const val = typeof v === 'function' ? v(localBpmAutoRandom) : v; onSendCmd({ bpmAutoRandom: val }); }}
               bpmAutoMin={localBpmAutoMin} setBpmAutoMin={setLocalBpmAutoMin}
               bpmAutoMax={localBpmAutoMax} setBpmAutoMax={setLocalBpmAutoMax}
               anchorRef={bpmGearBtnRef}
@@ -3883,7 +3883,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.59</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.60</div>
           </div>
         )}
         {watchScreen === "share" && (
