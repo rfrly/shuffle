@@ -634,7 +634,7 @@
     .help-close-bottom:active { color: #fff; border-color: #888; background: #2a2a2a; }
 
 
-    @media (hover: none) and (min-width: 768px) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) {
       .help-content { max-width: 640px !important; gap: 1.25rem !important; }
       .help-title { font-size: 1.1rem !important; }
       .help-section h3 { font-size: 1rem !important; }
@@ -714,7 +714,7 @@
     }
     .settings-menu-btn-pulse { animation: pulse-amber 2s ease-in-out infinite; }
 
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .app { background: #0f0f0f !important; }
       .app-header { max-width: 700px !important; }
       .app-title { font-size: 1.8rem; }
@@ -727,7 +727,7 @@
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
       .range-row input { height: 52px; }
       .bpm-widget { height: 52px; }
-      .bpm-btn { width: 40px; height: 52px; font-size: 1.3rem; }
+      .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .bpm-tap { height: 52px; font-size: 1.1rem; }
       .bpm-gear-btn { height: 52px; }
       .stepper { height: 52px; }
@@ -744,21 +744,18 @@
       .beat-dots { max-width: none; }
     }
 
-    @media (hover: none) and (min-width: 768px) and (min-height: 600px) and (orientation: landscape) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 900px) and (min-height: 600px) and (orientation: landscape) {
       .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
       .controls-grid { column-gap: 0.5rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
       .idle-summary { font-size: 0.85rem; }
-      .bpm-btn { width: 36px; height: 40px; }
-      .bpm-tap { height: 40px; }
-      .bpm-gear-btn { width: 30px; height: 40px; font-size: 1.1rem; }
-      .bpm-widget { height: 40px; }
+      .bpm-btn { width: 40px; }
       .stepper-btn { width: 40px; }
     }
 
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .app { justify-content: flex-start; padding: 1.5dvh 2.5rem; gap: 1dvh; }
       .display { min-height: 26dvh; flex: 1 !important; gap: 1rem; }
       .app-title { font-size: 2rem !important; }
@@ -784,7 +781,7 @@
       .compact-sel-btn { height: 58px; }
       .range-row input { height: 58px; }
       .bpm-widget { height: 58px; }
-      .bpm-btn { width: 44px; height: 58px; }
+      .bpm-btn { width: 58px; height: 58px; }
       .bpm-tap { height: 58px; }
       .bpm-gear-btn { height: 58px; }
       .stepper { height: 58px; }
@@ -955,10 +952,10 @@
     .bpm-auto-random-toggle:active { color: #888; }
     .bpm-auto-random-toggle.active { color: #bbb; }
 
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
     }
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .compact-sel-btn { height: 58px; }
     }
 
@@ -1097,13 +1094,13 @@
     .pick-trigger-btn:disabled { opacity: 0.25; cursor: default; }
     .pick-trigger-btn.empty { color: #555; }
 
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
       .numpad-key { height: 60px; font-size: 1.3rem; }
       .numpad-ok, .numpad-cancel { height: 52px; }
       .pick-trigger-btn { height: 52px; }
       .ex-mode-toggle { height: 52px; width: 50px; }
     }
-    @media (hover: none) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
+    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
       .numpad-key { height: 64px; }
       .numpad-ok, .numpad-cancel { height: 56px; }
       .pick-trigger-btn { height: 58px; }
