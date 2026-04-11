@@ -1525,6 +1525,11 @@
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
+        subdivision: obsSubdivision, beatStates: obsBeatStates,
+        bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
+        bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
+        bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
+        isFirstExOfSet: obsIsFirstExOfSet, setCount: obsSetCount,
         disconnected,
       } = state || {};
 
@@ -1559,6 +1564,71 @@
       const bpmObsIncHandlers = useLongPress(incObsBpm);
       const bpmObsDecHandlers = useLongPress(decObsBpm);
 
+      // BPM Automation local state (mirrors main app — teacher controls the student's BPM)
+      const isObsMetronome = obsMode === "clickonly";
+      const obsInfiniteEff = !!obsInfinite;
+      const [obsBpmAutoOpen,      setObsBpmAutoOpen]      = React.useState(false);
+      const [localBpmAuto,        setLocalBpmAuto]        = React.useState(() => !!obsBpmAuto);
+      const [localBpmAutoStep,    setLocalBpmAutoStep]    = React.useState(() => obsBpmAutoStep ?? 2);
+      const [localBpmAutoDir,     setLocalBpmAutoDir]     = React.useState(() => obsBpmAutoDir ?? 'up');
+      const [localBpmAutoTrigger, setLocalBpmAutoTrigger] = React.useState(() => obsBpmAutoTrigger ?? 'set');
+      const [localBpmAutoBarInterval, setLocalBpmAutoBarInterval] = React.useState(() => obsBpmAutoBarInterval ?? 8);
+      const [localBpmAutoSecInterval, setLocalBpmAutoSecInterval] = React.useState(() => obsBpmAutoSecInterval ?? 30);
+      const [localBpmAutoRandom,  setLocalBpmAutoRandom]  = React.useState(() => !!obsBpmAutoRandom);
+      const [localBpmAutoMin,     setLocalBpmAutoMin]     = React.useState(() => obsBpm || 80);
+      const [localBpmAutoMax,     setLocalBpmAutoMax]     = React.useState(() => obsBpm || 80);
+      const bpmGearBtnRef = React.useRef(null);
+
+      // Sync local bpmAuto state when student state changes (e.g. on connect)
+      React.useEffect(() => {
+        setLocalBpmAuto(!!obsBpmAuto);
+        setLocalBpmAutoStep(obsBpmAutoStep ?? 2);
+        setLocalBpmAutoDir(obsBpmAutoDir ?? 'up');
+        setLocalBpmAutoTrigger(obsBpmAutoTrigger ?? 'set');
+        setLocalBpmAutoBarInterval(obsBpmAutoBarInterval ?? 8);
+        setLocalBpmAutoSecInterval(obsBpmAutoSecInterval ?? 30);
+        setLocalBpmAutoRandom(!!obsBpmAutoRandom);
+      }, [obsBpmAuto, obsBpmAutoStep, obsBpmAutoDir, obsBpmAutoTrigger, obsBpmAutoBarInterval, obsBpmAutoSecInterval, obsBpmAutoRandom]);
+
+      const obsAutoBarCountRef = React.useRef(0);
+      const obsAutoTimerRef = React.useRef(null);
+
+      const applyObsBpmStep = React.useCallback(() => {
+        if (localBpmAutoRandom && !isObsMetronome) {
+          const lo = Math.min(localBpmAutoMin, localBpmAutoMax);
+          const hi = Math.max(localBpmAutoMin, localBpmAutoMax);
+          onSendCmd({ bpm: Math.floor(Math.random() * (hi - lo + 1)) + lo });
+        } else {
+          const delta = localBpmAutoDir === 'up' ? localBpmAutoStep : -localBpmAutoStep;
+          const newBpm = Math.min(300, Math.max(30, (obsBpmRef.current || 80) + delta));
+          onSendCmd({ bpm: newBpm });
+        }
+      }, [localBpmAutoRandom, isObsMetronome, localBpmAutoMin, localBpmAutoMax, localBpmAutoDir, localBpmAutoStep, onSendCmd]);
+
+      // Metronome bar-count BPM automation (teacher side)
+      React.useEffect(() => {
+        if (!localBpmAuto || obsMode !== "clickonly" || phase !== "playing" || obsPaused) return;
+        if (localBpmAutoTrigger !== "bars" && localBpmAutoTrigger !== "set") return;
+        obsAutoBarCountRef.current += 1;
+        if (obsAutoBarCountRef.current >= localBpmAutoBarInterval) {
+          obsAutoBarCountRef.current = 0;
+          applyObsBpmStep();
+        }
+      }, [exercise]);
+
+      // Metronome time-based BPM automation (teacher side)
+      React.useEffect(() => {
+        if (!localBpmAuto || obsMode !== "clickonly" || phase !== "playing" || obsPaused || localBpmAutoTrigger !== "seconds") {
+          clearInterval(obsAutoTimerRef.current); obsAutoTimerRef.current = null;
+          return;
+        }
+        const intervalMs = Math.max(1, localBpmAutoSecInterval) * 1000;
+        obsAutoTimerRef.current = setInterval(applyObsBpmStep, intervalMs);
+        return () => { clearInterval(obsAutoTimerRef.current); obsAutoTimerRef.current = null; };
+      }, [localBpmAuto, obsMode, phase, obsPaused, localBpmAutoTrigger, localBpmAutoSecInterval, applyObsBpmStep]);
+
+      React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
+
       const beatsPerBar = parseInt(obsTimeSigLabel) || 4;
       const exLen = obsExLen || 1;
       const bpe = obsBpe || 4;
@@ -1567,6 +1637,16 @@
       const isPlaying = phase === "playing";
       const isIdle = !obsRunning && !obsPaused;
       const disabled = !!disconnected;
+      const subdivision = obsSubdivision || 1;
+      const beatStates = Array.isArray(obsBeatStates) ? obsBeatStates : Array.from({ length: beatsPerBar }, (_, i) => i === 0 ? 'accent' : 'normal');
+
+      const cycleBeatStateObs = React.useCallback((i) => {
+        if (disabled || obsMode !== "clickonly") return;
+        const order = ['accent', 'normal', 'silent'];
+        const next = [...beatStates];
+        next[i] = order[(order.indexOf(beatStates[i]) + 1) % 3];
+        onSendCmd({ beatStates: next });
+      }, [disabled, obsMode, beatStates, onSendCmd]);
       const obsTimeSig = TIME_SIGS.find(t => t.label === obsTimeSigLabel) || TIME_SIGS[2];
       const exMode = obsExMode || "range";
       const pickedNums = obsPickedNums || [];
@@ -1677,9 +1757,9 @@
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className="display">
-            <div className="exercise-label">
-              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : "exercise"}
+          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
+            <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
+              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
 
             {isCountIn ? (
@@ -1688,26 +1768,24 @@
               </div>
             ) : sc ? (
               <div className="exercise-number done">done</div>
-            ) : obsMode === "clickonly" && obsStopwatch && phase !== "idle" ? (
-              <div className="exercise-number stopwatch-time" style={{ letterSpacing: 0 }}>
-                {Math.floor((obsElapsed || 0) / 60)}<span style={{ margin: "0 -0.12em" }}>:</span>{String((obsElapsed || 0) % 60).padStart(2, "0")}
-              </div>
             ) : (
               <div className={`exercise-number${isIdle ? " idle" : ""}`}>
-                {exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
+                {obsMode === "clickonly" && obsStopwatch && phase !== "idle"
+                  ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
+                  : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
               </div>
             )}
 
             {!sc && (
               isIdle ? (
-                <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}
-                >
-                  {obsMode === "clickonly"
-                    ? `${obsBpm || "--"} bpm · ${obsTimeSigLabel || "--"} · metronome`
-                    : exMode === "pick"
+                sc ? <div className="idle-summary">&nbsp;</div>
+                : obsMode === "clickonly" ? null : (
+                  <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
+                    {exMode === "pick"
                       ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`
                       : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`}
-                </div>
+                  </div>
+                )
               ) : (
                 <div className="next-exercise">
                   {obsPaused
@@ -1728,10 +1806,37 @@
             )}
 
             {!sc && (
-              <div className="beat-dots">
-                {Array.from({ length: beatsPerBar }).map((_, i) => (
-                  <div key={i} className={`beat-dot${isIdle ? " inactive" : ""}${i === 0 ? " beat1" : ""}${isPlaying && !obsPaused && (currentBeat || 0) === i ? " active" : ""}`} />
-                ))}
+              <div className={`beat-dots${obsMode === "clickonly" ? " tappable" : ""}`}>
+                {Array.from({ length: beatsPerBar }).map((_, i) => {
+                  const bState = obsMode === "clickonly" ? (beatStates[i] ?? 'normal') : null;
+                  const isActive = isPlaying && !obsPaused && (currentBeat || 0) === i;
+                  return (
+                    <div key={i}
+                      className={[
+                        'beat-dot',
+                        isIdle && obsMode !== 'clickonly' ? 'inactive' : '',
+                        i === 0 ? 'beat1' : '',
+                        isActive ? 'active' : '',
+                        bState ? bState : '',
+                      ].filter(Boolean).join(' ')}
+                      onClick={obsMode === "clickonly" ? () => cycleBeatStateObs(i) : undefined}
+                    />
+                  );
+                })}
+              </div>
+            )}
+
+            {!sc && obsMode === "clickonly" && subdivision > 1 && (
+              <div className="subdiv-dots">
+                {Array.from({ length: beatsPerBar * subdivision }).map((_, i) => {
+                  const beatIndex = Math.floor(i / subdivision);
+                  const subIndex = i % subdivision;
+                  const isActive = isPlaying && !obsPaused && (currentBeat || 0) === beatIndex && subIndex === 0;
+                  const isBeat = subIndex === 0;
+                  return (
+                    <div key={i} className={`subdiv-dot${isBeat ? ' beat' : ''}${isActive ? ' active' : ''}`} />
+                  );
+                })}
               </div>
             )}
 
@@ -1783,18 +1888,28 @@
 
               <div className="control-group">
                 <label>BPM</label>
-                <div className="bpm-widget">
-                  <button className="bpm-btn left" disabled={disabled} {...bpmObsDecHandlers}>−</button>
-                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                    onClick={!disabled && !obsRunning ? handleTapBpm : undefined}
-                    onMouseDown={e => e.preventDefault()}
-                    style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                      <span>{obsBpm || "--"}</span>
-                      {!disabled && !obsRunning && <span className="bpm-tap-label">tap to set</span>}
+                <div className="bpm-widget-row">
+                  <div className="bpm-widget">
+                    <button className="bpm-btn left" disabled={disabled} {...bpmObsDecHandlers}>−</button>
+                    <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                      onClick={!disabled && !obsRunning ? handleTapBpm : undefined}
+                      onMouseDown={e => e.preventDefault()}
+                      style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
+                      <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                        <span>{obsBpm || "--"}</span>
+                        {!disabled && !obsRunning && <span className="bpm-tap-label">tap to set</span>}
+                      </div>
                     </div>
+                    <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
                   </div>
-                  <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
+                  {(obsMode === "clickonly" || obsInfiniteEff) && (
+                    <button
+                      ref={bpmGearBtnRef}
+                      className={`bpm-gear-btn${localBpmAuto ? " active" : ""}`}
+                      onClick={() => setObsBpmAutoOpen(v => !v)}
+                      title="BPM automation"
+                    >⚙&#xFE0E;</button>
+                  )}
                 </div>
               </div>
 
@@ -1836,66 +1951,126 @@
                 />
               </div>
 
-              <div className={`control-group${obsMode === "clickonly" || obsRunning || exMode === "pick" ? " dimmed" : ""}`}>
-                <label>Exercise length</label>
-                <CompactSelector
-                  id="obs-exLength"
-                  value={obsExLen || 1}
-                  options={[1, 2, 4]}
-                  onChange={n => onSendCmd({ exerciseLength: n })}
-                  disabled={disabled || obsRunning || obsMode === "clickonly" || exMode === "pick"}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
-                />
-              </div>
-
-              <div className={`control-group${obsRunning || obsMode === "clickonly" ? " dimmed" : ""}`}>
-                <label>Exercises</label>
-                <div className="ex-control-row">
-                  {exMode !== "pick" ? (
-                    <div className="range-row">
-                      <input type="text" readOnly
-                        value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
-                        disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("min"); }}
-                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
-                      <span>to</span>
-                      <input type="text" readOnly
-                        value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
-                        disabled={disabled || obsRunning || obsMode === "clickonly"}
-                        onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning && obsMode !== "clickonly") setNumpadOpen("max"); }}
-                        style={{ cursor: disabled || obsRunning || obsMode === "clickonly" ? "default" : "pointer" }} />
-                    </div>
-                  ) : (
-                    <button
-                      className={"pick-trigger-btn" + (pickedNums.length === 0 ? " empty" : "") + (pickedNums.length === 0 && !obsRunning && obsMode !== "clickonly" ? " invalid" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => setPickerOpen(true)}>
-                      {pickedNums.length === 0 ? "Tap to select..." : pickedNums.map(n => effectiveLm ? String.fromCharCode(64 + n) : (n < 10 ? "0" + n : "" + n)).join(", ")}
+              {obsMode === "clickonly" && (
+                <div className="control-group subdiv-group">
+                  <label>Subdivision</label>
+                  <div className="selector-row">
+                    <button className={`sel-btn subdiv-btn${subdivision === 1 ? " active" : ""}`}
+                      disabled={disabled} onClick={() => onSendCmd({ subdivision: 1 })}>
+                      <svg viewBox="0 0 16 36" className="subdiv-svg">
+                        <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
+                        <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                      </svg>
                     </button>
-                  )}
-                  <div className="ex-mode-toggle">
-                    <button className={"ex-mode-btn" + (exMode !== "pick" ? " active" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => onSendCmd({ exMode: "range" })}>Range</button>
-                    <button className={"ex-mode-btn" + (exMode === "pick" ? " active" : "")}
-                      disabled={disabled || obsRunning || obsMode === "clickonly"}
-                      onClick={() => onSendCmd({ exMode: "pick", exerciseLength: 1 })}>Pick</button>
+                    <button className={`sel-btn subdiv-btn${subdivision === 2 ? " active" : ""}`}
+                      disabled={disabled} onClick={() => onSendCmd({ subdivision: 2 })}>
+                      <svg viewBox="0 0 30 36" className="subdiv-svg">
+                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                        <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                      </svg>
+                    </button>
+                    <button className={`sel-btn subdiv-btn${subdivision === 3 ? " active" : ""}`}
+                      disabled={disabled} onClick={() => onSendCmd({ subdivision: 3 })}>
+                      <svg viewBox="0 -10 46 46" className="subdiv-svg">
+                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                        <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+                        <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
+                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                        <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
+                        <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
+                      </svg>
+                    </button>
+                    <button className={`sel-btn subdiv-btn${subdivision === 4 ? " active" : ""}`}
+                      disabled={disabled} onClick={() => onSendCmd({ subdivision: 4 })}>
+                      <svg viewBox="0 0 46 36" className="subdiv-svg">
+                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+                        <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
+                        <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
+                        <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
+                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+                        <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+                        <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <div className={`control-group${obsMode === "clickonly" || obsRunning ? " dimmed" : ""}`}>
-                <label>Rounds</label>
-                <div className="stepper">
-                  <button className="stepper-btn left" disabled={disabled || obsRunning || obsMode === "clickonly"}
-                    onClick={() => onSendCmd({ barsPerExercise: Math.max(1, (obsBpe || 4) - 1) })}>−</button>
-                  <div className="stepper-val" style={obsMode === "clickonly" || obsRunning ? { opacity: 0.25 } : {}}>{obsBpe || "--"}</div>
-                  <button className="stepper-btn right" disabled={disabled || obsRunning || obsMode === "clickonly"}
-                    onClick={() => onSendCmd({ barsPerExercise: Math.min(32, (obsBpe || 4) + 1) })}>+</button>
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning || exMode === "pick" ? " dimmed" : ""}`}>
+                  <label>Exercise length</label>
+                  <CompactSelector
+                    id="obs-exLength"
+                    value={obsExLen || 1}
+                    options={[1, 2, 4]}
+                    onChange={n => onSendCmd({ exerciseLength: n })}
+                    disabled={disabled || obsRunning || exMode === "pick"}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={n => n === 1 ? "1 bar" : n + " bars"}
+                  />
                 </div>
-              </div>
+              )}
+
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                  <label>Exercises</label>
+                  <div className="ex-control-row">
+                    {exMode !== "pick" ? (
+                      <div className="range-row">
+                        <input type="text" readOnly
+                          value={effectiveLm ? String.fromCharCode(64 + (obsMinEx || 1)) : (obsMinEx != null ? String(obsMinEx) : "--")}
+                          disabled={disabled || obsRunning}
+                          onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning) setNumpadOpen("min"); }}
+                          style={{ cursor: disabled || obsRunning ? "default" : "pointer" }} />
+                        <span>to</span>
+                        <input type="text" readOnly
+                          value={effectiveLm ? String.fromCharCode(64 + (obsMaxEx || 1)) : (obsMaxEx != null ? String(obsMaxEx) : "--")}
+                          disabled={disabled || obsRunning}
+                          onPointerDown={e => { e.preventDefault(); if (!disabled && !obsRunning) setNumpadOpen("max"); }}
+                          style={{ cursor: disabled || obsRunning ? "default" : "pointer" }} />
+                      </div>
+                    ) : (
+                      <button
+                        className={"pick-trigger-btn" + (pickedNums.length === 0 ? " empty" : "") + (pickedNums.length === 0 && !obsRunning ? " invalid" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => setPickerOpen(true)}>
+                        {pickedNums.length === 0 ? "Tap to select..." : pickedNums.map(n => effectiveLm ? String.fromCharCode(64 + n) : (n < 10 ? "0" + n : "" + n)).join(", ")}
+                      </button>
+                    )}
+                    <div className="ex-mode-toggle">
+                      <button className={"ex-mode-btn" + (exMode !== "pick" ? " active" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => onSendCmd({ exMode: "range" })}>Range</button>
+                      <button className={"ex-mode-btn" + (exMode === "pick" ? " active" : "")}
+                        disabled={disabled || obsRunning}
+                        onClick={() => onSendCmd({ exMode: "pick", exerciseLength: 1 })}>Pick</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {obsMode !== "clickonly" && (
+                <div className={`control-group${obsRunning ? " dimmed" : ""}`}>
+                  <label>Rounds Per Exercise</label>
+                  <div className="stepper">
+                    <button className="stepper-btn left" disabled={disabled || obsRunning}
+                      onClick={() => onSendCmd({ barsPerExercise: Math.max(1, (obsBpe || 4) - 1) })}>−</button>
+                    <div className="stepper-val" style={obsRunning ? { opacity: 0.25 } : {}}>{obsBpe || "--"}</div>
+                    <button className="stepper-btn right" disabled={disabled || obsRunning}
+                      onClick={() => onSendCmd({ barsPerExercise: Math.min(32, (obsBpe || 4) + 1) })}>+</button>
+                  </div>
+                </div>
+              )}
 
             </div>
           </div>
@@ -1904,6 +2079,9 @@
             {!obsRunning ? (
               <button className="action-btn" disabled={disabled || !validRange}
                 onClick={() => onSendCmd({ tcmd: "start", tseq: Date.now() })}>Start</button>
+            ) : obsMode === "clickonly" ? (
+              <button className="action-btn stop" disabled={disabled}
+                onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
             ) : (
               <>
                 <div className="btn-group">
@@ -1911,10 +2089,10 @@
                     onClick={() => onSendCmd({ tcmd: obsPaused ? "resume" : "pause", tseq: Date.now() })}>
                     {obsPaused ? "Resume" : "Pause"}
                   </button>
-                  {obsMode !== "clickonly" && (
-                    <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
-                      onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
-                  )}
+                  <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
+                    onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
+                </div>
+                <div className="btn-group-stop">
                   <button className="action-btn stop" disabled={disabled}
                     onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
                 </div>
@@ -1938,6 +2116,24 @@
               onConfirm={nums => { setPickerOpen(false); onSendCmd({ pickedNums: nums, exMode: "pick" }); }}
               onClose={() => setPickerOpen(false)}
               letterMode={effectiveLm} />
+          )}
+          {obsBpmAutoOpen && (isObsMetronome || obsInfiniteEff) && ReactDOM.createPortal(
+            <BpmAutoPopup
+              mode={obsMode === "clickonly" ? "clickonly" : "fullset"}
+              bpm={obsBpm || 80}
+              bpmAuto={localBpmAuto} setBpmAuto={v => { setLocalBpmAuto(v); onSendCmd({ bpmAuto: v }); }}
+              bpmAutoStep={localBpmAutoStep} setBpmAutoStep={v => { setLocalBpmAutoStep(v); onSendCmd({ bpmAutoStep: v }); }}
+              bpmAutoDir={localBpmAutoDir} setBpmAutoDir={v => { setLocalBpmAutoDir(v); onSendCmd({ bpmAutoDir: v }); }}
+              bpmAutoTrigger={localBpmAutoTrigger} setBpmAutoTrigger={v => { setLocalBpmAutoTrigger(v); onSendCmd({ bpmAutoTrigger: v }); }}
+              bpmAutoBarInterval={localBpmAutoBarInterval} setBpmAutoBarInterval={v => { setLocalBpmAutoBarInterval(v); onSendCmd({ bpmAutoBarInterval: v }); }}
+              bpmAutoSecInterval={localBpmAutoSecInterval} setBpmAutoSecInterval={v => { setLocalBpmAutoSecInterval(v); onSendCmd({ bpmAutoSecInterval: v }); }}
+              bpmAutoRandom={localBpmAutoRandom} setBpmAutoRandom={v => { setLocalBpmAutoRandom(v); onSendCmd({ bpmAutoRandom: v }); }}
+              bpmAutoMin={localBpmAutoMin} setBpmAutoMin={setLocalBpmAutoMin}
+              bpmAutoMax={localBpmAutoMax} setBpmAutoMax={setLocalBpmAutoMax}
+              anchorRef={bpmGearBtnRef}
+              onClose={() => setObsBpmAutoOpen(false)}
+            />,
+            document.body
           )}
         </div>
       );
@@ -3249,14 +3445,19 @@
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums,
+          exMode, pickedNums, subdivision, beatStates,
+          bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+          isFirstExOfSet, setCount,
           ts: Date.now(),
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, watchScreen]);
+          exMode, pickedNums, subdivision, beatStates,
+          bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+          isFirstExOfSet, setCount,
+          watchScreen]);
 
 
       // ── Watch: clean up on unmount ─────────────────────────────────────────
@@ -3385,8 +3586,8 @@
             lastTSeq.current = cmd.tseq;
             setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
-            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
-            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); }
+            else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setSetCount(1); setIsFirstExOfSet(false); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
+            else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); setSetCount(1); setIsFirstExOfSet(false); }
             else if (cmd.tcmd === "end-session") { handleStopSharing(); return; }
             else if (cmd.tcmd === "pause")  { setResuming(false); setPaused(true); }
             else if (cmd.tcmd === "resume") { setResuming(true); setPaused(false); }
@@ -3434,6 +3635,15 @@
           if (cmd.exMode != null) setExMode(cmd.exMode);
           if (cmd.pickedNums != null) setPickedNums(Array.isArray(cmd.pickedNums) ? cmd.pickedNums.map(Number) : []);
           if (cmd.letterMode != null) setLetterMode(!!cmd.letterMode);
+          if (cmd.subdivision != null) setSubdivision(cmd.subdivision);
+          if (cmd.beatStates != null) setBeatStates(Array.isArray(cmd.beatStates) ? cmd.beatStates : defaultBeatStates(timeSig.label));
+          if (cmd.bpmAuto != null) setBpmAuto(!!cmd.bpmAuto);
+          if (cmd.bpmAutoStep != null) setBpmAutoStep(cmd.bpmAutoStep);
+          if (cmd.bpmAutoDir != null) setBpmAutoDir(cmd.bpmAutoDir);
+          if (cmd.bpmAutoTrigger != null) setBpmAutoTrigger(cmd.bpmAutoTrigger);
+          if (cmd.bpmAutoBarInterval != null) setBpmAutoBarInterval(cmd.bpmAutoBarInterval);
+          if (cmd.bpmAutoSecInterval != null) setBpmAutoSecInterval(cmd.bpmAutoSecInterval);
+          if (cmd.bpmAutoRandom != null) setBpmAutoRandom(!!cmd.bpmAutoRandom);
         });
         return () => { cmdsRef.off(); cmdDbRef.current = null; };
       }, [watchScreen, shareCode]);
@@ -3673,7 +3883,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.10 · watch 1.51</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.59</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -4289,7 +4499,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.11 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

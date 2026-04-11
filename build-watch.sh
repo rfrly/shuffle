@@ -751,8 +751,6 @@ firebase_and_observer = r"""
         return () => { clearInterval(obsAutoTimerRef.current); obsAutoTimerRef.current = null; };
       }, [localBpmAuto, obsMode, phase, obsPaused, localBpmAutoTrigger, localBpmAutoSecInterval, applyObsBpmStep]);
 
-      // Set-loop BPM automation (Shuffle/Sequence ∞, teacher side)
-      // obsSetLoopTs is a timestamp set by the student's handleSetLoop — changes once per set loop
       React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
 
       const beatsPerBar = parseInt(obsTimeSigLabel) || 4;
@@ -1651,7 +1649,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.58</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.11 · watch 1.59</div>
           </div>
         )}
         {watchScreen === "share" && (
