@@ -364,12 +364,10 @@ export function App() {
     return () => clearTimeout(t);
   }, [phase, showMuteHint]);
 
-  // Clear set label after the first bar of the new set (or at the next count-in for 1-bar exercises)
+  // Clear set label after the first bar of the new set
   useEffect(() => {
-    if (!isFirstExOfSet) return;
-    if (phase === "playing" && currentBar > 0) setIsFirstExOfSet(false);
-    else if (phase === "countin" && exercise !== null && barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength) <= 1) setIsFirstExOfSet(false);
-  }, [isFirstExOfSet, phase, currentBar, exercise, barsPerExercise, exMode, exerciseLength]);
+    if (isFirstExOfSet && phase === "playing" && currentBar > 0) setIsFirstExOfSet(false);
+  }, [isFirstExOfSet, phase, currentBar]);
 
   const handleStart = () => {
     if (!localStorage.getItem('muteHintSeen')) {
@@ -1113,7 +1111,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.13.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.13.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
