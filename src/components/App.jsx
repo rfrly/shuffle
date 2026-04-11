@@ -364,10 +364,20 @@ export function App() {
     return () => clearTimeout(t);
   }, [phase, showMuteHint]);
 
+  // Track whether we've entered playing state since isFirstExOfSet was set
+  const hasPlayedFirstBar = useRef(false);
+  useEffect(() => {
+    if (isFirstExOfSet && phase === "playing") hasPlayedFirstBar.current = true;
+    if (!isFirstExOfSet) hasPlayedFirstBar.current = false;
+  }, [isFirstExOfSet, phase]);
+
   // Clear set label after the first bar of the new set
   useEffect(() => {
-    if (isFirstExOfSet && phase === "playing" && currentBar > 0) setIsFirstExOfSet(false);
-  }, [isFirstExOfSet, phase, currentBar]);
+    const bpe = barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength);
+    if (!isFirstExOfSet) return;
+    if (phase === "playing" && currentBar > 0) { setIsFirstExOfSet(false); return; }
+    if (bpe === 1 && phase === "countin" && hasPlayedFirstBar.current) { setIsFirstExOfSet(false); return; }
+  }, [isFirstExOfSet, phase, currentBar, barsPerExercise, exMode, exerciseLength]);
 
   const handleStart = () => {
     if (!localStorage.getItem('muteHintSeen')) {
@@ -1111,7 +1121,7 @@ export function App() {
         )}
       </div>
 
-      <div className="version-footer">v1.9.13.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.13.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
