@@ -727,7 +727,7 @@
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
       .range-row input { height: 52px; }
       .bpm-widget { height: 52px; }
-      .bpm-btn { width: 44px; height: 52px; font-size: 1.3rem; }
+      .bpm-btn { width: 40px; height: 52px; font-size: 1.3rem; }
       .bpm-tap { height: 52px; font-size: 1.1rem; }
       .bpm-gear-btn { height: 52px; }
       .stepper { height: 52px; }
@@ -781,7 +781,7 @@
       .compact-sel-btn { height: 58px; }
       .range-row input { height: 58px; }
       .bpm-widget { height: 58px; }
-      .bpm-btn { width: 48px; height: 58px; }
+      .bpm-btn { width: 40px; height: 58px; }
       .bpm-tap { height: 58px; }
       .bpm-gear-btn { height: 58px; }
       .stepper { height: 58px; }
