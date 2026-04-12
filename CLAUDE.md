@@ -253,6 +253,16 @@ For watch-only changes (e.g. teacher UI, Firebase logic), edit `build.py` and ru
 
 ---
 
+## Future: Swift/SwiftUI native app
+
+The long-term plan is to rewrite Shuffle as a native Swift/SwiftUI app for iPhone, iPad, and Mac. The web app is the reference implementation — no changes to the web codebase are needed to prepare for this, but keep the following in mind:
+
+- **Keep business logic separate from React** — pure functions in `src/` that don't depend on hooks or JSX are the easiest to port
+- **The audio scheduler comments are intentional** — `src/useDrumTimer.js`, `src/audio.js`, and `src/constants.js` contain block comments explaining the timing model and Swift/AVAudioEngine porting notes. Do not remove or shorten these
+- **The Watch feature is planned as a paid unlock** in the native app — keep the watch architecture clean and well-documented for the same reason
+
+---
+
 ## Referral tracking
 
 GoatCounter is used for analytics. Referrals are tracked via the `?ref=` query parameter.

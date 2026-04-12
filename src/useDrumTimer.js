@@ -1,3 +1,35 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// useDrumTimer — lookahead audio scheduler
+//
+// TIMING ARCHITECTURE
+// The scheduler runs on a 25ms setInterval and pre-schedules audio events up to
+// 200ms ahead using Web Audio's ctx.currentTime (a monotonic clock maintained by
+// the audio thread). This decouples the time-critical audio path from the JS main
+// thread: even if JS stalls for a frame, beats are already queued.
+//
+// Audio events are scheduled with ctx.currentTime precision.
+// UI state updates (setCurrentBeat, setCurrentBar, etc.) use setTimeout with a
+// delay of (scheduledTime - ctx.currentTime) * 1000 — they fire "as close as
+// possible" to the beat, but are never on the real-time audio path.
+//
+// PHASE FLOW
+//   countin → playing → [inter-exercise countin → playing] → ... → set complete
+//
+// BEAT COUNTERS (three separate, non-overlapping)
+//   beatCount       — position within the initial count-in (0 → countInBeats-1)
+//   playBeatCount   — position within the playing phase; drives exercise/bar maths
+//   countInBeatPos  — position within an inter-exercise count-in; playBeatCount is
+//                     paused (reset to 0) while this is active to avoid corrupting
+//                     the beat-to-exercise index calculation
+//
+// SWIFT / AVAUDIOSESSION PORTING NOTES
+//   • ctx.currentTime  →  Double(engine.outputNode.lastRenderTime!.sampleTime) / sampleRate
+//   • setInterval      →  DispatchSourceTimer on a background queue
+//   • setTimeout(fn,d) →  DispatchQueue.main.asyncAfter(deadline: .now() + d/1000)
+//   • stoppedRef guard →  capture a cancelled flag in the closure / use Task cancellation
+//   • AudioContext never suspends in AVAudioEngine — startSilentLoop is not needed;
+//     instead configure AVAudioSession category to .playback for background audio
+// ─────────────────────────────────────────────────────────────────────────────
 import { useState, useEffect, useRef, useCallback } from 'react';
 import {
   SCHEDULER_INTERVAL_MS, LOOKAHEAD_TIME, START_DELAY,
@@ -138,6 +170,9 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       nextBeatTime.current = Infinity;
       // Resync playingBars to where we are in the current set so that ∞ set-loop
       // and "last exercise" signals fire correctly after resume.
+      // exercisesPlayed is the 1-based count of exercises played so far; subtracting
+      // 1 and taking modulo gives position-in-set (0-based), then multiply by bpe to
+      // get the bar count the ∞ detection expects.
       {
         const { barsPerExercise: bpe, minEx: mn, maxEx: mx, exMode: em, pickedNums: pn } = stateRef.current;
         const totalInSet = (em === 'pick' && pn && pn.length > 0) ? pn.length : mx - mn + 1;
@@ -148,6 +183,10 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       setPhase("countin");
       const { onNextExercise: onNext } = stateRef.current;
       onNext(lastExercise.current);
+      // RESUME_SETUP_DELAY_MS (50ms): AudioContext.resume() is async and the context
+      // state may still read "suspended" for a few milliseconds after the call.
+      // Delaying the scheduler restart gives it time to settle so nextBeatTime is
+      // set against a fully-running clock.
       setTimeout(() => {
         nextBeatTime.current = ctx.currentTime + START_DELAY;
         clearInterval(schedulerRef.current);
@@ -197,6 +236,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             onNewExercise: cb, onNextExercise: cbNext, mode: m } = stateRef.current;
 
     beatCount.current = 0; playBeatCount.current = 0;
+    // START_DELAY (100ms) gives the scheduler a head start — the first beat is
+    // pre-scheduled before the interval even fires for the first time.
     nextBeatTime.current = ctx.currentTime + START_DELAY;
     countInProgress.current = false; countInBeatPos.current = 0;
     resumingRef.current = false; stoppedRef.current = false;
@@ -242,13 +283,21 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
       const { exMode: em, pickedNums: pn } = stateRef.current;
       const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
+      // Core lookahead loop: on each 25ms tick, schedule every beat that falls
+      // within the next 200ms. Usually this is 0–2 beats; at very high BPMs it
+      // may be more. nextBeatTime advances by one beatLen each iteration and the
+      // loop exits as soon as the next beat is outside the window.
       while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
         const bc = beatCount.current;
 
+        // ── Phase 1: initial count-in (beatCount 0 → countInBeats-1) ──
         if (bc < countInBeats) {
           const beatInCI = bc % bpb2;
           scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
           const t = nextBeatTime.current;
+          // stoppedRef guard: the user may hit Stop between scheduling this beat
+          // and the setTimeout firing. Without the guard, stale state updates would
+          // execute after the scheduler resets, corrupting the next run's initial state.
           setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(bc + 1); setPhase("countin"); },
             Math.max(0, (t - ctx.currentTime) * 1000));
           if (bc === countInBeats - 1) {
@@ -265,8 +314,13 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
           }
 
         } else {
+          // ── Phase 2: playing (and inter-exercise count-ins) ──
           const inInterCountIn = countInProgress.current;
 
+          // Inter-exercise count-in: playBeatCount is paused (reset to 0) while this
+          // runs so it doesn't advance through the exercise/bar index maths. Only
+          // countInBeatPos increments here, then countInProgress is cleared and the
+          // playing phase resumes from playBeatCount = 0 (the new exercise's beat 1).
           if (inInterCountIn) {
             const interPos = countInBeatPos.current;
             scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
@@ -319,7 +373,11 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               }
             }, Math.max(0, (t - ctx.currentTime) * 1000));
 
-            // ∞ set-loop detection: count playing bars, fire onLoop every totalBarsPerSet bars
+            // ∞ set-loop detection: increment playingBars on every downbeat (except
+            // the very first, playBeat > 0 guard) and fire onLoop when the bar count
+            // is an exact multiple of totalBarsPerSet (all exercises × barsPerExercise).
+            // The "last exercise" signal fires one full exercise early (totalBarsPerSet - bpe)
+            // so the UI has time to update the "next exercise" label before it arrives.
             if (currentMode !== MODE_CLICKONLY && infiniteRef.current && isDownbeat && playBeat > 0 && onLoop) {
               playingBars.current++;
               const totalBarsPerSet = totalInSet * bpe;
@@ -327,7 +385,6 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                 const t2 = t;
                 setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
               }
-              // Signal last exercise of the set so UI can show "last exercise"
               if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
                 const t2 = t;
                 setTimeout(() => { if (stoppedRef.current) return; onNext(-1); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
