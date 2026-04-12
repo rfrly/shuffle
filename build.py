@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-build-watch.sh — Builds watch/index.html directly from src/.
+build.py — Builds beta/index.html and watch/index.html from src/.
 
-Run after any src/ change to keep the watch app in sync:
-  python3 build-watch.sh
+Always run after any src/ change:
+  python3 build.py
+
+Always produces both output files in one pass:
+  1. Assembles all src/ files into a single HTML.
+  2. Writes beta/index.html immediately (no watch patches, beta version kept).
+  3. Applies all watch patches to the assembled source.
+  4. Writes watch/index.html with patches applied and beta suffix stripped.
 
 The watch app is the full Shuffle app with a Firebase-powered session sharing
 layer added on top. It lives at shuffleclick.com/watch/ and is a private
 teacher/student observation tool — not part of the public app.
 
-The script assembles a single-file HTML from src/ (same logic as the old
-generate-source.py) and then injects:
+Watch patches injected after beta is written:
   1. Firebase SDK script tags (after Babel)
   2. Watch-specific CSS (before </style>)
   3. Firebase init + ObserverDisplay component (after React destructuring)
@@ -1480,9 +1485,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         cmdsRef.on("value", snap => {
           if (!snap.exists()) return;
           const cmd = snap.val();
+          setLastTeacherCmdAt(cmd.tseq || cmd.ts || Date.now());
           if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
             lastTSeq.current = cmd.tseq;
-            setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
             else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setSetCount(1); setIsFirstExOfSet(false); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); setSetCount(1); setIsFirstExOfSet(false); }
@@ -1649,7 +1654,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.12 · watch 1.61</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.12 · watch 1.62</div>
           </div>
         )}
         {watchScreen === "share" && (
