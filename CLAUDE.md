@@ -119,6 +119,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
 - No dimming of fixed controls — all controls same visual weight
 - Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop. In Metronome mode, Pause and Loop are hidden — Stop fills the full transport bar width
+- Vol button opens a portal-rendered popup (above the button, `position: fixed` via `getBoundingClientRect`) with a dim backdrop (`compact-popup-backdrop`). Shows Master slider always; 8th slider when subdivision > 1; 16th slider when subdivision = 4 (Metronome mode only). Each slider has −/+ nudge buttons with hold-to-repeat. `subdivVol` multiplies subdivision click gain; `subdivVol2` multiplies pure 16th positions (s=1,3) when subdivision=4. Defaults: Master 1.0, subdivisions 0.7.
 - Start button amber filled, only visible when idle
 - Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
 - Idle state shows a one-line summary of current settings

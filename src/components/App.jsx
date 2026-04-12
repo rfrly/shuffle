@@ -346,6 +346,13 @@ export function App() {
     setBeatStates(defaultBeatStates(timeSig.label));
   }, [timeSig]);
 
+  // When switching to 16ths, clamp subdivVol2 to subdivVol so 16ths can't be louder than 8ths
+  useEffect(() => {
+    if (subdivision === 4) {
+      setSubdivVol2(v => Math.min(v, subdivVol));
+    }
+  }, [subdivision]);
+
   useEffect(() => {
     if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
     setMinEx(1); setMaxEx(4);
@@ -1203,7 +1210,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.14.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.14.beta.7 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
