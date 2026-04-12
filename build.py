@@ -1235,29 +1235,33 @@ firebase_and_observer = r"""
             <button className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
             </button>
-          </div>
-          {showObsVolume && (
-            <div className="vol-slider-row">
-              <div className="vol-slider-item">
-                <span>Volume</span>
-                <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
-                <input type="range" min={0} max={1} step={0.05}
-                  value={obsVolume ?? 1}
-                  onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
-                <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
-              </div>
-              {obsSubdivision > 1 && (
+            {showObsVolume && ReactDOM.createPortal(
+              <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />,
+              document.body
+            )}
+            {showObsVolume && (
+              <div className="vol-slider-row">
                 <div className="vol-slider-item">
-                  <span>Subdiv</span>
-                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
+                  <span>Volume</span>
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
                   <input type="range" min={0} max={1} step={0.05}
-                    value={obsSubdivVol ?? 1}
-                    onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
-                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
+                    value={obsVolume ?? 1}
+                    onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
                 </div>
-              )}
-            </div>
-          )}
+                {obsSubdivision > 1 && (
+                  <div className="vol-slider-item">
+                    <span>Subdiv</span>
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
+                    <input type="range" min={0} max={1} step={0.05}
+                      value={obsSubdivVol ?? 1}
+                      onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
 
           {numpadOpen === "min" && (
             <NumpadPopup label="Min exercise" initialValue={obsMinEx || 1}
