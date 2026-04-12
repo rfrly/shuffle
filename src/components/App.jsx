@@ -203,6 +203,7 @@ export function App() {
   const timerStartRef  = useRef(null);
   const elapsedAccumRef = useRef(0);
   const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
+  const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 1.0);
   const [exercise,        setExercise]        = useState(null);
   const [nextEx,          setNextEx]          = useState(null);
   const [setCount,        setSetCount]        = useState(1);
@@ -261,10 +262,10 @@ export function App() {
     saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                    minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                    exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                   subdivision, beatStates,
+                   subdivision, beatStates, subdivVol,
                    bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                    bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -355,7 +356,7 @@ export function App() {
     countInBars,
     countInEveryRound: countInEvery,
     mode, volume, looping, infinite, setComplete,
-    exMode, pickedNums, subdivision, beatStates,
+    exMode, pickedNums, subdivision, beatStates, subdivVol,
   });
 
   useEffect(() => {
@@ -1114,14 +1115,23 @@ export function App() {
         )}
         {showVolume && (
           <div className="vol-slider-row">
-            <span>Volume</span>
-            <input type="range" min={0} max={1} step={0.05}
-              value={volume} onChange={e => setVolume(Number(e.target.value))} />
+            <div className="vol-slider-item">
+              <span>Volume</span>
+              <input type="range" min={0} max={1} step={0.05}
+                value={volume} onChange={e => setVolume(Number(e.target.value))} />
+            </div>
+            {mode === MODE_CLICKONLY && subdivision > 1 && (
+              <div className="vol-slider-item">
+                <span>Subdiv</span>
+                <input type="range" min={0} max={1} step={0.05}
+                  value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
+              </div>
+            )}
           </div>
         )}
       </div>
 
-      <div className="version-footer">v1.9.14.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.14.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

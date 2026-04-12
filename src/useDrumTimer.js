@@ -43,7 +43,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                         running, paused, resuming,
                         countInBars, countInEveryRound,
                         mode, volume, looping, infinite, setComplete,
-                        exMode, pickedNums, subdivision, beatStates }) {
+                        exMode, pickedNums, subdivision, beatStates, subdivVol }) {
 
   const audioCtx          = useRef(null);
   const silentLoop        = useRef(null);
@@ -135,7 +135,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                          onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                          countInBars, countInEveryRound,
-                         mode, volume, exMode, pickedNums, subdivision, beatStates };
+                         mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol };
   });
 
   const resumingRef = useRef(false);
@@ -344,7 +344,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             const isDownbeat    = beatInBar === 0;
 
             if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-              const { subdivision: subdiv, beatStates: bStates, mode: clickMode } = stateRef.current;
+              const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1 } = stateRef.current;
               const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
@@ -352,7 +352,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               if (clickMode === MODE_CLICKONLY && subdiv > 1) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
-                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * sVol, true);
                   const tSub = nextBeatTime.current + subdivLen * s;
                   setTimeout(() => {
                     if (stoppedRef.current) return;

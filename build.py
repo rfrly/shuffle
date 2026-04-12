@@ -654,7 +654,8 @@ firebase_and_observer = r"""
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
-        subdivision: obsSubdivision, beatStates: obsBeatStates,
+        subdivision: obsSubdivision, beatStates: obsBeatStates, subdivVol: obsSubdivVol,
+        volume: obsVolume,
         bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
         bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
@@ -673,6 +674,7 @@ firebase_and_observer = r"""
       const [toastKey, setToastKey] = React.useState(0);
       const toastTimer = React.useRef(null);
       const [menuOpen, setMenuOpen] = React.useState(false);
+      const [showObsVolume, setShowObsVolume] = React.useState(false);
       const showToast = (msg) => {
         setToastMsg(msg);
         setToastKey(k => k + 1);
@@ -1229,6 +1231,30 @@ firebase_and_observer = r"""
             )}
           </div>
 
+          <div className="vol-wrap">
+            <button className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
+            </button>
+          </div>
+          {showObsVolume && (
+            <div className="vol-slider-row">
+              <div className="vol-slider-item">
+                <span>Volume</span>
+                <input type="range" min={0} max={1} step={0.05}
+                  value={obsVolume ?? 1}
+                  onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
+              </div>
+              {obsSubdivision > 1 && (
+                <div className="vol-slider-item">
+                  <span>Subdiv</span>
+                  <input type="range" min={0} max={1} step={0.05}
+                    value={obsSubdivVol ?? 1}
+                    onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
+                </div>
+              )}
+            </div>
+          )}
+
           {numpadOpen === "min" && (
             <NumpadPopup label="Min exercise" initialValue={obsMinEx || 1}
               onConfirm={v => { setNumpadOpen(null); onSendCmd({ minEx: v }); }}
@@ -1348,7 +1374,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates,
+          exMode, pickedNums, subdivision, beatStates, subdivVol,
+          volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           ts: Date.now(),
@@ -1357,7 +1384,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates,
+          exMode, pickedNums, subdivision, beatStates, subdivVol,
+          volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           watchScreen]);
@@ -1540,6 +1568,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.letterMode != null) setLetterMode(!!cmd.letterMode);
           if (cmd.subdivision != null) setSubdivision(cmd.subdivision);
           if (cmd.beatStates != null) setBeatStates(Array.isArray(cmd.beatStates) ? cmd.beatStates : defaultBeatStates(timeSig.label));
+          if (cmd.volume != null) setVolume(Math.min(1, Math.max(0, cmd.volume)));
+          if (cmd.subdivVol != null) setSubdivVol(Math.min(1, Math.max(0, cmd.subdivVol)));
           if (cmd.bpmAuto != null) setBpmAuto(!!cmd.bpmAuto);
           if (cmd.bpmAutoStep != null) setBpmAutoStep(cmd.bpmAutoStep);
           if (cmd.bpmAutoDir != null) setBpmAutoDir(cmd.bpmAutoDir);
@@ -1606,13 +1636,13 @@ src = patch(src,
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates }) {",
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1633,8 +1663,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n      });",
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol,\n      });",
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────

@@ -509,7 +509,7 @@
     .vol-label-btn.active { border-color: #f5c842; color: #f5c842; }
 
     .vol-slider-row {
-      display: flex; align-items: center; gap: 0.6rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
       width: 100%; max-width: 440px;
       position: absolute;
       bottom: 100%;
@@ -520,6 +520,9 @@
       padding: 0.75rem 1rem;
       margin-bottom: 0.4rem;
       z-index: 10;
+    }
+    .vol-slider-item {
+      display: flex; align-items: center; gap: 0.6rem;
     }
     .vol-slider-row span {
       font-family: var(--font-mono);
@@ -1474,7 +1477,7 @@
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, infinite, setComplete,
-                            exMode, pickedNums, subdivision, beatStates }) {
+                            exMode, pickedNums, subdivision, beatStates, subdivVol }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -1566,7 +1569,7 @@
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                              countInBars, countInEveryRound,
-                             mode, volume, exMode, pickedNums, subdivision, beatStates };
+                             mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol };
       });
 
       const resumingRef = useRef(false);
@@ -1775,7 +1778,7 @@
                 const isDownbeat    = beatInBar === 0;
 
                 if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-                  const { subdivision: subdiv, beatStates: bStates, mode: clickMode } = stateRef.current;
+                  const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1 } = stateRef.current;
                   const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                     ? bStates[beatInBar]
                     : (isDownbeat ? 'accent' : 'normal');
@@ -1783,7 +1786,7 @@
                   if (clickMode === MODE_CLICKONLY && subdiv > 1) {
                     const subdivLen = (60 / b) / subdiv;
                     for (let s = 1; s < subdiv; s++) {
-                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * sVol, true);
                       const tSub = nextBeatTime.current + subdivLen * s;
                       setTimeout(() => {
                         if (stoppedRef.current) return;
@@ -2401,6 +2404,7 @@
       const timerStartRef  = useRef(null);
       const elapsedAccumRef = useRef(0);
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
+      const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 1.0);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
       const [setCount,        setSetCount]        = useState(1);
@@ -2459,10 +2463,10 @@
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                        exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                       subdivision, beatStates,
+                       subdivision, beatStates, subdivVol,
                        bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                        bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2553,7 +2557,7 @@
         countInBars,
         countInEveryRound: countInEvery,
         mode, volume, looping, infinite, setComplete,
-        exMode, pickedNums, subdivision, beatStates,
+        exMode, pickedNums, subdivision, beatStates, subdivVol,
       });
 
       useEffect(() => {
@@ -3312,14 +3316,23 @@
             )}
             {showVolume && (
               <div className="vol-slider-row">
-                <span>Volume</span>
-                <input type="range" min={0} max={1} step={0.05}
-                  value={volume} onChange={e => setVolume(Number(e.target.value))} />
+                <div className="vol-slider-item">
+                  <span>Volume</span>
+                  <input type="range" min={0} max={1} step={0.05}
+                    value={volume} onChange={e => setVolume(Number(e.target.value))} />
+                </div>
+                {mode === MODE_CLICKONLY && subdivision > 1 && (
+                  <div className="vol-slider-item">
+                    <span>Subdiv</span>
+                    <input type="range" min={0} max={1} step={0.05}
+                      value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
+                  </div>
+                )}
               </div>
             )}
           </div>
 
-          <div className="version-footer">v1.9.14.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.14.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
