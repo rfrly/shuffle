@@ -13,6 +13,39 @@ import { BarProgress } from './BarProgress.jsx';
 import { CompactSelector } from './CompactSelector.jsx';
 import '../styles.css';
 
+function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, showSubdiv }) {
+  const [style, setStyle] = useState({});
+  useEffect(() => {
+    if (volBtnRef.current) {
+      const rect = volBtnRef.current.getBoundingClientRect();
+      setStyle({
+        position: 'fixed',
+        right: window.innerWidth - rect.right,
+        bottom: window.innerHeight - rect.top + 6,
+        zIndex: 51,
+      });
+    }
+  }, []);
+  return (
+    <div className="vol-slider-row" style={style}>
+      <div className="vol-slider-item">
+        <span>Volume</span>
+        <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
+        <input type="range" min={0} max={1} step={0.05} value={volume} onChange={e => setVolume(Number(e.target.value))} />
+        <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
+      </div>
+      {showSubdiv && (
+        <div className="vol-slider-item">
+          <span>Subdiv</span>
+          <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
+          <input type="range" min={0} max={1} step={0.05} value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
+          <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function BpmAutoPopup({
   mode, bpm, bpmAuto, setBpmAuto,
   bpmAutoStep, setBpmAutoStep, bpmAutoDir, setBpmAutoDir,
@@ -215,6 +248,7 @@ export function App() {
   const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
   const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
   const helpOverlayRef = useRef(null);
+  const volBtnRef = useRef(null);
   const [helpPulse,       setHelpPulse]       = useState(() => {
     try { return !localStorage.getItem('shuffle_seen_help'); } catch { return false; }
   });
@@ -1078,29 +1112,9 @@ export function App() {
               Start
             </button>
             <div className="vol-wrap">
-              <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+              <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
                 {volIcon}&nbsp;vol
               </button>
-              {showVolume && (
-                <div className="vol-slider-row">
-                  <div className="vol-slider-item">
-                    <span>Volume</span>
-                    <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
-                    <input type="range" min={0} max={1} step={0.05}
-                      value={volume} onChange={e => setVolume(Number(e.target.value))} />
-                    <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
-                  </div>
-                  {mode === MODE_CLICKONLY && subdivision > 1 && (
-                    <div className="vol-slider-item">
-                      <span>Subdiv</span>
-                      <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
-                      <input type="range" min={0} max={1} step={0.05}
-                        value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
-                      <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </>
         ) : (
@@ -1127,40 +1141,28 @@ export function App() {
               </>
             )}
             <div className="vol-wrap">
-              <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+              <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
                 {volIcon}&nbsp;vol
               </button>
-              {showVolume && (
-                <div className="vol-slider-row">
-                  <div className="vol-slider-item">
-                    <span>Volume</span>
-                    <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
-                    <input type="range" min={0} max={1} step={0.05}
-                      value={volume} onChange={e => setVolume(Number(e.target.value))} />
-                    <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
-                  </div>
-                  {mode === MODE_CLICKONLY && subdivision > 1 && (
-                    <div className="vol-slider-item">
-                      <span>Subdiv</span>
-                      <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
-                      <input type="range" min={0} max={1} step={0.05}
-                        value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
-                      <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </>
         )}
       </div>
 
       {showVolume && ReactDOM.createPortal(
-        <div className="compact-popup-backdrop" onClick={() => setShowVolume(false)} />,
+        <>
+          <div className="compact-popup-backdrop" onClick={() => setShowVolume(false)} />
+          <VolPopup
+            volBtnRef={volBtnRef}
+            volume={volume} setVolume={setVolume}
+            subdivVol={subdivVol} setSubdivVol={setSubdivVol}
+            showSubdiv={mode === MODE_CLICKONLY && subdivision > 1}
+          />
+        </>,
         document.body
       )}
 
-      <div className="version-footer">v1.9.14.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.14.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
