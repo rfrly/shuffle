@@ -509,23 +509,29 @@
     .vol-label-btn.active { border-color: #f5c842; color: #f5c842; }
 
     .vol-slider-row {
-      display: flex; align-items: center; gap: 0.6rem;
-      width: 100%; max-width: 440px;
-      position: absolute;
-      bottom: 100%;
-      left: 0;
+      display: flex; flex-direction: column; gap: 0.75rem;
+      width: auto;
       background: #1a1a1a;
       border: 1px solid #333;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 0.75rem 1rem;
-      margin-bottom: 0.4rem;
-      z-index: 10;
+    }
+    .vol-slider-item {
+      display: flex; align-items: center; gap: 0.6rem;
     }
     .vol-slider-row span {
       font-family: var(--font-mono);
       font-size: 0.65rem; color: #777;
       letter-spacing: 0.1em; text-transform: uppercase; white-space: nowrap;
+      min-width: 3.5rem;
     }
+    .vol-nudge-btn {
+      background: #2a2a2a; border: 1px solid #444; border-radius: 4px;
+      color: #ccc; font-size: 1rem; line-height: 1;
+      width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer; flex-shrink: 0;
+    }
+    .vol-nudge-btn:active { background: #3a3a3a; }
 
     .btn-row {
       display: flex; gap: 0.5rem;
@@ -747,7 +753,6 @@
       .display { max-width: 700px !important; }
       .controls { max-width: 700px !important; }
       .btn-row { max-width: 700px !important; }
-      .vol-slider-row { max-width: 700px !important; }
       .sel-btn { height: 52px; font-size: 0.9rem; }
       .compact-sel-btn { height: 52px; font-size: 0.9rem; }
       .range-row input { height: 52px; }
@@ -819,7 +824,6 @@
       .display { max-width: 640px; }
       .controls { max-width: 640px; }
       .btn-row { max-width: 640px; }
-      .vol-slider-row { max-width: 640px; }
     }
 
     @media (hover: hover) and (min-width: 1024px) {
@@ -831,7 +835,6 @@
       .display { max-width: 560px; }
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
-      .vol-slider-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
       .idle-summary { font-size: 0.8rem; }
       .check-row span { font-size: 0.85rem; }
@@ -856,7 +859,6 @@
       .display { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
-      .vol-slider-row { max-width: 700px; }
       .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
       .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
       .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
@@ -884,7 +886,7 @@
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
     }
-    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.7); }
 
     .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
     .bpm-widget-row .bpm-widget { flex: 1; }
@@ -1244,8 +1246,16 @@
 
     const STORAGE_KEY = "shuffle_settings_v7";
 
+    // Lookahead scheduler timing: the scheduler fires every 25ms and pre-schedules
+    // any beats falling within the next 200ms window. The 175ms gap between them is
+    // the safety margin — audio events are committed well before they're needed, so
+    // the audio thread never has to wait on the JS main thread.
+    // Swift/AVAudioEngine port: replace ctx.currentTime with sampleTime / sampleRate,
+    // and replace setInterval with a DispatchSourceTimer on a background queue.
     const SCHEDULER_INTERVAL_MS   = 25;
     const LOOKAHEAD_TIME          = 0.2;
+    // Initial offset before the first beat — buys a scheduling buffer at start/resume
+    // so the first beat is never missed even if JS startup takes a few milliseconds.
     const START_DELAY             = 0.1;
     const FLASH_DURATION_MS       = 200;
     const SET_COMPLETE_DISPLAY_MS = 2000;
@@ -1305,6 +1315,13 @@
     }
 
     function scheduleWoodblock(ctx, time, isDownbeat, vol) {
+      // Synthesised woodblock: white noise shaped by an exponential decay envelope.
+      // Math.pow(1 - i/bufSize, 10) produces a fast initial attack that tails off
+      // sharply — exponent 10 makes it more percussive than a linear fade would be.
+      // Downbeats use a higher bandpass frequency (2000 Hz vs 1400 Hz) and louder gain
+      // (2.8 vs 2.0) so beat 1 stands out clearly from the other beats.
+      // Swift port: generate an AVAudioPCMBuffer with the same noise + envelope math,
+      // or use an AVAudioPlayerNode scheduled via scheduleBuffer(atTime:).
       const bufSize = Math.floor(ctx.sampleRate * 0.05);
       const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
       const data = buf.getChannelData(0);
@@ -1363,6 +1380,13 @@
       osc.start(time); osc.stop(time + 0.09);
     }
 
+    // Keeps the AudioContext alive and currentTime advancing continuously.
+    // Browsers suspend an idle AudioContext after ~30s of silence, which resets or
+    // pauses currentTime — causing timing jumps when the scheduler resumes.
+    // A near-silent (0.001 gain) looping buffer prevents suspension without being
+    // audible. Must be started once on fresh start and stopped on full stop.
+    // Swift port: AVAudioEngine doesn't auto-suspend; this trick is not needed,
+    // but the audio session category must be set to .playback for background audio.
     function startSilentLoop(ctx) {
       const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
       const src = ctx.createBufferSource();
@@ -1415,12 +1439,44 @@
       };
     }
 
+    // ─────────────────────────────────────────────────────────────────────────────
+    // useDrumTimer — lookahead audio scheduler
+    //
+    // TIMING ARCHITECTURE
+    // The scheduler runs on a 25ms setInterval and pre-schedules audio events up to
+    // 200ms ahead using Web Audio's ctx.currentTime (a monotonic clock maintained by
+    // the audio thread). This decouples the time-critical audio path from the JS main
+    // thread: even if JS stalls for a frame, beats are already queued.
+    //
+    // Audio events are scheduled with ctx.currentTime precision.
+    // UI state updates (setCurrentBeat, setCurrentBar, etc.) use setTimeout with a
+    // delay of (scheduledTime - ctx.currentTime) * 1000 — they fire "as close as
+    // possible" to the beat, but are never on the real-time audio path.
+    //
+    // PHASE FLOW
+    //   countin → playing → [inter-exercise countin → playing] → ... → set complete
+    //
+    // BEAT COUNTERS (three separate, non-overlapping)
+    //   beatCount       — position within the initial count-in (0 → countInBeats-1)
+    //   playBeatCount   — position within the playing phase; drives exercise/bar maths
+    //   countInBeatPos  — position within an inter-exercise count-in; playBeatCount is
+    //                     paused (reset to 0) while this is active to avoid corrupting
+    //                     the beat-to-exercise index calculation
+    //
+    // SWIFT / AVAUDIOSESSION PORTING NOTES
+    //   • ctx.currentTime  →  Double(engine.outputNode.lastRenderTime!.sampleTime) / sampleRate
+    //   • setInterval      →  DispatchSourceTimer on a background queue
+    //   • setTimeout(fn,d) →  DispatchQueue.main.asyncAfter(deadline: .now() + d/1000)
+    //   • stoppedRef guard →  capture a cancelled flag in the closure / use Task cancellation
+    //   • AudioContext never suspends in AVAudioEngine — startSilentLoop is not needed;
+    //     instead configure AVAudioSession category to .playback for background audio
+    // ─────────────────────────────────────────────────────────────────────────────
     function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                             onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, infinite, setComplete,
-                            exMode, pickedNums, subdivision, beatStates }) {
+                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -1512,7 +1568,7 @@
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                              countInBars, countInEveryRound,
-                             mode, volume, exMode, pickedNums, subdivision, beatStates };
+                             mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 };
       });
 
       const resumingRef = useRef(false);
@@ -1547,6 +1603,9 @@
           nextBeatTime.current = Infinity;
           // Resync playingBars to where we are in the current set so that ∞ set-loop
           // and "last exercise" signals fire correctly after resume.
+          // exercisesPlayed is the 1-based count of exercises played so far; subtracting
+          // 1 and taking modulo gives position-in-set (0-based), then multiply by bpe to
+          // get the bar count the ∞ detection expects.
           {
             const { barsPerExercise: bpe, minEx: mn, maxEx: mx, exMode: em, pickedNums: pn } = stateRef.current;
             const totalInSet = (em === 'pick' && pn && pn.length > 0) ? pn.length : mx - mn + 1;
@@ -1557,6 +1616,10 @@
           setPhase("countin");
           const { onNextExercise: onNext } = stateRef.current;
           onNext(lastExercise.current);
+          // RESUME_SETUP_DELAY_MS (50ms): AudioContext.resume() is async and the context
+          // state may still read "suspended" for a few milliseconds after the call.
+          // Delaying the scheduler restart gives it time to settle so nextBeatTime is
+          // set against a fully-running clock.
           setTimeout(() => {
             nextBeatTime.current = ctx.currentTime + START_DELAY;
             clearInterval(schedulerRef.current);
@@ -1606,6 +1669,8 @@
                 onNewExercise: cb, onNextExercise: cbNext, mode: m } = stateRef.current;
 
         beatCount.current = 0; playBeatCount.current = 0;
+        // START_DELAY (100ms) gives the scheduler a head start — the first beat is
+        // pre-scheduled before the interval even fires for the first time.
         nextBeatTime.current = ctx.currentTime + START_DELAY;
         countInProgress.current = false; countInBeatPos.current = 0;
         resumingRef.current = false; stoppedRef.current = false;
@@ -1651,13 +1716,21 @@
           const { exMode: em, pickedNums: pn } = stateRef.current;
           const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
+          // Core lookahead loop: on each 25ms tick, schedule every beat that falls
+          // within the next 200ms. Usually this is 0–2 beats; at very high BPMs it
+          // may be more. nextBeatTime advances by one beatLen each iteration and the
+          // loop exits as soon as the next beat is outside the window.
           while (nextBeatTime.current < ctx.currentTime + LOOKAHEAD_TIME) {
             const bc = beatCount.current;
 
+            // ── Phase 1: initial count-in (beatCount 0 → countInBeats-1) ──
             if (bc < countInBeats) {
               const beatInCI = bc % bpb2;
               scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
               const t = nextBeatTime.current;
+              // stoppedRef guard: the user may hit Stop between scheduling this beat
+              // and the setTimeout firing. Without the guard, stale state updates would
+              // execute after the scheduler resets, corrupting the next run's initial state.
               setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(bc + 1); setPhase("countin"); },
                 Math.max(0, (t - ctx.currentTime) * 1000));
               if (bc === countInBeats - 1) {
@@ -1674,8 +1747,13 @@
               }
 
             } else {
+              // ── Phase 2: playing (and inter-exercise count-ins) ──
               const inInterCountIn = countInProgress.current;
 
+              // Inter-exercise count-in: playBeatCount is paused (reset to 0) while this
+              // runs so it doesn't advance through the exercise/bar index maths. Only
+              // countInBeatPos increments here, then countInProgress is cleared and the
+              // playing phase resumes from playBeatCount = 0 (the new exercise's beat 1).
               if (inInterCountIn) {
                 const interPos = countInBeatPos.current;
                 scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
@@ -1699,7 +1777,7 @@
                 const isDownbeat    = beatInBar === 0;
 
                 if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-                  const { subdivision: subdiv, beatStates: bStates, mode: clickMode } = stateRef.current;
+                  const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1, subdivVol2: sVol2 = 1 } = stateRef.current;
                   const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                     ? bStates[beatInBar]
                     : (isDownbeat ? 'accent' : 'normal');
@@ -1707,7 +1785,9 @@
                   if (clickMode === MODE_CLICKONLY && subdiv > 1) {
                     const subdivLen = (60 / b) / subdiv;
                     for (let s = 1; s < subdiv; s++) {
-                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol, true);
+                      // When subdiv=4 (16ths): s=2 is the 8th-note position (sVol), s=1,3 are pure 16ths (sVol2)
+                      const subMul = (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
+                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true);
                       const tSub = nextBeatTime.current + subdivLen * s;
                       setTimeout(() => {
                         if (stoppedRef.current) return;
@@ -1728,7 +1808,11 @@
                   }
                 }, Math.max(0, (t - ctx.currentTime) * 1000));
 
-                // ∞ set-loop detection: count playing bars, fire onLoop every totalBarsPerSet bars
+                // ∞ set-loop detection: increment playingBars on every downbeat (except
+                // the very first, playBeat > 0 guard) and fire onLoop when the bar count
+                // is an exact multiple of totalBarsPerSet (all exercises × barsPerExercise).
+                // The "last exercise" signal fires one full exercise early (totalBarsPerSet - bpe)
+                // so the UI has time to update the "next exercise" label before it arrives.
                 if (currentMode !== MODE_CLICKONLY && infiniteRef.current && isDownbeat && playBeat > 0 && onLoop) {
                   playingBars.current++;
                   const totalBarsPerSet = totalInSet * bpe;
@@ -1736,7 +1820,6 @@
                     const t2 = t;
                     setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
                   }
-                  // Signal last exercise of the set so UI can show "last exercise"
                   if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
                     const t2 = t;
                     setTimeout(() => { if (stoppedRef.current) return; onNext(-1); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
@@ -2132,6 +2215,75 @@
       );
     }
 
+    function useNudge(setter, delta) {
+      const intervalRef = useRef(null);
+      const stop = () => {
+        clearTimeout(intervalRef.current);
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      };
+      const start = () => {
+        const step = () => setter(v => {
+          const next = Math.round((v + delta) * 100) / 100;
+          return delta < 0 ? Math.max(0, next) : Math.min(1, next);
+        });
+        step();
+        intervalRef.current = setTimeout(() => {
+          intervalRef.current = setInterval(step, 80);
+        }, 400);
+      };
+      useEffect(() => () => stop(), []);
+      return { onMouseDown: start, onMouseUp: stop, onMouseLeave: stop, onTouchStart: (e) => { e.preventDefault(); start(); }, onTouchEnd: stop };
+    }
+
+    function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdivVol2, setSubdivVol2, subdivision }) {
+      const [style, setStyle] = useState({});
+      useEffect(() => {
+        if (volBtnRef.current) {
+          const rect = volBtnRef.current.getBoundingClientRect();
+          setStyle({
+            position: 'fixed',
+            right: window.innerWidth - rect.right,
+            bottom: window.innerHeight - rect.top + 6,
+            zIndex: 51,
+          });
+        }
+      }, []);
+      const volDown  = useNudge(setVolume,    -0.05);
+      const volUp    = useNudge(setVolume,     0.05);
+      const subDown  = useNudge(setSubdivVol, -0.05);
+      const subUp    = useNudge(setSubdivVol,  0.05);
+      const sub2Down = useNudge(setSubdivVol2, -0.05);
+      const sub2Up   = useNudge(setSubdivVol2,  0.05);
+      const subdiv8Label  = subdivision === 3 ? 'Triplet' : '8th';
+      return (
+        <div className="vol-slider-row" style={style}>
+          <div className="vol-slider-item">
+            <span>Master</span>
+            <button className="vol-nudge-btn" {...volDown}>−</button>
+            <input type="range" min={0} max={1} step={0.05} value={volume} onChange={e => setVolume(Number(e.target.value))} />
+            <button className="vol-nudge-btn" {...volUp}>+</button>
+          </div>
+          {subdivision > 1 && (
+            <div className="vol-slider-item">
+              <span>{subdivision === 4 ? '8th' : subdiv8Label}</span>
+              <button className="vol-nudge-btn" {...subDown}>−</button>
+              <input type="range" min={0} max={1} step={0.05} value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
+              <button className="vol-nudge-btn" {...subUp}>+</button>
+            </div>
+          )}
+          {subdivision === 4 && (
+            <div className="vol-slider-item">
+              <span>16th</span>
+              <button className="vol-nudge-btn" {...sub2Down}>−</button>
+              <input type="range" min={0} max={1} step={0.05} value={subdivVol2} onChange={e => setSubdivVol2(Number(e.target.value))} />
+              <button className="vol-nudge-btn" {...sub2Up}>+</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     function BpmAutoPopup({
       mode, bpm, bpmAuto, setBpmAuto,
       bpmAutoStep, setBpmAutoStep, bpmAutoDir, setBpmAutoDir,
@@ -2322,6 +2474,8 @@
       const timerStartRef  = useRef(null);
       const elapsedAccumRef = useRef(0);
       const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
+      const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 0.7);
+      const [subdivVol2,      setSubdivVol2]      = useState(() => saved?.subdivVol2 ?? 0.7);
       const [exercise,        setExercise]        = useState(null);
       const [nextEx,          setNextEx]          = useState(null);
       const [setCount,        setSetCount]        = useState(1);
@@ -2333,6 +2487,7 @@
       const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
       const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
       const helpOverlayRef = useRef(null);
+      const volBtnRef = useRef(null);
       const [helpPulse,       setHelpPulse]       = useState(() => {
         try { return !localStorage.getItem('shuffle_seen_help'); } catch { return false; }
       });
@@ -2380,10 +2535,10 @@
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                        minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                        exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                       subdivision, beatStates,
+                       subdivision, beatStates, subdivVol, subdivVol2,
                        bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                        bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, subdivVol2, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2392,6 +2547,13 @@
       useEffect(() => {
         setBeatStates(defaultBeatStates(timeSig.label));
       }, [timeSig]);
+
+      // When switching to 16ths, clamp subdivVol2 to subdivVol so 16ths can't be louder than 8ths
+      useEffect(() => {
+        if (subdivision === 4) {
+          setSubdivVol2(v => Math.min(v, subdivVol));
+        }
+      }, [subdivision]);
 
       useEffect(() => {
         if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
@@ -2474,7 +2636,7 @@
         countInBars,
         countInEveryRound: countInEvery,
         mode, volume, looping, infinite, setComplete,
-        exMode, pickedNums, subdivision, beatStates,
+        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
       });
 
       useEffect(() => {
@@ -2777,6 +2939,8 @@
                         setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
                         setStopwatchPref(false);
                         setVolume(1.0);
+                        setSubdivVol(0.7);
+                        setSubdivVol2(0.7);
                         setExMode('range');
                         setPickedNums([]);
                         setLetterMode(false);
@@ -2960,6 +3124,9 @@
             {showMuteHint && phase !== "idle" && (
               <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
             )}
+
+            {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
+
           </div>
 
           <div className="controls">
@@ -3187,8 +3354,6 @@
 
           </div>
 
-          {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
-
           <div className="btn-row">
             {!running ? (
               <>
@@ -3196,7 +3361,7 @@
                   Start
                 </button>
                 <div className="vol-wrap">
-                  <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+                  <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
                     {volIcon}&nbsp;vol
                   </button>
                 </div>
@@ -3225,22 +3390,29 @@
                   </>
                 )}
                 <div className="vol-wrap">
-                  <button className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
+                  <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
                     {volIcon}&nbsp;vol
                   </button>
                 </div>
               </>
             )}
-            {showVolume && (
-              <div className="vol-slider-row">
-                <span>Volume</span>
-                <input type="range" min={0} max={1} step={0.05}
-                  value={volume} onChange={e => setVolume(Number(e.target.value))} />
-              </div>
-            )}
           </div>
 
-          <div className="version-footer">v1.9.13 · rossfarley.uk · © 2026 Ross Farley</div>
+          {showVolume && ReactDOM.createPortal(
+            <>
+              <div className="compact-popup-backdrop" onClick={() => setShowVolume(false)} />
+              <VolPopup
+                volBtnRef={volBtnRef}
+                volume={volume} setVolume={setVolume}
+                subdivVol={subdivVol} setSubdivVol={setSubdivVol}
+                subdivVol2={subdivVol2} setSubdivVol2={setSubdivVol2}
+                subdivision={mode === MODE_CLICKONLY ? subdivision : 0}
+              />
+            </>,
+            document.body
+          )}
+
+          <div className="version-footer">v1.9.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

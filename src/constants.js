@@ -13,8 +13,16 @@ export const MODE_CLICKONLY  = "clickonly";
 
 export const STORAGE_KEY = "shuffle_settings_v7";
 
+// Lookahead scheduler timing: the scheduler fires every 25ms and pre-schedules
+// any beats falling within the next 200ms window. The 175ms gap between them is
+// the safety margin — audio events are committed well before they're needed, so
+// the audio thread never has to wait on the JS main thread.
+// Swift/AVAudioEngine port: replace ctx.currentTime with sampleTime / sampleRate,
+// and replace setInterval with a DispatchSourceTimer on a background queue.
 export const SCHEDULER_INTERVAL_MS   = 25;
 export const LOOKAHEAD_TIME          = 0.2;
+// Initial offset before the first beat — buys a scheduling buffer at start/resume
+// so the first beat is never missed even if JS startup takes a few milliseconds.
 export const START_DELAY             = 0.1;
 export const FLASH_DURATION_MS       = 200;
 export const SET_COMPLETE_DISPLAY_MS = 2000;

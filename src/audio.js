@@ -12,6 +12,13 @@ export function getCompressor(ctx) {
 }
 
 export function scheduleWoodblock(ctx, time, isDownbeat, vol) {
+  // Synthesised woodblock: white noise shaped by an exponential decay envelope.
+  // Math.pow(1 - i/bufSize, 10) produces a fast initial attack that tails off
+  // sharply — exponent 10 makes it more percussive than a linear fade would be.
+  // Downbeats use a higher bandpass frequency (2000 Hz vs 1400 Hz) and louder gain
+  // (2.8 vs 2.0) so beat 1 stands out clearly from the other beats.
+  // Swift port: generate an AVAudioPCMBuffer with the same noise + envelope math,
+  // or use an AVAudioPlayerNode scheduled via scheduleBuffer(atTime:).
   const bufSize = Math.floor(ctx.sampleRate * 0.05);
   const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
   const data = buf.getChannelData(0);
@@ -70,6 +77,13 @@ export function scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSu
   osc.start(time); osc.stop(time + 0.09);
 }
 
+// Keeps the AudioContext alive and currentTime advancing continuously.
+// Browsers suspend an idle AudioContext after ~30s of silence, which resets or
+// pauses currentTime — causing timing jumps when the scheduler resumes.
+// A near-silent (0.001 gain) looping buffer prevents suspension without being
+// audible. Must be started once on fresh start and stopped on full stop.
+// Swift port: AVAudioEngine doesn't auto-suspend; this trick is not needed,
+// but the audio session category must be set to .playback for background audio.
 export function startSilentLoop(ctx) {
   const buf = ctx.createBuffer(1, ctx.sampleRate * 2, ctx.sampleRate);
   const src = ctx.createBufferSource();

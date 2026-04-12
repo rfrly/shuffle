@@ -1,16 +1,21 @@
 #!/usr/bin/env python3
 """
-build-watch.sh — Builds watch/index.html directly from src/.
+build.py — Builds beta/index.html and watch/index.html from src/.
 
-Run after any src/ change to keep the watch app in sync:
-  python3 build-watch.sh
+Always run after any src/ change:
+  python3 build.py
+
+Always produces both output files in one pass:
+  1. Assembles all src/ files into a single HTML.
+  2. Writes beta/index.html immediately (no watch patches, beta version kept).
+  3. Applies all watch patches to the assembled source.
+  4. Writes watch/index.html with patches applied and beta suffix stripped.
 
 The watch app is the full Shuffle app with a Firebase-powered session sharing
 layer added on top. It lives at shuffleclick.com/watch/ and is a private
 teacher/student observation tool — not part of the public app.
 
-The script assembles a single-file HTML from src/ (same logic as the old
-generate-source.py) and then injects:
+Watch patches injected after beta is written:
   1. Firebase SDK script tags (after Babel)
   2. Watch-specific CSS (before </style>)
   3. Firebase init + ObserverDisplay component (after React destructuring)
@@ -419,8 +424,6 @@ src = patch(src, "  </style>", watch_css + "  </style>")
 # controls to add watch-locked class (opacity 0.6, pointer-events none) without
 # adding disabled attributes — disabled causes its own opacity: 0.25 override.
 
-# handleSetLoop: no patch needed — student calls applyBpmStep() directly, teacher reads updated BPM from broadcast
-
 # handleTap guard
 src = patch(src,
     "      const handleTap = useCallback(() => {\n        if (running) return;",
@@ -651,7 +654,8 @@ firebase_and_observer = r"""
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
-        subdivision: obsSubdivision, beatStates: obsBeatStates,
+        subdivision: obsSubdivision, beatStates: obsBeatStates, subdivVol: obsSubdivVol, subdivVol2: obsSubdivVol2,
+        volume: obsVolume,
         bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
         bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
@@ -670,6 +674,7 @@ firebase_and_observer = r"""
       const [toastKey, setToastKey] = React.useState(0);
       const toastTimer = React.useRef(null);
       const [menuOpen, setMenuOpen] = React.useState(false);
+      const [showObsVolume, setShowObsVolume] = React.useState(false);
       const showToast = (msg) => {
         setToastMsg(msg);
         setToastKey(k => k + 1);
@@ -872,7 +877,8 @@ firebase_and_observer = r"""
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
-                      mode: "fullset", infinite: false, stopwatch: false, resetAll: true, exMode: "range", pickedNums: [], letterMode: false });
+                      mode: "fullset", infinite: false, stopwatch: false, resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
+                      volume: 1.0, subdivVol: 0.7, subdivVol2: 0.7 });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -1226,6 +1232,48 @@ firebase_and_observer = r"""
             )}
           </div>
 
+          <div className="vol-wrap">
+            <button className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
+            </button>
+            {showObsVolume && ReactDOM.createPortal(
+              <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />,
+              document.body
+            )}
+            {showObsVolume && (
+              <div className="vol-slider-row">
+                <div className="vol-slider-item">
+                  <span>Master</span>
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
+                  <input type="range" min={0} max={1} step={0.05}
+                    value={obsVolume ?? 1}
+                    onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
+                </div>
+                {obsSubdivision > 1 && (
+                  <div className="vol-slider-item">
+                    <span>{obsSubdivision === 4 ? "8th" : obsSubdivision === 3 ? "Triplet" : "8th"}</span>
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
+                    <input type="range" min={0} max={1} step={0.05}
+                      value={obsSubdivVol ?? 1}
+                      onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
+                  </div>
+                )}
+                {obsSubdivision === 4 && (
+                  <div className="vol-slider-item">
+                    <span>16th</span>
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.max(0, Math.round(((obsSubdivVol2 ?? 1) - 0.05) * 100) / 100) })}>−</button>
+                    <input type="range" min={0} max={1} step={0.05}
+                      value={obsSubdivVol2 ?? 1}
+                      onChange={e => onSendCmd({ subdivVol2: Number(e.target.value) })} />
+                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.min(1, Math.round(((obsSubdivVol2 ?? 1) + 0.05) * 100) / 100) })}>+</button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
           {numpadOpen === "min" && (
             <NumpadPopup label="Min exercise" initialValue={obsMinEx || 1}
               onConfirm={v => { setNumpadOpen(null); onSendCmd({ minEx: v }); }}
@@ -1345,7 +1393,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates,
+          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
+          volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           ts: Date.now(),
@@ -1354,7 +1403,8 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates,
+          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
+          volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           watchScreen]);
@@ -1482,9 +1532,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         cmdsRef.on("value", snap => {
           if (!snap.exists()) return;
           const cmd = snap.val();
+          setLastTeacherCmdAt(cmd.tseq || cmd.ts || Date.now());
           if (cmd.tcmd && cmd.tseq && cmd.tseq > lastTSeq.current) {
             lastTSeq.current = cmd.tseq;
-            setLastTeacherCmdAt(cmd.tseq);
             if      (cmd.tcmd === "connected") { setTeacherConnected(true); }
             else if (cmd.tcmd === "start")  { setSetComplete(false); setExercise(null); setNextEx(null); setSetCount(1); setIsFirstExOfSet(false); timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0); setPaused(false); setLooping(false); setResuming(false); setRunning(true); }
             else if (cmd.tcmd === "stop")   { setRunning(false); setPaused(false); setLooping(false); setResuming(false); setExercise(null); setNextEx(null); setSetComplete(false); setSetCount(1); setIsFirstExOfSet(false); }
@@ -1537,6 +1587,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.letterMode != null) setLetterMode(!!cmd.letterMode);
           if (cmd.subdivision != null) setSubdivision(cmd.subdivision);
           if (cmd.beatStates != null) setBeatStates(Array.isArray(cmd.beatStates) ? cmd.beatStates : defaultBeatStates(timeSig.label));
+          if (cmd.volume != null) setVolume(Math.min(1, Math.max(0, cmd.volume)));
+          if (cmd.subdivVol != null) setSubdivVol(Math.min(1, Math.max(0, cmd.subdivVol)));
+          if (cmd.subdivVol2 != null) setSubdivVol2(Math.min(1, Math.max(0, cmd.subdivVol2)));
           if (cmd.bpmAuto != null) setBpmAuto(!!cmd.bpmAuto);
           if (cmd.bpmAutoStep != null) setBpmAutoStep(cmd.bpmAutoStep);
           if (cmd.bpmAutoDir != null) setBpmAutoDir(cmd.bpmAutoDir);
@@ -1603,13 +1656,13 @@ src = patch(src,
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates }) {",
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1630,8 +1683,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n      });",
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n      });",
+    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
@@ -1651,7 +1704,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.13 · watch 1.62</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.14 · watch 1.63</div>
           </div>
         )}
         {watchScreen === "share" && (
