@@ -1240,16 +1240,20 @@ firebase_and_observer = r"""
             <div className="vol-slider-row">
               <div className="vol-slider-item">
                 <span>Volume</span>
+                <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
                 <input type="range" min={0} max={1} step={0.05}
                   value={obsVolume ?? 1}
                   onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
+                <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
               </div>
               {obsSubdivision > 1 && (
                 <div className="vol-slider-item">
                   <span>Subdiv</span>
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
                   <input type="range" min={0} max={1} step={0.05}
                     value={obsSubdivVol ?? 1}
                     onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
+                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
                 </div>
               )}
             </div>

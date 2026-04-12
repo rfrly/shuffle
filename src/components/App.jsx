@@ -1117,21 +1117,25 @@ export function App() {
           <div className="vol-slider-row">
             <div className="vol-slider-item">
               <span>Volume</span>
+              <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
               <input type="range" min={0} max={1} step={0.05}
                 value={volume} onChange={e => setVolume(Number(e.target.value))} />
+              <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
             </div>
             {mode === MODE_CLICKONLY && subdivision > 1 && (
               <div className="vol-slider-item">
                 <span>Subdiv</span>
+                <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
                 <input type="range" min={0} max={1} step={0.05}
                   value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
+                <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
               </div>
             )}
           </div>
         )}
       </div>
 
-      <div className="version-footer">v1.9.14.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.14.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
