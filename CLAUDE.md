@@ -167,6 +167,10 @@ vX.X.X - Brief summary of main change
 
 Only describe changes since the last deployed version. Keep it to 3–5 bullets.
 
+Pull request format:
+- Title: `vX.X.X - Brief summary`
+- Body: Summary bullets only — no test plan section
+
 ---
 
 ## Watch feature (shuffleclick.com/watch/)
