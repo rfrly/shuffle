@@ -484,12 +484,12 @@
     .vol-label-btn.active { border-color: #f5c842; color: #f5c842; }
 
     .vol-slider-row {
-      display: flex; flex-direction: column; gap: 1rem;
+      display: flex; flex-direction: column; gap: 0.75rem;
       width: auto;
       background: #1a1a1a;
       border: 1px solid #333;
       border-radius: 10px;
-      padding: 1.1rem 1.25rem;
+      padding: 0.75rem 1rem;
     }
     .vol-slider-item {
       display: flex; align-items: center; gap: 0.6rem;

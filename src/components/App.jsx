@@ -13,7 +13,28 @@ import { BarProgress } from './BarProgress.jsx';
 import { CompactSelector } from './CompactSelector.jsx';
 import '../styles.css';
 
-function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, showSubdiv }) {
+function useNudge(setter, delta) {
+  const intervalRef = useRef(null);
+  const stop = () => {
+    clearTimeout(intervalRef.current);
+    clearInterval(intervalRef.current);
+    intervalRef.current = null;
+  };
+  const start = () => {
+    const step = () => setter(v => {
+      const next = Math.round((v + delta) * 100) / 100;
+      return delta < 0 ? Math.max(0, next) : Math.min(1, next);
+    });
+    step();
+    intervalRef.current = setTimeout(() => {
+      intervalRef.current = setInterval(step, 80);
+    }, 400);
+  };
+  useEffect(() => () => stop(), []);
+  return { onMouseDown: start, onMouseUp: stop, onMouseLeave: stop, onTouchStart: (e) => { e.preventDefault(); start(); }, onTouchEnd: stop };
+}
+
+function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdivVol2, setSubdivVol2, subdivision }) {
   const [style, setStyle] = useState({});
   useEffect(() => {
     if (volBtnRef.current) {
@@ -26,20 +47,35 @@ function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, showS
       });
     }
   }, []);
+  const volDown  = useNudge(setVolume,    -0.05);
+  const volUp    = useNudge(setVolume,     0.05);
+  const subDown  = useNudge(setSubdivVol, -0.05);
+  const subUp    = useNudge(setSubdivVol,  0.05);
+  const sub2Down = useNudge(setSubdivVol2, -0.05);
+  const sub2Up   = useNudge(setSubdivVol2,  0.05);
+  const subdiv8Label  = subdivision === 3 ? 'Triplet' : '8th';
   return (
     <div className="vol-slider-row" style={style}>
       <div className="vol-slider-item">
-        <span>Volume</span>
-        <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
+        <span>Master</span>
+        <button className="vol-nudge-btn" {...volDown}>−</button>
         <input type="range" min={0} max={1} step={0.05} value={volume} onChange={e => setVolume(Number(e.target.value))} />
-        <button className="vol-nudge-btn" onClick={() => setVolume(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
+        <button className="vol-nudge-btn" {...volUp}>+</button>
       </div>
-      {showSubdiv && (
+      {subdivision > 1 && (
         <div className="vol-slider-item">
-          <span>Subdiv</span>
-          <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.max(0, Math.round((v - 0.05) * 100) / 100))}>−</button>
+          <span>{subdivision === 4 ? '8th' : subdiv8Label}</span>
+          <button className="vol-nudge-btn" {...subDown}>−</button>
           <input type="range" min={0} max={1} step={0.05} value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
-          <button className="vol-nudge-btn" onClick={() => setSubdivVol(v => Math.min(1, Math.round((v + 0.05) * 100) / 100))}>+</button>
+          <button className="vol-nudge-btn" {...subUp}>+</button>
+        </div>
+      )}
+      {subdivision === 4 && (
+        <div className="vol-slider-item">
+          <span>16th</span>
+          <button className="vol-nudge-btn" {...sub2Down}>−</button>
+          <input type="range" min={0} max={1} step={0.05} value={subdivVol2} onChange={e => setSubdivVol2(Number(e.target.value))} />
+          <button className="vol-nudge-btn" {...sub2Up}>+</button>
         </div>
       )}
     </div>
@@ -236,7 +272,8 @@ export function App() {
   const timerStartRef  = useRef(null);
   const elapsedAccumRef = useRef(0);
   const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
-  const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 1.0);
+  const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 0.7);
+  const [subdivVol2,      setSubdivVol2]      = useState(() => saved?.subdivVol2 ?? 0.7);
   const [exercise,        setExercise]        = useState(null);
   const [nextEx,          setNextEx]          = useState(null);
   const [setCount,        setSetCount]        = useState(1);
@@ -296,10 +333,10 @@ export function App() {
     saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
                    minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
                    exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                   subdivision, beatStates, subdivVol,
+                   subdivision, beatStates, subdivVol, subdivVol2,
                    bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                    bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, subdivVol2, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -390,7 +427,7 @@ export function App() {
     countInBars,
     countInEveryRound: countInEvery,
     mode, volume, looping, infinite, setComplete,
-    exMode, pickedNums, subdivision, beatStates, subdivVol,
+    exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
   });
 
   useEffect(() => {
@@ -693,6 +730,8 @@ export function App() {
                     setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
                     setStopwatchPref(false);
                     setVolume(1.0);
+                    setSubdivVol(0.7);
+                    setSubdivVol2(0.7);
                     setExMode('range');
                     setPickedNums([]);
                     setLetterMode(false);
@@ -876,6 +915,9 @@ export function App() {
         {showMuteHint && phase !== "idle" && (
           <div className={`mute-hint${phase !== "countin" ? " fading" : ""}`}>No sound? Check volume and silent mode.</div>
         )}
+
+        {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
+
       </div>
 
       <div className="controls">
@@ -1103,8 +1145,6 @@ export function App() {
 
       </div>
 
-      {appToastMsg && <div key={appToastKey} className="app-toast">{appToastMsg}</div>}
-
       <div className="btn-row">
         {!running ? (
           <>
@@ -1156,13 +1196,14 @@ export function App() {
             volBtnRef={volBtnRef}
             volume={volume} setVolume={setVolume}
             subdivVol={subdivVol} setSubdivVol={setSubdivVol}
-            showSubdiv={mode === MODE_CLICKONLY && subdivision > 1}
+            subdivVol2={subdivVol2} setSubdivVol2={setSubdivVol2}
+            subdivision={mode === MODE_CLICKONLY ? subdivision : 0}
           />
         </>,
         document.body
       )}
 
-      <div className="version-footer">v1.9.14.beta.5 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.14.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
