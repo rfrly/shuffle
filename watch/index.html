@@ -3676,10 +3676,20 @@
         return () => clearTimeout(t);
       }, [phase, showMuteHint]);
 
+      // Track whether we've entered playing state since isFirstExOfSet was set
+      const hasPlayedFirstBar = useRef(false);
+      useEffect(() => {
+        if (isFirstExOfSet && phase === "playing") hasPlayedFirstBar.current = true;
+        if (!isFirstExOfSet) hasPlayedFirstBar.current = false;
+      }, [isFirstExOfSet, phase]);
+
       // Clear set label after the first bar of the new set
       useEffect(() => {
-        if (isFirstExOfSet && phase === "playing" && currentBar > 0) setIsFirstExOfSet(false);
-      }, [isFirstExOfSet, phase, currentBar]);
+        const bpe = barsPerExercise * (exMode === 'pick' ? 1 : exerciseLength);
+        if (!isFirstExOfSet) return;
+        if (phase === "playing" && currentBar > 0) { setIsFirstExOfSet(false); return; }
+        if (bpe === 1 && phase === "countin" && hasPlayedFirstBar.current) { setIsFirstExOfSet(false); return; }
+      }, [isFirstExOfSet, phase, currentBar, barsPerExercise, exMode, exerciseLength]);
 
       const handleStart = () => {
         if (!localStorage.getItem('muteHintSeen')) {
@@ -3885,7 +3895,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.12 · watch 1.61</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.13 · watch 1.62</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -4501,7 +4511,7 @@
             )}
           </div>
 
-          <div className="version-footer">v1.9.12 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.13 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
