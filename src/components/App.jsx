@@ -707,7 +707,7 @@ export function App() {
   );
 
   const isMetronome = mode === MODE_CLICKONLY;
-  const showAutoBpm = isMetronome || sets === '∞';
+  const showAutoBpm = isMetronome || sets !== 1;
   const setsSuffix = !isMetronome && sets !== 1 ? (sets === '∞' ? ' ∞' : ` ×${sets}`) : '';
   const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + setsSuffix;
 
@@ -848,9 +848,9 @@ export function App() {
             </div>
             <div className="help-section">
               <h3>BPM automation</h3>
-              <p>Tap the ⚙ gear button next to BPM (visible in Metronome and ∞ modes) to open Auto BPM settings.</p>
+              <p>Tap the ⚙ gear button next to BPM (visible in Metronome and multi-set modes) to open Auto BPM settings.</p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li><strong>Shuffle/Sequence ∞</strong> — steps BPM up or down after each full set.</li>
+                <li><strong>Shuffle/Sequence ×2/×3/∞</strong> — steps BPM up or down after each full set.</li>
                 <li><strong>Metronome</strong> — steps every N bars or every N seconds.</li>
                 <li><strong>Random</strong> (∞ only) — randomises BPM within a range instead of stepping.</li>
               </ul>
@@ -886,7 +886,7 @@ export function App() {
 
       <div className={`display${isMetronome ? " display--metro" : ""}`}>
         <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
-          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (phase === "countin" ? "count in" : displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -1242,7 +1242,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.15.beta.8 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.15.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
