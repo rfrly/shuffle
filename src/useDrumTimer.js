@@ -349,7 +349,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
               scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
-              if (clickMode === MODE_CLICKONLY && subdiv > 1) {
+              if (subdiv > 1) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
                   // When subdiv=4 (16ths): s=2 is the 8th-note position (sVol), s=1,3 are pure 16ths (sVol2)

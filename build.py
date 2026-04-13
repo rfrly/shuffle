@@ -497,14 +497,14 @@ src = patch(src,
 
 # Exercise length control group
 src = patch(src,
-    '                <div className={`control-group${running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>',
-    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>'
+    '                <div className={`control-group ex-length-group${running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>',
+    '                <div className={`control-group ex-length-group${watchScreen === "app" ? " watch-locked" : running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>'
 )
 
 # Exercises control group
 src = patch(src,
-    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>',
-    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
+    '                <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>',
+    '                <div className={`control-group exercises-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
 )
 
 # Rounds Per Exercise control group
@@ -567,7 +567,7 @@ src = patch(src,
     '              </div>\n'
     '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
     '              <div className="watch-student-status-item">\n'
-    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{infinite ? " \u221e" : ""}{mode === MODE_CLICKONLY && stopwatch ? " \u23F1\uFE0E" : ""}\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{sets !== 1 && mode !== MODE_CLICKONLY ? (sets === "\u221e" ? " \u221e" : " \u00d7" + sets) : ""}{mode === MODE_CLICKONLY && displayMode === "timer" ? " \u23F1\uFE0E" : ""}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -648,7 +648,7 @@ firebase_and_observer = r"""
       const {
         running: obsRunning, paused: obsPaused, resuming: obsResuming, phase, setComplete: sc,
         currentBeat, currentBar, exercise, nextEx, countInBeat,
-        mode: obsMode, infinite: obsInfinite, stopwatch: obsStopwatch, infiniteByMode: obsInfiniteByMode, stopwatchPref: obsStopwatchPref, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
+        mode: obsMode, sets: obsSets, displayMode: obsDisplayMode, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
         countInBars: obsCib, countInEvery: obsCountInEvery,
         looping: obsLooping, letterMode: obsLm,
@@ -697,7 +697,7 @@ firebase_and_observer = r"""
 
       // BPM Automation local state (mirrors main app — teacher controls the student's BPM)
       const isObsMetronome = obsMode === "clickonly";
-      const obsInfiniteEff = !!obsInfinite;
+      const obsInfiniteEff = obsSets === '\u221e' || (typeof obsSets === 'number' && obsSets > 1);
       const [obsBpmAutoOpen,      setObsBpmAutoOpen]      = React.useState(false);
       const [localBpmAuto,        setLocalBpmAuto]        = React.useState(() => !!obsBpmAuto);
       const [localBpmAutoStep,    setLocalBpmAutoStep]    = React.useState(() => obsBpmAutoStep ?? 2);
@@ -785,7 +785,7 @@ firebase_and_observer = r"""
         : exMode === "pick" ? pickedNums.length >= 1
         : (obsMinEx || 1) <= (obsMaxEx || 1);
 
-      const modeLabel = ({ fullset: "Shuffle", sequential: "Sequence", clickonly: "Metronome" }[obsMode] || obsMode) + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "");
+      const modeLabel = ({ fullset: "Shuffle", sequential: "Sequence", clickonly: "Metronome" }[obsMode] || obsMode) + (obsSets && obsSets !== 1 && obsMode !== "clickonly" ? (obsSets === "\u221e" ? " \u221e" : " \u00d7" + obsSets) : "");
 
       const buildSettingsSummary = () => {
         let parts = [];
@@ -817,7 +817,8 @@ firebase_and_observer = r"""
         if (obsCib)           p.set("cib",    String(obsCib));
         if (obsCountInEvery)  p.set("cie",    "1");
         if (obsMode)          p.set("mode",   obsMode);
-        if (obsInfinite && obsMode !== "clickonly") p.set("inf", "1");
+        if (obsSets != null && obsSets !== 1 && obsMode !== "clickonly") p.set("sets", obsSets === "\u221e" ? "inf" : String(obsSets));
+        if (obsDisplayMode === "timer" && obsMode === "clickonly") p.set("dm", "timer");
         if (obsBpe)           p.set("rounds", String(obsBpe));
         if (obsExMode && obsExMode !== "range") p.set("exmode", obsExMode);
         if (obsExMode === "pick" && pickedNums.length > 0) p.set("picks", pickedNums.join(","));
@@ -877,7 +878,7 @@ firebase_and_observer = r"""
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
-                      mode: "fullset", infinite: false, stopwatch: false, resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
+                      mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
                       volume: 1.0, subdivVol: 0.7, subdivVol2: 0.7 });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
@@ -891,7 +892,7 @@ firebase_and_observer = r"""
 
           <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
             <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
-              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsStopwatch ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
+              {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsDisplayMode === "timer" ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
 
             {isCountIn ? (
@@ -902,7 +903,7 @@ firebase_and_observer = r"""
               <div className="exercise-number done">done</div>
             ) : (
               <div className={`exercise-number${isIdle ? " idle" : ""}`}>
-                {obsMode === "clickonly" && obsStopwatch && phase !== "idle"
+                {obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle"
                   ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
                   : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
               </div>
@@ -914,8 +915,8 @@ firebase_and_observer = r"""
                 : obsMode === "clickonly" ? null : (
                   <div className="idle-summary" style={{ userSelect: "none", WebkitUserSelect: "none" }}>
                     {exMode === "pick"
-                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`
-                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsInfinite && obsMode !== "clickonly" ? " ∞" : "")}`}
+                      ? `${pickedNums.length === 0 ? "no bars" : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", ")} · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsSets && obsSets !== 1 && obsMode !== "clickonly" ? (obsSets === "\u221e" ? " \u221e" : " \u00d7" + obsSets) : "")}`
+                      : `${effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1)}–${effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1)} · ${obsExLen || "--"}-bar ex · ${obsBpe || "--"} round${obsBpe !== 1 ? "s" : ""} · ${(obsMode === "fullset" ? "shuffle" : obsMode === "sequential" ? "sequence" : obsMode || "--") + (obsSets && obsSets !== 1 && obsMode !== "clickonly" ? (obsSets === "\u221e" ? " \u221e" : " \u00d7" + obsSets) : "")}`}
                   </div>
                 )
               ) : (
@@ -1003,16 +1004,9 @@ firebase_and_observer = r"""
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${obsMode === m.value ? " active" : ""}`}
-                      onClick={() => {
-                        if (m.value === obsMode && m.value === "clickonly") {
-                          onSendCmd({ stopwatch: !obsStopwatch });
-                        } else if (m.value === obsMode && (m.value === "fullset" || m.value === "sequential")) {
-                          onSendCmd({ infinite: !obsInfinite });
-                        } else {
-                          onSendCmd({ mode: m.value });
-                        }
-                      }} disabled={disabled || obsRunning}>
-                      {m.label}{((m.value === obsMode ? obsInfinite : (obsInfiniteByMode || {})[m.value]) && (m.value === "fullset" || m.value === "sequential")) ? " ∞" : ""}{(m.value === obsMode ? obsStopwatch : (m.value === "clickonly" ? obsStopwatchPref : false)) && m.value === "clickonly" ? " \u23F1\uFE0E" : ""}
+                      onClick={() => { if (m.value !== obsMode) onSendCmd({ mode: m.value }); }}
+                      disabled={disabled || obsRunning}>
+                      {m.label}
                     </button>
                   ))}
                 </div>
@@ -1340,11 +1334,6 @@ watch_state = """
       const watchSilentLoop = useRef(null);
       const [audioRestoreNeeded, setAudioRestoreNeeded] = useState(false);
       const modeRef         = useRef(mode);
-      const infiniteRef2    = useRef(infinite);
-      const stopwatchRef2   = useRef(stopwatch);
-      useEffect(() => { modeRef.current = mode; }, [mode]);
-      useEffect(() => { infiniteRef2.current = infinite; }, [infinite]);
-      useEffect(() => { stopwatchRef2.current = stopwatch; }, [stopwatch]);
 
 """
 src = patch(src, 
@@ -1391,7 +1380,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         const payload = {
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
-          mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
+          mode, sets, displayMode, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
           volume,
@@ -1401,7 +1390,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         };
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
-          exercise, nextEx, countInBeat, mode, infinite, stopwatch, infiniteByMode, stopwatchPref, elapsedSeconds, bpm, timeSig, barsPerExercise,
+          exercise, nextEx, countInBeat, mode, sets, displayMode, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
           volume,
@@ -1451,10 +1440,9 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setCountInBars(1);
         setCountInEvery(true);
         setMode(MODE_FULLSET);
-        setInfinite(false);
-        setStopwatch(false);
-        setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-        setStopwatchPref(false);
+        setSets(1);
+        setDisplayMode('bars');
+        setsByMode.current = { [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 };
         setExMode("range");
         setPickedNums([]);
         setLetterMode(false);
@@ -1547,33 +1535,24 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.mode != null) {
             if (cmd.resetAll) {
               setMode(cmd.mode);
-              setInfinite(false);
-              setStopwatch(false);
-              setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-              setStopwatchPref(false);
+              setSets(1);
+              setDisplayMode('bars');
+              setsByMode.current = { [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 };
             } else {
               const prevMode = modeRef.current;
               if (prevMode === MODE_FULLSET || prevMode === MODE_SEQUENTIAL) {
-                setInfiniteByMode(prev => ({ ...prev, [prevMode]: infiniteRef2.current }));
-              }
-              if (prevMode === MODE_CLICKONLY) {
-                setStopwatchPref(stopwatchRef2.current);
+                setsByMode.current[prevMode] = sets;
               }
               setMode(cmd.mode);
-              setInfiniteByMode(prev => {
-                const restoredInf = (cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL) ? (prev[cmd.mode] ?? false) : false;
-                setInfinite(restoredInf);
-                return prev;
-              });
-              setStopwatchPref(prev => {
-                const restoredSw = cmd.mode === MODE_CLICKONLY ? prev : false;
-                setStopwatch(restoredSw);
-                return prev;
-              });
+              if (cmd.mode === MODE_FULLSET || cmd.mode === MODE_SEQUENTIAL) {
+                setSets(setsByMode.current[cmd.mode] ?? 1);
+              } else {
+                setSets(1);
+              }
             }
           } else {
-            if (cmd.infinite != null) { const inf = !!cmd.infinite; setInfinite(inf); setInfiniteByMode(prev => ({ ...prev, [modeRef.current]: inf })); }
-            if (cmd.stopwatch != null) { setStopwatch(!!cmd.stopwatch); setStopwatchPref(!!cmd.stopwatch); }
+            if (cmd.sets != null) setSets(cmd.sets);
+            if (cmd.displayMode != null) setDisplayMode(cmd.displayMode);
           }
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
@@ -1683,8 +1662,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n      });",
-    "        mode, volume, looping, infinite, setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n      });",
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────

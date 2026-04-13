@@ -20,12 +20,12 @@ export function loadUrlParams() {
     if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
     if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
     if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","clickonly"].includes(v)) r.mode = v; }
-    if (p.has("inf"))    r.infinite = p.get("inf") === "1";
+    if (p.has("sets"))   { const v = p.get("sets"); r.sets = v === "inf" ? '∞' : (parseInt(v) >= 1 ? parseInt(v) : 1); }
+    if (p.has("dm"))     { const v = p.get("dm"); if (["bars","timer"].includes(v)) r.displayMode = v; }
     if (p.has("rounds")) { const v = parseInt(p.get("rounds"));  if (v >= 1 && v <= 32) r.barsPerExercise = v; }
     if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
     if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
     if (p.has("lm"))     r.letterMode = p.get("lm") === "1";
-    if (p.has("sw"))     r.stopwatch  = p.get("sw")  === "1";
     return Object.keys(r).length > 0 ? r : null;
   } catch { return null; }
 }

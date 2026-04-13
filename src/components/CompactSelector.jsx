@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import * as ReactDOM from 'react-dom';
 
-export function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, buttonLabel, footer }) {
+export function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, renderOption, buttonLabel, popupClassName, footer }) {
   const btnRef = useRef(null);
   const isOpen = openSelector === id;
   const [popupStyle, setPopupStyle] = useState({});
@@ -30,7 +30,7 @@ export function CompactSelector({ id, value, options, onChange, disabled, openSe
       {isOpen && ReactDOM.createPortal(
         <>
           <div className="compact-popup-backdrop" onClick={() => setOpenSelector(null)} />
-          <div className="compact-popup" style={popupStyle}>
+          <div className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
             {options.map((opt, i) => {
               const optLabel = getLabel ? getLabel(opt) : String(opt);
               const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
@@ -38,7 +38,7 @@ export function CompactSelector({ id, value, options, onChange, disabled, openSe
                 <button key={i} className={`sel-btn${isActive ? " active" : ""}`}
                   onPointerDown={(e) => e.stopPropagation()}
                   onClick={() => select(opt)}>
-                  {optLabel}
+                  {renderOption ? renderOption(opt) : optLabel}
                 </button>
               );
             })}

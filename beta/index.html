@@ -365,6 +365,30 @@
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
     .control-group.full-width { grid-column: 1 / -1; }
 
+    /* ── Phase 2: grid layout for exercises, ex-length, sets, display ── */
+
+    /* Mobile / iPad portrait (2-col): Display is full-width */
+    .display-toggle-group { grid-column: 1 / -1; }
+
+    /* Desktop (3-col grid only — excludes max-width:767px and iPad portrait):
+       Ex Length pulls up into row 1 col 3 (alongside Count In + Subdiv)
+       Exercises spans cols 1-2
+       Sets spans cols 2-3 (paired with Rounds in col 1)
+       Display toggle goes into col 3 row 1 (Metro only, alongside Count In + Subdiv) */
+    /* 3-col desktop layout: ExLength in row 1 col 3; Exercises full-width; Sets spans cols 2-3 */
+    @media (min-width: 1025px) {
+      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .exercises-group { grid-column: 1 / -1; }
+      .controls-grid .sets-group      { grid-column: 2 / 4; }
+      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+    }
+    @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
+      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .exercises-group { grid-column: 1 / -1; }
+      .controls-grid .sets-group      { grid-column: 2 / 4; }
+      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+    }
+
     .control-group label {
       font-size: 0.6rem;
       letter-spacing: 0.15em;
@@ -457,15 +481,42 @@
     .sel-btn.active { background: #1e1e1e; border-color: #ff4500; color: #ff4500; }
     .sel-btn:disabled { opacity: 0.25; cursor: default; }
 
-    .subdiv-group { grid-column: 1 / -1; }
-    @media (max-width: 767px) {
-      .subdiv-group { grid-column: auto; }
-    }
-    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-      .subdiv-group { grid-column: auto; }
-    }
-    .subdiv-btn { padding: 0; }
     .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
+    /* Subdivision compact selector popup — 2×2 grid of SVG options */
+    .compact-popup.subdiv-popup {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;
+    }
+    .compact-popup.subdiv-popup .sel-btn {
+      display: flex; align-items: center; justify-content: center;
+      width: 56px; height: 48px; padding: 0;
+    }
+
+    /* Sets stepper — − | ×N | + | [∞] */
+    .sets-stepper {
+      display: flex; align-items: center; height: 44px; gap: 0;
+    }
+    .sets-stepper .stepper-btn { flex-shrink: 0; }
+    .sets-val {
+      flex: 1; min-width: 3rem;
+      display: flex; align-items: center; justify-content: center;
+      font-family: var(--font-mono); font-size: 0.85rem; color: #e8e8e8;
+      background: #1a1a1a; border-top: 1px solid #333; border-bottom: 1px solid #333;
+      height: 44px;
+    }
+    .sets-inf-btn {
+      flex-shrink: 0;
+      width: 44px; height: 44px;
+      background: #1a1a1a; border: 1px solid #333; border-left: none;
+      color: #aaa; font-size: 1.1rem; cursor: pointer;
+      border-radius: 0 4px 4px 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.1s;
+    }
+    .sets-inf-btn.active { border-color: #f5c842; color: #f5c842; background: #1e1a00; }
+    .sets-inf-btn:active { background: #2a2a2a; }
+    .sets-inf-btn:disabled { opacity: 0.25; cursor: default; }
+    /* When sets=∞ the right stepper-btn is replaced by inf-btn, so remove its border-radius */
+    .sets-stepper .stepper-btn.right { border-radius: 0; border-right: none; }
 
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
@@ -763,6 +814,9 @@
       .stepper { height: 52px; }
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.1rem; }
+      .sets-stepper { height: 52px; }
+      .sets-val { height: 52px; font-size: 1.1rem; }
+      .sets-inf-btn { width: 52px; height: 52px; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
       .help-close-bottom { font-size: 0.85rem; padding: 0.8rem 2.5rem; }
       .check-row { font-size: 0.95rem; }
@@ -817,6 +871,9 @@
       .stepper { height: 58px; }
       .stepper-btn { width: 58px; height: 58px; }
       .stepper-val { height: 58px; }
+      .sets-stepper { height: 58px; }
+      .sets-val { height: 58px; }
+      .sets-inf-btn { width: 58px; height: 58px; }
     }
 
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
@@ -1291,12 +1348,12 @@
         if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
         if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
         if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","clickonly"].includes(v)) r.mode = v; }
-        if (p.has("inf"))    r.infinite = p.get("inf") === "1";
+        if (p.has("sets"))   { const v = p.get("sets"); r.sets = v === "inf" ? '∞' : (parseInt(v) >= 1 ? parseInt(v) : 1); }
+        if (p.has("dm"))     { const v = p.get("dm"); if (["bars","timer"].includes(v)) r.displayMode = v; }
         if (p.has("rounds")) { const v = parseInt(p.get("rounds"));  if (v >= 1 && v <= 32) r.barsPerExercise = v; }
         if (p.has("exmode")) { const v = p.get("exmode"); if (["range","pick"].includes(v)) r.exMode = v; }
         if (p.has("picks"))  { const nums = p.get("picks").split(",").map(Number).filter(n => n >= 1 && n <= 200); if (nums.length > 0) { r.pickedNums = nums; r.exMode = "pick"; } }
         if (p.has("lm"))     r.letterMode = p.get("lm") === "1";
-        if (p.has("sw"))     r.stopwatch  = p.get("sw")  === "1";
         return Object.keys(r).length > 0 ? r : null;
       } catch { return null; }
     }
@@ -1782,7 +1839,7 @@
                     ? bStates[beatInBar]
                     : (isDownbeat ? 'accent' : 'normal');
                   scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
-                  if (clickMode === MODE_CLICKONLY && subdiv > 1) {
+                  if (subdiv > 1) {
                     const subdivLen = (60 / b) / subdiv;
                     for (let s = 1; s < subdiv; s++) {
                       // When subdiv=4 (16ths): s=2 is the 8th-note position (sVol), s=1,3 are pure 16ths (sVol2)
@@ -2160,7 +2217,7 @@
       return <div style={{ height: "5px" }} />;
     }
 
-    function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, buttonLabel, footer }) {
+    function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, renderOption, buttonLabel, popupClassName, footer }) {
       const btnRef = useRef(null);
       const isOpen = openSelector === id;
       const [popupStyle, setPopupStyle] = useState({});
@@ -2189,7 +2246,7 @@
           {isOpen && ReactDOM.createPortal(
             <>
               <div className="compact-popup-backdrop" onClick={() => setOpenSelector(null)} />
-              <div className="compact-popup" style={popupStyle}>
+              <div className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
                 {options.map((opt, i) => {
                   const optLabel = getLabel ? getLabel(opt) : String(opt);
                   const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
@@ -2197,7 +2254,7 @@
                     <button key={i} className={`sel-btn${isActive ? " active" : ""}`}
                       onPointerDown={(e) => e.stopPropagation()}
                       onClick={() => select(opt)}>
-                      {optLabel}
+                      {renderOption ? renderOption(opt) : optLabel}
                     </button>
                   );
                 })}
@@ -2445,6 +2502,51 @@
       return { onPointerDown: start, onPointerUp: stop, onPointerLeave: stop, onPointerCancel: stop };
     }
 
+    function SubdivSVG({ value }) {
+      if (value === 1) return (
+        <svg viewBox="0 0 16 36" className="subdiv-svg">
+          <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
+          <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      );
+      if (value === 2) return (
+        <svg viewBox="0 0 30 36" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+        </svg>
+      );
+      if (value === 3) return (
+        <svg viewBox="0 -10 46 46" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+          <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+          <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
+          <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
+        </svg>
+      );
+      return (
+        <svg viewBox="0 0 46 36" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
+          <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
+          <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+          <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
+        </svg>
+      );
+    }
+
     function defaultBeatStates(timeSigLabel) {
       const sig = TIME_SIGS.find(s => s.label === timeSigLabel) ?? TIME_SIGS[2];
       return Array.from({ length: sig.beats }, (_, i) => i === 0 ? 'accent' : 'normal');
@@ -2466,10 +2568,9 @@
       const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
-      const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
-      const [stopwatch,       setStopwatch]       = useState(() => saved?.stopwatch ?? false);
-      const [infiniteByMode,  setInfiniteByMode]  = useState(() => saved?.infiniteByMode ?? { [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-      const [stopwatchPref,   setStopwatchPref]   = useState(() => saved?.stopwatchPref ?? false);
+      const [sets,            setSets]            = useState(() => saved?.sets ?? 1);
+      const [displayMode,     setDisplayMode]     = useState(() => saved?.displayMode ?? 'bars');
+      const setsByMode = useRef({ [MODE_FULLSET]: saved?.sets ?? 1, [MODE_SEQUENTIAL]: saved?.sets ?? 1 });
       const [elapsedSeconds,  setElapsedSeconds]  = useState(0);
       const timerStartRef  = useRef(null);
       const elapsedAccumRef = useRef(0);
@@ -2533,12 +2634,12 @@
 
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                       minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                       exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
+                       minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume,
+                       exMode, pickedNums, letterMode,
                        subdivision, beatStates, subdivVol, subdivVol2,
                        bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                        bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, subdivVol2, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2635,7 +2736,7 @@
         running, paused, resuming,
         countInBars,
         countInEveryRound: countInEvery,
-        mode, volume, looping, infinite, setComplete,
+        mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
         exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
       });
 
@@ -2719,7 +2820,7 @@
       const handleLoop = () => setLooping(l => !l);
 
       useEffect(() => {
-        if (mode !== MODE_CLICKONLY || !stopwatch) {
+        if (mode !== MODE_CLICKONLY || displayMode !== 'timer') {
           timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
           return;
         }
@@ -2734,7 +2835,7 @@
           elapsedAccumRef.current += Math.floor((Date.now() - timerStartRef.current) / 1000);
           timerStartRef.current = null;
         }
-      }, [phase, paused, mode, stopwatch]);
+      }, [phase, paused, mode, displayMode]);
 
       useEffect(() => {
         if (!isResuming && resuming) setResuming(false);
@@ -2847,7 +2948,7 @@
         </svg>
       );
 
-      const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (infinite && mode !== MODE_CLICKONLY ? " ∞" : "");
+      const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (sets === '∞' && mode !== MODE_CLICKONLY ? " ∞" : "");
 
 
       return (
@@ -2914,8 +3015,8 @@
                         p.set("cib",  String(countInBars));
                         if (countInEvery) p.set("cie", "1");
                         p.set("mode", mode);
-                        if (infinite && mode !== MODE_CLICKONLY) p.set("inf", "1");
-                        if (stopwatch && mode === MODE_CLICKONLY) p.set("sw", "1");
+                        if (sets !== 1 && mode !== MODE_CLICKONLY) p.set("sets", String(sets));
+                        if (displayMode === 'timer' && mode === MODE_CLICKONLY) p.set("dm", "timer");
                         if (letterMode) p.set("lm", "1");
                         const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
                         navigator.clipboard.writeText(url)
@@ -2934,10 +3035,9 @@
                         setCountInBars(1);
                         setCountInEvery(true);
                         setMode(MODE_FULLSET);
-                        setInfinite(false);
-                        setStopwatch(false);
-                        setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-                        setStopwatchPref(false);
+                        setSets(1);
+                        setDisplayMode('bars');
+                        setsByMode.current = { [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 };
                         setVolume(1.0);
                         setSubdivVol(0.7);
                         setSubdivVol2(0.7);
@@ -2981,9 +3081,9 @@
                 <div className="help-section">
                   <h3>Modes</h3>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                    <li>Shuffle — plays every exercise in random order, then stops. Tap again for ∞ mode — loops continuously.</li>
-                    <li>Sequence — plays exercises in order, then stops. Tap again for ∞ mode.</li>
-                    <li>Metronome — runs until stopped. Tap again for stopwatch mode.</li>
+                    <li>Shuffle — plays every exercise in random order, then stops. Use the Sets control to repeat or loop continuously (∞).</li>
+                    <li>Sequence — plays exercises in order, then stops. Use the Sets control to repeat or loop continuously (∞).</li>
+                    <li>Metronome — runs until stopped. Use the Display control to switch between bar counter and timer.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -3026,7 +3126,7 @@
 
           <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
             <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
             </div>
 
             {phase === "countin" ? (
@@ -3039,7 +3139,7 @@
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {mode === MODE_CLICKONLY && stopwatch && phase !== "idle"
+                {mode === MODE_CLICKONLY && displayMode === 'timer' && phase !== "idle"
                   ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
                   : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
               </div>
@@ -3144,30 +3244,26 @@
                     <button key={m.value}
                       className={`sel-btn${mode === m.value ? " active" : ""}`}
                       onClick={() => {
-                        if (m.value === mode && m.value === MODE_CLICKONLY) {
-                          setStopwatch(v => { setStopwatchPref(!v); return !v; });
-                        } else if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
-                          setInfinite(v => { setInfiniteByMode(prev => ({ ...prev, [mode]: !v })); return !v; });
-                        } else {
+                        if (m.value !== mode) {
                           if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
-                            setInfiniteByMode(prev => ({ ...prev, [mode]: infinite }));
-                          }
-                          if (mode === MODE_CLICKONLY) {
-                            setStopwatchPref(stopwatch);
+                            setsByMode.current[mode] = sets;
                           }
                           setMode(m.value);
-                          setInfinite(m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL ? infiniteByMode[m.value] : false);
-                          setStopwatch(m.value === MODE_CLICKONLY ? stopwatchPref : false);
+                          if (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) {
+                            setSets(setsByMode.current[m.value] ?? 1);
+                          } else {
+                            setSets(1);
+                          }
                         }
                       }} disabled={running}
                       >
-                      {m.label}{(m.value === mode ? infinite : infiniteByMode[m.value]) && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) ? " ∞" : ""}{(m.value === mode ? stopwatch : (m.value === MODE_CLICKONLY ? stopwatchPref : false)) && m.value === MODE_CLICKONLY ? " \u23F1\uFE0E" : ""}
+                      {m.label}
                     </button>
                   ))}
                 </div>
               </div>
 
-              <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || infinite) ? " gear-visible" : ""}`}>
+              <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || sets === '∞') ? " gear-visible" : ""}`}>
                 <div className="control-group bpm-group">
                   <label>BPM</label>
                   <div className="bpm-widget-row">
@@ -3184,7 +3280,7 @@
                       </div>
                       <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                     </div>
-                    {(mode === MODE_CLICKONLY || infinite) && (
+                    {(mode === MODE_CLICKONLY || sets === '∞') && (
                       <button
                         ref={bpmGearBtnRef}
                         className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
@@ -3210,6 +3306,7 @@
                 </div>
               </div>
 
+              {/* Row: Count In + Subdivision (always, all modes) */}
               <div className={`control-group${running ? " dimmed" : ""}`}>
                 <label>Count in</label>
                 <CompactSelector
@@ -3233,78 +3330,26 @@
                 />
               </div>
 
-              {mode === MODE_CLICKONLY && (
-                <div className="control-group subdiv-group">
-                  <label>Subdivision</label>
-                  <div className="selector-row">
-                    {/* Quarter note — no subdivision */}
-                    <button className={`sel-btn subdiv-btn${subdivision === 1 ? " active" : ""}`} onClick={() => setSubdivision(1)}>
-                      <svg viewBox="0 0 16 36" className="subdiv-svg">
-                        <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
-                        <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                      </svg>
-                    </button>
-                    {/* Two beamed 8th notes */}
-                    <button className={`sel-btn subdiv-btn${subdivision === 2 ? " active" : ""}`} onClick={() => setSubdivision(2)}>
-                      <svg viewBox="0 0 30 36" className="subdiv-svg">
-                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                        <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
-                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                      </svg>
-                    </button>
-                    {/* Three beamed triplet 8th notes with bracket+3 */}
-                    <button className={`sel-btn subdiv-btn${subdivision === 3 ? " active" : ""}`} onClick={() => setSubdivision(3)}>
-                      <svg viewBox="0 -10 46 46" className="subdiv-svg">
-                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                        <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
-                        <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
-                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                        <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
-                        <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
-                      </svg>
-                    </button>
-                    {/* Four beamed 16th notes (two beams) */}
-                    <button className={`sel-btn subdiv-btn${subdivision === 4 ? " active" : ""}`} onClick={() => setSubdivision(4)}>
-                      <svg viewBox="0 0 46 36" className="subdiv-svg">
-                        <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                        <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
-                        <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
-                        <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
-                        <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                        <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                        <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div className={`control-group${running ? " dimmed" : ""}`}>
+                <label>Subdivision</label>
+                <CompactSelector
+                  id="subdivision"
+                  value={subdivision}
+                  options={[1, 2, 3, 4]}
+                  onChange={setSubdivision}
+                  disabled={running}
+                  openSelector={openSelector}
+                  setOpenSelector={setOpenSelector}
+                  getLabel={n => ["♩", "♪♪", "triplet", "♬"][n - 1]}
+                  renderOption={n => <SubdivSVG value={n} />}
+                  buttonLabel={<SubdivSVG value={subdivision} />}
+                  popupClassName="subdiv-popup"
+                />
+              </div>
 
+              {/* Exercises (col 1 on mobile, full-width on desktop) + ExLength (col 2 on mobile, col 3 row 1 on desktop) */}
               {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-                  <label>Exercise length</label>
-                  <CompactSelector
-                    id="exLength"
-                    value={exerciseLength}
-                    options={[1, 2, 4]}
-                    onChange={setExerciseLength}
-                    disabled={running || exMode === 'pick'}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  />
-                </div>
-              )}
-
-              {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running ? " dimmed" : ""}`}>
+                <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
                   <label>Exercises</label>
                   <div className="ex-control-row">
                     {exMode === 'range' ? (
@@ -3340,12 +3385,63 @@
               )}
 
               {mode !== MODE_CLICKONLY && (
+                <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
+                  <label>Exercise length</label>
+                  <CompactSelector
+                    id="exLength"
+                    value={exerciseLength}
+                    options={[1, 2, 4]}
+                    onChange={setExerciseLength}
+                    disabled={running || exMode === 'pick'}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                  />
+                </div>
+              )}
+
+              {/* Row: Rounds + Sets (Shuffle/Sequence) */}
+              {mode !== MODE_CLICKONLY && (
                 <div className={`control-group${running ? " dimmed" : ""}`}>
                   <label>Rounds Per Exercise</label>
                   <div className="stepper">
                     <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
                     <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
                     <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
+                  </div>
+                </div>
+              )}
+
+              {mode !== MODE_CLICKONLY && (
+                <div className={`control-group sets-group${running ? " dimmed" : ""}`}>
+                  <label>Sets</label>
+                  <div className="sets-stepper">
+                    <button className="stepper-btn left" disabled={running || sets === 1}
+                      onClick={() => setSets(s => s === '∞' ? 99 : Math.max(1, s - 1))}>−</button>
+                    <div className="stepper-val sets-val" style={running ? { opacity: 0.25 } : {}}>
+                      {sets === '∞' ? '∞' : `×${sets}`}
+                    </div>
+                    <button className="stepper-btn right" disabled={running || sets === '∞'}
+                      onClick={() => setSets(s => s === '∞' ? '∞' : s + 1)}>+</button>
+                    <button
+                      className={`sets-inf-btn${sets === '∞' ? " active" : ""}`}
+                      disabled={running}
+                      onClick={() => setSets(s => s === '∞' ? 1 : '∞')}>∞</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Display toggle — Metronome only */}
+              {mode === MODE_CLICKONLY && (
+                <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
+                  <label>Display</label>
+                  <div className="selector-row">
+                    <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
+                      disabled={running}
+                      onClick={() => setDisplayMode('bars')}>Bars</button>
+                    <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
+                      disabled={running}
+                      onClick={() => setDisplayMode('timer')}>Timer</button>
                   </div>
                 </div>
               )}
@@ -3406,13 +3502,13 @@
                 volume={volume} setVolume={setVolume}
                 subdivVol={subdivVol} setSubdivVol={setSubdivVol}
                 subdivVol2={subdivVol2} setSubdivVol2={setSubdivVol2}
-                subdivision={mode === MODE_CLICKONLY ? subdivision : 0}
+                subdivision={subdivision}
               />
             </>,
             document.body
           )}
 
-          <div className="version-footer">v1.9.15.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.15.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -3441,7 +3537,7 @@
             />
           )}
 
-          {bpmAutoOpen && (mode === MODE_CLICKONLY || infinite) && ReactDOM.createPortal(
+          {bpmAutoOpen && (mode === MODE_CLICKONLY || sets === '∞') && ReactDOM.createPortal(
             <BpmAutoPopup
               mode={mode} bpm={bpm}
               bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
