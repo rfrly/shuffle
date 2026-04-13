@@ -342,26 +342,24 @@
 
     /* ── Phase 2: grid layout for exercises, ex-length, sets, display ── */
 
-    /* Mobile / iPad portrait (2-col): Display is full-width */
+    /* Mobile / iPad portrait (2-col): all these are full-width */
+    .ex-length-group      { grid-column: 1 / -1; }
     .display-toggle-group { grid-column: 1 / -1; }
+    .exercises-group      { grid-column: 1 / -1; }
 
-    /* Desktop (3-col grid only — excludes max-width:767px and iPad portrait):
-       Ex Length pulls up into row 1 col 3 (alongside Count In + Subdiv)
-       Exercises spans cols 1-2
-       Sets spans cols 2-3 (paired with Rounds in col 1)
-       Display toggle goes into col 3 row 1 (Metro only, alongside Count In + Subdiv) */
-    /* 3-col desktop layout: ExLength in row 1 col 3; Exercises full-width; Sets spans cols 2-3 */
+    /* 3-col desktop: ExLength/Display flow naturally into col 3 (after CountIn + Subdiv);
+       Exercises spans full-width below; Sets spans cols 2-3 */
     @media (min-width: 1025px) {
-      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
-      .controls-grid .exercises-group { grid-column: 1 / -1; }
-      .controls-grid .sets-group      { grid-column: 2 / 4; }
-      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .ex-length-group      { grid-column: auto; }
+      .controls-grid .display-toggle-group { grid-column: auto; }
+      .controls-grid .exercises-group      { grid-column: 1 / -1; }
+      .controls-grid .sets-group           { grid-column: 2 / 4; }
     }
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
-      .controls-grid .exercises-group { grid-column: 1 / -1; }
-      .controls-grid .sets-group      { grid-column: 2 / 4; }
-      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .ex-length-group      { grid-column: auto; }
+      .controls-grid .display-toggle-group { grid-column: auto; }
+      .controls-grid .exercises-group      { grid-column: 1 / -1; }
+      .controls-grid .sets-group           { grid-column: 2 / 4; }
     }
 
     .control-group label {

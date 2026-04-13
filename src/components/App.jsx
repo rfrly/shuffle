@@ -1088,7 +1088,38 @@ export function App() {
             />
           </div>
 
-          {/* Exercises (col 1 on mobile, full-width on desktop) + ExLength (col 2 on mobile, col 3 row 1 on desktop) */}
+          {/* Col 3 of the Count In row on desktop: ExLength (Shuffle/Seq) or Display (Metro) */}
+          {mode !== MODE_CLICKONLY && (
+            <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
+              <label>Exercise length</label>
+              <CompactSelector
+                id="exLength"
+                value={exerciseLength}
+                options={[1, 2, 4]}
+                onChange={setExerciseLength}
+                disabled={running || exMode === 'pick'}
+                openSelector={openSelector}
+                setOpenSelector={setOpenSelector}
+                getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+              />
+            </div>
+          )}
+
+          {mode === MODE_CLICKONLY && (
+            <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
+              <label>Display</label>
+              <div className="selector-row">
+                <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
+                  disabled={running}
+                  onClick={() => setDisplayMode('bars')}>Bars</button>
+                <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
+                  disabled={running}
+                  onClick={() => setDisplayMode('timer')}>Timer</button>
+              </div>
+            </div>
+          )}
+
+          {/* Exercises — col 1+2 on mobile, full-width on desktop */}
           {mode !== MODE_CLICKONLY && (
             <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
               <label>Exercises</label>
@@ -1125,22 +1156,6 @@ export function App() {
             </div>
           )}
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-              <label>Exercise length</label>
-              <CompactSelector
-                id="exLength"
-                value={exerciseLength}
-                options={[1, 2, 4]}
-                onChange={setExerciseLength}
-                disabled={running || exMode === 'pick'}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              />
-            </div>
-          )}
-
           {/* Row: Rounds + Sets (Shuffle/Sequence) */}
           {mode !== MODE_CLICKONLY && (
             <div className={`control-group${running ? " dimmed" : ""}`}>
@@ -1172,20 +1187,6 @@ export function App() {
             </div>
           )}
 
-          {/* Display toggle — Metronome only */}
-          {mode === MODE_CLICKONLY && (
-            <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
-              <label>Display</label>
-              <div className="selector-row">
-                <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
-                  disabled={running}
-                  onClick={() => setDisplayMode('bars')}>Bars</button>
-                <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
-                  disabled={running}
-                  onClick={() => setDisplayMode('timer')}>Timer</button>
-              </div>
-            </div>
-          )}
 
         </div>
 
@@ -1249,7 +1250,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.15.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.15.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

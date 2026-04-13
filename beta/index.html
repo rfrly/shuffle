@@ -367,26 +367,24 @@
 
     /* ── Phase 2: grid layout for exercises, ex-length, sets, display ── */
 
-    /* Mobile / iPad portrait (2-col): Display is full-width */
+    /* Mobile / iPad portrait (2-col): all these are full-width */
+    .ex-length-group      { grid-column: 1 / -1; }
     .display-toggle-group { grid-column: 1 / -1; }
+    .exercises-group      { grid-column: 1 / -1; }
 
-    /* Desktop (3-col grid only — excludes max-width:767px and iPad portrait):
-       Ex Length pulls up into row 1 col 3 (alongside Count In + Subdiv)
-       Exercises spans cols 1-2
-       Sets spans cols 2-3 (paired with Rounds in col 1)
-       Display toggle goes into col 3 row 1 (Metro only, alongside Count In + Subdiv) */
-    /* 3-col desktop layout: ExLength in row 1 col 3; Exercises full-width; Sets spans cols 2-3 */
+    /* 3-col desktop: ExLength/Display flow naturally into col 3 (after CountIn + Subdiv);
+       Exercises spans full-width below; Sets spans cols 2-3 */
     @media (min-width: 1025px) {
-      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
-      .controls-grid .exercises-group { grid-column: 1 / -1; }
-      .controls-grid .sets-group      { grid-column: 2 / 4; }
-      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .ex-length-group      { grid-column: auto; }
+      .controls-grid .display-toggle-group { grid-column: auto; }
+      .controls-grid .exercises-group      { grid-column: 1 / -1; }
+      .controls-grid .sets-group           { grid-column: 2 / 4; }
     }
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-      .controls-grid .ex-length-group { grid-row: 1; grid-column: 3; }
-      .controls-grid .exercises-group { grid-column: 1 / -1; }
-      .controls-grid .sets-group      { grid-column: 2 / 4; }
-      .controls-grid .display-toggle-group { grid-row: 1; grid-column: 3; }
+      .controls-grid .ex-length-group      { grid-column: auto; }
+      .controls-grid .display-toggle-group { grid-column: auto; }
+      .controls-grid .exercises-group      { grid-column: 1 / -1; }
+      .controls-grid .sets-group           { grid-column: 2 / 4; }
     }
 
     .control-group label {
@@ -3347,7 +3345,38 @@
                 />
               </div>
 
-              {/* Exercises (col 1 on mobile, full-width on desktop) + ExLength (col 2 on mobile, col 3 row 1 on desktop) */}
+              {/* Col 3 of the Count In row on desktop: ExLength (Shuffle/Seq) or Display (Metro) */}
+              {mode !== MODE_CLICKONLY && (
+                <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
+                  <label>Exercise length</label>
+                  <CompactSelector
+                    id="exLength"
+                    value={exerciseLength}
+                    options={[1, 2, 4]}
+                    onChange={setExerciseLength}
+                    disabled={running || exMode === 'pick'}
+                    openSelector={openSelector}
+                    setOpenSelector={setOpenSelector}
+                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
+                  />
+                </div>
+              )}
+
+              {mode === MODE_CLICKONLY && (
+                <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
+                  <label>Display</label>
+                  <div className="selector-row">
+                    <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
+                      disabled={running}
+                      onClick={() => setDisplayMode('bars')}>Bars</button>
+                    <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
+                      disabled={running}
+                      onClick={() => setDisplayMode('timer')}>Timer</button>
+                  </div>
+                </div>
+              )}
+
+              {/* Exercises — col 1+2 on mobile, full-width on desktop */}
               {mode !== MODE_CLICKONLY && (
                 <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
                   <label>Exercises</label>
@@ -3384,22 +3413,6 @@
                 </div>
               )}
 
-              {mode !== MODE_CLICKONLY && (
-                <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-                  <label>Exercise length</label>
-                  <CompactSelector
-                    id="exLength"
-                    value={exerciseLength}
-                    options={[1, 2, 4]}
-                    onChange={setExerciseLength}
-                    disabled={running || exMode === 'pick'}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  />
-                </div>
-              )}
-
               {/* Row: Rounds + Sets (Shuffle/Sequence) */}
               {mode !== MODE_CLICKONLY && (
                 <div className={`control-group${running ? " dimmed" : ""}`}>
@@ -3431,20 +3444,6 @@
                 </div>
               )}
 
-              {/* Display toggle — Metronome only */}
-              {mode === MODE_CLICKONLY && (
-                <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
-                  <label>Display</label>
-                  <div className="selector-row">
-                    <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
-                      disabled={running}
-                      onClick={() => setDisplayMode('bars')}>Bars</button>
-                    <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
-                      disabled={running}
-                      onClick={() => setDisplayMode('timer')}>Timer</button>
-                  </div>
-                </div>
-              )}
 
             </div>
 
@@ -3508,7 +3507,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.9.15.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.15.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
