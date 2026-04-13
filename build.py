@@ -446,53 +446,46 @@ src = patch(src,
     "      const decBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running, watchScreen]);"
 )
 
-# Mode header — lock when student is sharing
+# Mode control group (full-width) — lock when student is sharing
 src = patch(src,
-    '      <div className={`mode-header${running ? " dimmed" : ""}`}>',
-    '      <div className={`mode-header${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>'
+    '              <div className={`control-group full-width${running ? " dimmed" : ""}`}>\n                <label>Mode</label>',
+    '              <div className={`control-group full-width${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Mode</label>'
 )
-
-# Mode buttons: no disabled for watchScreen (pointer-events: none on parent handles it)
-# (leave disabled={running} as-is; the watch-locked class already blocks interaction)
 
 # BPM control group — lock when student is sharing
 src = patch(src,
-    '              <div className="control-group bpm-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
-    '              <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
-    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
-    '                    onMouseDown={e => e.preventDefault()}\n'
-    '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                      <span>{bpm}</span>\n'
-    '                      {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                    </div>\n'
-    '                  </div>\n'
-    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
+    '                <div className="control-group bpm-group">\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n'
+    '                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
+    '                <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n'
+    '                    <div className="bpm-widget">\n'
+    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                        onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                        onMouseDown={e => e.preventDefault()}\n'
+    '                        style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                          <span>{bpm}</span>\n'
+    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                        </div>\n'
+    '                      </div>\n'
+    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
 )
 
 # Exercises control group — lock when student is sharing
 src = patch(src,
     '                <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>',
     '                <div className={`control-group exercises-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
-)
-
-# Settings panel — lock entirely when student is sharing (covers both Exercise and Click tabs)
-src = patch(src,
-    '          <div className="settings-panel">',
-    '          <div className={`settings-panel${watchScreen === "app" ? " watch-locked" : ""}`}>'
 )
 
 # Settings menu: replace with sharing indicator when student is sharing
@@ -636,7 +629,7 @@ firebase_and_observer = r"""
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
-        subdivision: obsSubdivision, beatStates: obsBeatStates, subdivVol: obsSubdivVol, subdivVol2: obsSubdivVol2,
+        subdivision: obsSubdivision, beatStates: obsBeatStates, subdivVol: obsSubdivVol, subdivVol2: obsSubdivVol2, subdivVol3: obsSubdivVol3,
         volume: obsVolume,
         bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
@@ -861,7 +854,7 @@ firebase_and_observer = r"""
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
                       mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
-                      volume: 1.0, subdivVol: 0.7, subdivVol2: 0.7 });
+                      volume: 1.0, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7 });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -1364,7 +1357,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, sets, displayMode, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
+          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
@@ -1374,7 +1367,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, sets, displayMode, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
-          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
+          exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
@@ -1551,6 +1544,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.volume != null) setVolume(Math.min(1, Math.max(0, cmd.volume)));
           if (cmd.subdivVol != null) setSubdivVol(Math.min(1, Math.max(0, cmd.subdivVol)));
           if (cmd.subdivVol2 != null) setSubdivVol2(Math.min(1, Math.max(0, cmd.subdivVol2)));
+          if (cmd.subdivVol3 != null) setSubdivVol3(Math.min(1, Math.max(0, cmd.subdivVol3)));
           if (cmd.bpmAuto != null) setBpmAuto(!!cmd.bpmAuto);
           if (cmd.bpmAutoStep != null) setBpmAutoStep(cmd.bpmAutoStep);
           if (cmd.bpmAutoDir != null) setBpmAutoDir(cmd.bpmAutoDir);
@@ -1617,13 +1611,13 @@ src = patch(src,
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 }) {",
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1644,8 +1638,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n      });",
-    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n      });",
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────

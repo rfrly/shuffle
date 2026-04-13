@@ -47,7 +47,7 @@
     @media (hover: none) and (pointer: coarse) and (max-width: 767px) {
       .browser-mode .app { gap: 0.4rem; }
       .browser-mode .controls { gap: 0.3rem; }
-      .browser-mode .controls-stack { gap: 0.4rem; }
+      .browser-mode .controls-grid { row-gap: 0.6rem; }
       .browser-mode .display { padding: 0.3rem 1rem; }
     }
 
@@ -315,86 +315,26 @@
       gap: 0.4rem 1.5rem;
     }
 
+    .controls-grid {
+      grid-template-columns: repeat(3, 1fr);
+      column-gap: 0.75rem;
+      row-gap: 1rem;
+    }
+
+    @media (max-width: 767px) {
+      .controls-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+      .controls-grid { grid-template-columns: 1fr 1fr; }
+    }
+
     @media (max-width: 380px) {
       .sel-btn { font-size: 0.65rem; letter-spacing: 0.02em; }
     }
 
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
-
-    /* ── Mode header — elevated above controls, outside the stack ── */
-    .mode-header {
-      width: 100%;
-      max-width: 440px;
-      margin-bottom: 0.4rem;
-    }
-    .mode-header.dimmed { opacity: 0.5; pointer-events: none; }
-
-    .mode-selector-row .sel-btn {
-      height: 52px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      letter-spacing: 0.03em;
-    }
-
-    /* Mode sub-row: sits below mode buttons, indicates sub-setting */
-    .mode-sub-row {
-      display: flex; align-items: center; gap: 0.3rem;
-      margin-top: 0.35rem; padding-left: 0.1rem;
-    }
-    .mode-sub-label {
-      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
-      color: #555; font-family: var(--font-mono);
-      flex-shrink: 0; margin-right: 0.1rem;
-    }
-    .mode-sub-pill {
-      flex: 1; height: 30px; min-width: 0;
-      background: #141414; border: 1px solid #242424; color: #666;
-      font-family: var(--font-mono); font-size: 0.68rem;
-      border-radius: 4px; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.1s; user-select: none;
-    }
-    .mode-sub-pill:active { background: #1e1e1e; }
-    .mode-sub-pill.active { border-color: #f5c842; color: #f5c842; background: #1e1a00; }
-    .mode-sub-pill:disabled { opacity: 0.3; cursor: default; }
-
-    /* ── Controls stack — simple column layout ── */
-    .controls-stack {
-      display: flex; flex-direction: column; gap: 0.75rem;
-    }
-
-    /* ── Settings panel (tab section) ── */
-    .settings-panel {
-      background: #141414; border: 1px solid #242424; border-radius: 6px;
-      overflow: hidden;
-    }
-    .settings-tab-bar {
-      display: flex; border-bottom: 1px solid #242424;
-    }
-    .settings-tab-btn {
-      flex: 1; height: 40px; background: transparent; border: none; border-bottom: 2px solid transparent;
-      color: #555; font-family: var(--font-mono); font-size: 0.62rem;
-      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
-      transition: color 0.1s; margin-bottom: -1px;
-    }
-    .settings-tab-btn:active { color: #888; }
-    .settings-tab-btn.active { color: #f5c842; border-bottom-color: #f5c842; }
-    .settings-tab-content { /* swipe container */ }
-    .settings-tab-pane {
-      padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.55rem;
-    }
-    .settings-row {
-      display: flex; align-items: center; gap: 0.5rem; min-height: 44px;
-    }
-    .settings-row-label {
-      font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
-      color: #666; font-family: var(--font-mono);
-      flex-shrink: 0; width: 4.2rem;
-    }
-    .settings-row .selector-row { flex: 1; }
-    .settings-row .stepper { flex: 1; }
-    .settings-row.dimmed { opacity: 0.35; pointer-events: none; }
-    .settings-panel-divider { height: 1px; background: #242424; margin: 0.15rem 0; }
+    .control-group.full-width { grid-column: 1 / -1; }
 
     .control-group label {
       font-size: 0.6rem;
@@ -406,6 +346,120 @@
 
     .control-group.secondary label { color: #888; }
     .control-group.dimmed label { opacity: 0.5; }
+
+    .compact-sel-btn {
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-family: var(--font-mono); font-size: 0.75rem;
+      padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
+      letter-spacing: 0.05em; height: 44px; border-radius: 4px;
+      display: flex; align-items: center; white-space: nowrap;
+      width: 100%; min-width: 0; justify-content: center;
+    }
+    .compact-sel-btn:active { background: #252525; }
+    .compact-sel-btn.open { border-color: #f5c842; color: #f5c842; }
+    .compact-sel-btn:disabled { opacity: 0.25; cursor: default; }
+    .compact-popup {
+      position: fixed; background: #1c1c1c; border: 1px solid #383838;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+      display: flex; flex-wrap: wrap; gap: 0.4rem;
+      padding: 0.5rem; z-index: 50; border-radius: 4px;
+    }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
+
+    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
+    .bpm-widget-row .bpm-widget { flex: 1; }
+    .gear-visible .bpm-widget-row { gap: 2px; }
+    .gear-visible .bpm-btn.right { border-radius: 0 4px 4px 0; }
+    .bpm-timesig-row { display: flex; gap: 0.75rem; grid-column: 1 / -1; }
+    .bpm-timesig-row .bpm-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
+    .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
+    .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
+
+    @media (min-width: 768px) {
+      .bpm-timesig-row { display: contents; }
+      .bpm-timesig-row .bpm-group { min-width: 0; }
+      .bpm-timesig-row .timesig-group { min-width: 0; }
+    }
+
+    .bpm-gear-btn {
+      width: 36px; height: 44px; flex-shrink: 0;
+      background: #1a1a1a; border: 1px solid #333; color: #777;
+      font-size: 1.25rem; line-height: 1; cursor: pointer; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.1s, color 0.1s;
+    }
+    .bpm-gear-btn:active { background: #2a2a2a; }
+    .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
+
+    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; }
+    .bpm-auto-popup {
+      position: fixed; z-index: 50;
+      background: #1c1c1c; border: 1px solid #383838;
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
+      border-radius: 6px; padding: 0.9rem 0.9rem;
+      display: flex; flex-direction: column; gap: 0.8rem;
+      min-width: 240px;
+    }
+    .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
+    .bpm-auto-label { font-size: 0.65rem; color: #888; white-space: nowrap; min-width: 28px; }
+    .bpm-auto-stepper { display: flex; align-items: center; height: 32px; }
+    .bpm-auto-step-btn {
+      width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333; color: #ccc;
+      font-size: 1.1rem; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      user-select: none; transition: background 0.1s; flex-shrink: 0;
+      font-family: var(--font-mono);
+    }
+    .bpm-auto-step-btn:active { background: #2a2a2a; color: #fff; }
+    .bpm-auto-step-btn.left { border-right: none; border-radius: 4px 0 0 4px; }
+    .bpm-auto-step-btn.right { border-left: none; border-radius: 0 4px 4px 0; }
+    .bpm-auto-step-val {
+      min-width: 32px; height: 32px;
+      background: #1a1a1a; border: 1px solid #333;
+      border-left: none; border-right: none;
+      color: #e8e8e8; font-family: var(--font-mono);
+      font-size: 0.85rem; text-align: center;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
+    .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
+    .bpm-auto-master-toggle {
+      width: 100%; padding: 0.45rem 0.6rem;
+      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
+      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
+      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
+    }
+    .bpm-auto-master-toggle:active { background: #252525; }
+    .bpm-auto-master-toggle.active { border-color: #f5c842; color: #f5c842; background: #1e1c12; }
+    .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
+    .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
+    .bpm-auto-trigger-label {
+      font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
+      padding: 0.1rem 0; margin-bottom: -0.4rem;
+    }
+    .bpm-auto-secondary { border-top: 1px solid #2a2a2a; padding-top: 0.6rem; }
+    .bpm-auto-random-toggle {
+      background: none; border: none; color: #555;
+      font-family: var(--font-mono); font-size: 0.65rem;
+      cursor: pointer; padding: 0.2rem 0; text-align: left; transition: color 0.1s;
+    }
+    .bpm-auto-random-toggle:active { color: #888; }
+    .bpm-auto-random-toggle.active { color: #bbb; }
+
+    /* ── Vol popup subdiv rows ── */
+    .vol-subdiv-inactive { opacity: 0.18; }
+    .vol-subdiv-icon-btn {
+      background: none; border: none; color: currentColor;
+      padding: 0; cursor: pointer; display: flex; align-items: center;
+      width: 32px; flex-shrink: 0;
+    }
+    .vol-subdiv-icon-btn .subdiv-svg { width: 24px; height: 18px; }
+    .vol-subdiv-badge {
+      display: inline-flex; align-items: center; margin-left: 3px; vertical-align: middle;
+    }
+    .vol-subdiv-badge .subdiv-svg { width: 16px; height: 12px; }
 
     .bpm-widget { display: flex; align-items: center; height: 44px; }
 
@@ -783,14 +837,15 @@
       .app-title { font-size: 1.8rem; }
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 700px !important; }
-      .mode-header { max-width: 700px !important; }
       .controls { max-width: 700px !important; }
       .btn-row { max-width: 700px !important; }
       .sel-btn { height: 52px; font-size: 0.9rem; }
+      .compact-sel-btn { height: 52px; font-size: 0.9rem; }
       .range-row input { height: 52px; }
       .bpm-widget { height: 52px; }
       .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .bpm-tap { height: 52px; font-size: 1.1rem; }
+      .bpm-gear-btn { height: 52px; }
       .stepper { height: 52px; }
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.1rem; }
@@ -838,10 +893,12 @@
       .control-group label { font-size: 0.7rem; }
       .check-row span { font-size: 1rem; }
       .sel-btn { height: 58px; }
+      .compact-sel-btn { height: 58px; }
       .range-row input { height: 58px; }
       .bpm-widget { height: 58px; }
       .bpm-btn { width: 58px; height: 58px; }
       .bpm-tap { height: 58px; }
+      .bpm-gear-btn { height: 58px; }
       .stepper { height: 58px; }
       .stepper-btn { width: 58px; height: 58px; }
       .stepper-val { height: 58px; }
@@ -850,7 +907,6 @@
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
       .app-header { max-width: 640px; }
       .display { max-width: 640px; }
-      .mode-header { max-width: 640px; }
       .controls { max-width: 640px; }
       .btn-row { max-width: 640px; }
     }
@@ -862,7 +918,6 @@
       .app-header { max-width: 560px; }
       .app-subtitle { font-size: 0.6rem; }
       .display { max-width: 560px; }
-      .mode-header { max-width: 560px; }
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
@@ -876,6 +931,7 @@
       .bpm-tap:hover { background: #212121; }
       .stepper-btn:hover { background: #252525; color: #fff; }
       .sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
+      .compact-sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
       .action-btn:hover:not(:disabled) { filter: brightness(1.08); }
 
       .vol-label-btn:hover { background: #252525; }
@@ -886,7 +942,6 @@
     @media (hover: hover) and (min-width: 1440px) {
       .app-header { max-width: 700px; }
       .display { max-width: 700px; }
-      .mode-header { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
       .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }

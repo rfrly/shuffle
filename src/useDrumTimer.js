@@ -43,7 +43,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                         running, paused, resuming,
                         countInBars, countInEveryRound,
                         mode, volume, looping, infinite, setComplete,
-                        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 }) {
+                        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 }) {
 
   const audioCtx          = useRef(null);
   const silentLoop        = useRef(null);
@@ -135,7 +135,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                          onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                          countInBars, countInEveryRound,
-                         mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 };
+                         mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 };
   });
 
   const resumingRef = useRef(false);
@@ -344,7 +344,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             const isDownbeat    = beatInBar === 0;
 
             if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-              const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1, subdivVol2: sVol2 = 1 } = stateRef.current;
+              const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1, subdivVol2: sVol2 = 1, subdivVol3: sVol3 = 1 } = stateRef.current;
               const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
@@ -352,8 +352,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               if (subdiv > 1) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
-                  // When subdiv=4 (16ths): s=2 is the 8th-note position (sVol), s=1,3 are pure 16ths (sVol2)
-                  const subMul = (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
+                  // subdiv=3 (triplets): use sVol3. subdiv=4 (16ths): s=2 is 8th position (sVol), s=1,3 are pure 16ths (sVol2). subdiv=2 (8ths): sVol.
+                  const subMul = subdiv === 3 ? sVol3 : (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
                   scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true);
                   const tSub = nextBeatTime.current + subdivLen * s;
                   setTimeout(() => {
