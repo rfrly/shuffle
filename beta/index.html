@@ -72,7 +72,7 @@
     @media (hover: none) and (pointer: coarse) and (max-width: 767px) {
       .browser-mode .app { gap: 0.4rem; }
       .browser-mode .controls { gap: 0.3rem; }
-      .browser-mode .controls-grid { row-gap: 0.6rem; }
+      .browser-mode .controls-stack { gap: 0.4rem; }
       .browser-mode .display { padding: 0.3rem 1rem; }
     }
 
@@ -340,52 +340,86 @@
       gap: 0.4rem 1.5rem;
     }
 
-    .controls-grid {
-      grid-template-columns: repeat(3, 1fr);
-      column-gap: 0.75rem;
-      row-gap: 1rem;
-    }
-
-    @media (max-width: 767px) {
-      .controls-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
-    @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
-      .controls-grid {
-        grid-template-columns: 1fr 1fr;
-      }
-    }
-
     @media (max-width: 380px) {
       .sel-btn { font-size: 0.65rem; letter-spacing: 0.02em; }
     }
 
     .control-group { display: flex; flex-direction: column; gap: 0.3rem; min-width: 0; }
-    .control-group.full-width { grid-column: 1 / -1; }
 
-    /* ── Phase 2: grid layout for exercises, ex-length, sets, display ── */
-
-    /* Mobile / iPad portrait (2-col): all these are full-width */
-    .ex-length-group      { grid-column: 1 / -1; }
-    .display-toggle-group { grid-column: 1 / -1; }
-    .exercises-group      { grid-column: 1 / -1; }
-
-    /* 3-col desktop: ExLength/Display flow naturally into col 3 (after CountIn + Subdiv);
-       Exercises spans full-width below; Sets spans cols 2-3 */
-    @media (min-width: 1025px) {
-      .controls-grid .ex-length-group      { grid-column: auto; }
-      .controls-grid .display-toggle-group { grid-column: auto; }
-      .controls-grid .exercises-group      { grid-column: 1 / -1; }
-      .controls-grid .sets-group           { grid-column: 2 / 4; }
+    /* ── Mode header — elevated above controls, outside the stack ── */
+    .mode-header {
+      width: 100%;
+      max-width: 440px;
+      margin-bottom: 0.4rem;
     }
-    @media (min-width: 768px) and (max-width: 1024px) and (orientation: landscape) {
-      .controls-grid .ex-length-group      { grid-column: auto; }
-      .controls-grid .display-toggle-group { grid-column: auto; }
-      .controls-grid .exercises-group      { grid-column: 1 / -1; }
-      .controls-grid .sets-group           { grid-column: 2 / 4; }
+    .mode-header.dimmed { opacity: 0.5; pointer-events: none; }
+
+    .mode-selector-row .sel-btn {
+      height: 52px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
     }
+
+    /* Mode sub-row: sits below mode buttons, indicates sub-setting */
+    .mode-sub-row {
+      display: flex; align-items: center; gap: 0.3rem;
+      margin-top: 0.35rem; padding-left: 0.1rem;
+    }
+    .mode-sub-label {
+      font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: #555; font-family: var(--font-mono);
+      flex-shrink: 0; margin-right: 0.1rem;
+    }
+    .mode-sub-pill {
+      flex: 1; height: 30px; min-width: 0;
+      background: #141414; border: 1px solid #242424; color: #666;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      border-radius: 4px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.1s; user-select: none;
+    }
+    .mode-sub-pill:active { background: #1e1e1e; }
+    .mode-sub-pill.active { border-color: #f5c842; color: #f5c842; background: #1e1a00; }
+    .mode-sub-pill:disabled { opacity: 0.3; cursor: default; }
+
+    /* ── Controls stack — simple column layout ── */
+    .controls-stack {
+      display: flex; flex-direction: column; gap: 0.75rem;
+    }
+
+    /* ── Settings panel (tab section) ── */
+    .settings-panel {
+      background: #141414; border: 1px solid #242424; border-radius: 6px;
+      overflow: hidden;
+    }
+    .settings-tab-bar {
+      display: flex; border-bottom: 1px solid #242424;
+    }
+    .settings-tab-btn {
+      flex: 1; height: 40px; background: transparent; border: none; border-bottom: 2px solid transparent;
+      color: #555; font-family: var(--font-mono); font-size: 0.62rem;
+      letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer;
+      transition: color 0.1s; margin-bottom: -1px;
+    }
+    .settings-tab-btn:active { color: #888; }
+    .settings-tab-btn.active { color: #f5c842; border-bottom-color: #f5c842; }
+    .settings-tab-content { /* swipe container */ }
+    .settings-tab-pane {
+      padding: 0.6rem 0.75rem; display: flex; flex-direction: column; gap: 0.55rem;
+    }
+    .settings-row {
+      display: flex; align-items: center; gap: 0.5rem; min-height: 44px;
+    }
+    .settings-row-label {
+      font-size: 0.58rem; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #666; font-family: var(--font-mono);
+      flex-shrink: 0; width: 4.2rem;
+    }
+    .settings-row .selector-row { flex: 1; }
+    .settings-row .stepper { flex: 1; }
+    .settings-row.dimmed { opacity: 0.35; pointer-events: none; }
+    .settings-panel-divider { height: 1px; background: #242424; margin: 0.15rem 0; }
 
     .control-group label {
       font-size: 0.6rem;
@@ -489,32 +523,6 @@
       width: 56px; height: 48px; padding: 0;
     }
 
-    /* Sets stepper — − | ×N | + | [∞] */
-    .sets-stepper {
-      display: flex; align-items: center; height: 44px; gap: 0;
-    }
-    .sets-stepper .stepper-btn { flex-shrink: 0; }
-    .sets-val {
-      flex: 1; min-width: 3rem;
-      display: flex; align-items: center; justify-content: center;
-      font-family: var(--font-mono); font-size: 0.85rem; color: #e8e8e8;
-      background: #1a1a1a; border-top: 1px solid #333; border-bottom: 1px solid #333;
-      height: 44px;
-    }
-    .sets-inf-btn {
-      flex-shrink: 0;
-      width: 44px; height: 44px;
-      background: #1a1a1a; border: 1px solid #333; border-left: none;
-      color: #aaa; font-size: 1.1rem; cursor: pointer;
-      border-radius: 0 4px 4px 0;
-      display: flex; align-items: center; justify-content: center;
-      transition: all 0.1s;
-    }
-    .sets-inf-btn.active { border-color: #f5c842; color: #f5c842; background: #1e1a00; }
-    .sets-inf-btn:active { background: #2a2a2a; }
-    .sets-inf-btn:disabled { opacity: 0.25; cursor: default; }
-    /* When sets=∞ the right stepper-btn is replaced by inf-btn, so remove its border-radius */
-    .sets-stepper .stepper-btn.right { border-radius: 0; border-right: none; }
 
     .check-row { display: flex; align-items: center; gap: 0.5rem; }
     .check-row span {
@@ -800,21 +808,17 @@
       .app-title { font-size: 1.8rem; }
       .app-subtitle { font-size: 0.7rem; }
       .display { max-width: 700px !important; }
+      .mode-header { max-width: 700px !important; }
       .controls { max-width: 700px !important; }
       .btn-row { max-width: 700px !important; }
       .sel-btn { height: 52px; font-size: 0.9rem; }
-      .compact-sel-btn { height: 52px; font-size: 0.9rem; }
       .range-row input { height: 52px; }
       .bpm-widget { height: 52px; }
       .bpm-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .bpm-tap { height: 52px; font-size: 1.1rem; }
-      .bpm-gear-btn { height: 52px; }
       .stepper { height: 52px; }
       .stepper-btn { width: 52px; height: 52px; font-size: 1.3rem; }
       .stepper-val { height: 52px; font-size: 1.1rem; }
-      .sets-stepper { height: 52px; }
-      .sets-val { height: 52px; font-size: 1.1rem; }
-      .sets-inf-btn { width: 52px; height: 52px; }
       .action-btn { padding: 1.1rem; font-size: 0.95rem; }
       .help-close-bottom { font-size: 0.85rem; padding: 0.8rem 2.5rem; }
       .check-row { font-size: 0.95rem; }
@@ -830,7 +834,6 @@
       .app { justify-content: space-evenly; padding: 1.5rem 2rem; gap: 0.75rem; }
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
-      .controls-grid { column-gap: 0.5rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
       .idle-summary { font-size: 0.85rem; }
       .bpm-btn { width: 40px; }
@@ -860,23 +863,19 @@
       .control-group label { font-size: 0.7rem; }
       .check-row span { font-size: 1rem; }
       .sel-btn { height: 58px; }
-      .compact-sel-btn { height: 58px; }
       .range-row input { height: 58px; }
       .bpm-widget { height: 58px; }
       .bpm-btn { width: 58px; height: 58px; }
       .bpm-tap { height: 58px; }
-      .bpm-gear-btn { height: 58px; }
       .stepper { height: 58px; }
       .stepper-btn { width: 58px; height: 58px; }
       .stepper-val { height: 58px; }
-      .sets-stepper { height: 58px; }
-      .sets-val { height: 58px; }
-      .sets-inf-btn { width: 58px; height: 58px; }
     }
 
     @media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
       .app-header { max-width: 640px; }
       .display { max-width: 640px; }
+      .mode-header { max-width: 640px; }
       .controls { max-width: 640px; }
       .btn-row { max-width: 640px; }
     }
@@ -888,6 +887,7 @@
       .app-header { max-width: 560px; }
       .app-subtitle { font-size: 0.6rem; }
       .display { max-width: 560px; }
+      .mode-header { max-width: 560px; }
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
@@ -901,7 +901,6 @@
       .bpm-tap:hover { background: #212121; }
       .stepper-btn:hover { background: #252525; color: #fff; }
       .sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
-      .compact-sel-btn:hover:not(:disabled) { background: #252525; color: #ccc; }
       .action-btn:hover:not(:disabled) { filter: brightness(1.08); }
 
       .vol-label-btn:hover { background: #252525; }
@@ -912,6 +911,7 @@
     @media (hover: hover) and (min-width: 1440px) {
       .app-header { max-width: 700px; }
       .display { max-width: 700px; }
+      .mode-header { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
       .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
@@ -923,18 +923,6 @@
 
 
 
-    /* ── CompactSelector ──────────────────────────────────────────────────── */
-    .compact-sel-btn {
-      background: #1a1a1a; border: 1px solid #333; color: #ccc;
-      font-family: var(--font-mono); font-size: 0.75rem;
-      padding: 0 0.75rem; cursor: pointer; transition: all 0.1s;
-      letter-spacing: 0.05em; height: 44px; border-radius: 4px;
-      display: flex; align-items: center; white-space: nowrap;
-      width: 100%; min-width: 0; justify-content: center;
-    }
-    .compact-sel-btn:active { background: #252525; }
-    .compact-sel-btn.open { border-color: #f5c842; color: #f5c842; }
-    .compact-sel-btn:disabled { opacity: 0.25; cursor: default; }
     .compact-popup {
       position: fixed; background: #1c1c1c; border: 1px solid #383838;
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
@@ -943,41 +931,6 @@
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.7); }
 
-    .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
-    .bpm-widget-row .bpm-widget { flex: 1; }
-    .gear-visible .bpm-widget-row { gap: 2px; }
-    .gear-visible .bpm-btn.right { border-radius: 0 4px 4px 0; }
-    .bpm-timesig-row { display: flex; gap: 0.75rem; grid-column: 1 / -1; }
-    .bpm-timesig-row .bpm-group { flex: 1; min-width: 0; }
-    .bpm-timesig-row .timesig-group { flex: 1; min-width: 0; }
-    .bpm-timesig-row.gear-visible .bpm-group { flex: 3; }
-    .bpm-timesig-row.gear-visible .timesig-group { flex: 2; }
-
-    @media (min-width: 768px) {
-      .bpm-timesig-row { display: contents; }
-      .bpm-timesig-row .bpm-group { min-width: 0; }
-      .bpm-timesig-row .timesig-group { min-width: 0; }
-    }
-
-    .bpm-gear-btn {
-      width: 36px; height: 44px; flex-shrink: 0;
-      background: #1a1a1a; border: 1px solid #333; color: #777;
-      font-size: 1.25rem; line-height: 1; cursor: pointer; border-radius: 4px;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.1s, color 0.1s;
-    }
-    .bpm-gear-btn:active { background: #2a2a2a; }
-    .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
-
-    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; }
-    .bpm-auto-popup {
-      position: fixed; z-index: 50;
-      background: #1c1c1c; border: 1px solid #383838;
-      box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
-      border-radius: 6px; padding: 0.9rem 0.9rem;
-      display: flex; flex-direction: column; gap: 0.8rem;
-      min-width: 240px;
-    }
     .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
     .bpm-auto-label { font-size: 0.65rem; color: #888; white-space: nowrap; min-width: 28px; }
     .bpm-auto-stepper { display: flex; align-items: center; height: 32px; }
@@ -1033,13 +986,6 @@
     }
     .bpm-auto-random-toggle:active { color: #888; }
     .bpm-auto-random-toggle.active { color: #bbb; }
-
-    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) {
-      .compact-sel-btn { height: 52px; font-size: 0.9rem; }
-    }
-    @media (hover: none) and (pointer: coarse) and (min-width: 768px) and (min-height: 700px) and (orientation: portrait) {
-      .compact-sel-btn { height: 58px; }
-    }
 
     /* ── Numpad popup ─────────────────────────────────────────────────────────── */
     .numpad-backdrop { position: fixed; inset: 0; z-index: 59; background: rgba(0,0,0,0.5); }
@@ -2339,152 +2285,6 @@
       );
     }
 
-    function BpmAutoPopup({
-      mode, bpm, bpmAuto, setBpmAuto,
-      bpmAutoStep, setBpmAutoStep, bpmAutoDir, setBpmAutoDir,
-      bpmAutoTrigger, setBpmAutoTrigger,
-      bpmAutoBarInterval, setBpmAutoBarInterval,
-      bpmAutoSecInterval, setBpmAutoSecInterval,
-      bpmAutoRandom, setBpmAutoRandom, bpmAutoMin, setBpmAutoMin, bpmAutoMax, setBpmAutoMax,
-      anchorRef, onClose,
-    }) {
-      const [popupStyle, setPopupStyle] = useState({});
-
-      useEffect(() => {
-        if (anchorRef.current) {
-          const rect = anchorRef.current.getBoundingClientRect();
-          const popupWidth = 260;
-          const centreLeft = Math.round((window.innerWidth - popupWidth) / 2);
-          const anchorLeft = Math.min(rect.left, window.innerWidth - popupWidth - 8);
-          setPopupStyle({
-            left: Math.max(8, window.innerWidth < 500 ? centreLeft : anchorLeft),
-            bottom: window.innerHeight - rect.top + 6,
-          });
-        }
-        // Seed random range from current BPM each time popup opens
-        const halfSpan = Math.round(bpm * 0.035);
-        setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
-        setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
-        // In Metronome mode, 'set' trigger is invalid — default to 'bars'
-        if (isMetronome && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
-      }, []);
-
-      const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
-      const stepDec = () => setBpmAutoStep(s => Math.max(1, s - 1));
-      const stepIncHandlers = useLongPressSimple(stepInc);
-      const stepDecHandlers = useLongPressSimple(stepDec);
-
-      const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
-      const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
-      const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
-      const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
-      const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
-      const intervalIncHandlers = useLongPressSimple(intervalInc);
-      const intervalDecHandlers = useLongPressSimple(intervalDec);
-
-      const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
-      const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
-      const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
-      const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
-      const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
-      const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
-      const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
-      const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
-
-      const isMetronome = mode === MODE_CLICKONLY;
-
-      return ReactDOM.createPortal(
-        <>
-          <div className="bpm-auto-backdrop" onClick={onClose} />
-          <div className="bpm-auto-popup" style={popupStyle}>
-
-            {/* Master toggle — prominent header */}
-            <button
-              className={`bpm-auto-master-toggle${bpmAuto ? " active" : ""}`}
-              onClick={() => setBpmAuto(v => !v)}
-            >
-              Auto BPM
-            </button>
-
-            {/* Trigger label — infinite modes */}
-            {!isMetronome && (
-              <div className="bpm-auto-trigger-label">Changes every set</div>
-            )}
-
-            <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
-
-            {/* Trigger interval — Metronome only */}
-            {isMetronome && (
-              <div className="bpm-auto-row">
-                <span className="bpm-auto-label">Every</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">
-                    {activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
-                  </span>
-                  <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
-                </div>
-                <div className="bpm-auto-unit-row">
-                  <button className={`sel-btn${bpmAutoTrigger === 'bars' ? " active" : ""}`}
-                    onClick={() => setBpmAutoTrigger('bars')}>bars</button>
-                  <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? " active" : ""}`}
-                    onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
-                </div>
-              </div>
-            )}
-
-            {/* Step / direction — primary controls */}
-            {!bpmAutoRandom && (
-              <div className="bpm-auto-row">
-                <span className="bpm-auto-label">Step</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoStep}</span>
-                  <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
-                </div>
-                <div className="bpm-auto-unit-row">
-                  <button className={`sel-btn${bpmAutoDir === 'up' ? " active" : ""}`}
-                    onClick={() => setBpmAutoDir('up')}>▲ Up</button>
-                  <button className={`sel-btn${bpmAutoDir === 'down' ? " active" : ""}`}
-                    onClick={() => setBpmAutoDir('down')}>▼ Down</button>
-                </div>
-              </div>
-            )}
-
-            {/* Random — secondary section, Shuffle/Sequence ∞ only */}
-            {!isMetronome && (
-              <div className="bpm-auto-secondary">
-                <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
-                  onClick={() => setBpmAutoRandom(v => !v)}>
-                  {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
-                </button>
-                {bpmAutoRandom && (
-                  <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
-                    <span className="bpm-auto-label">Min</span>
-                    <div className="bpm-auto-stepper">
-                      <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
-                      <span className="bpm-auto-step-val">{bpmAutoMin}</span>
-                      <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
-                    </div>
-                    <span className="bpm-auto-label">Max</span>
-                    <div className="bpm-auto-stepper">
-                      <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
-                      <span className="bpm-auto-step-val">{bpmAutoMax}</span>
-                      <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            </div>{/* end bpm-auto-disabled wrapper */}
-
-          </div>
-        </>,
-        document.body
-      );
-    }
-
     function useLongPressSimple(callback) {
       const timerRef = useRef(null);
       const start = (e) => {
@@ -2582,7 +2382,6 @@
       const [tapped,          setTapped]          = useState(false);
       const [showVolume,      setShowVolume]      = useState(false);
       const [showHelp,        setShowHelp]        = useState(false);
-      const [openSelector,    setOpenSelector]    = useState(null);
       const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
       const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
       const helpOverlayRef = useRef(null);
@@ -2614,10 +2413,10 @@
       const [bpmAutoRandom,      setBpmAutoRandom]      = useState(() => saved?.bpmAutoRandom ?? false);
       const [bpmAutoMin,         setBpmAutoMin]         = useState(bpm);
       const [bpmAutoMax,         setBpmAutoMax]         = useState(bpm);
-      const [bpmAutoOpen,      setBpmAutoOpen]      = useState(false);
+      const [activeTab,          setActiveTab]          = useState('exercise');
+      const tabTouchX = useRef(0);
       const autoBarCountRef  = useRef(0);
       const autoTimerRef     = useRef(null);
-      const bpmGearBtnRef    = useRef(null);
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
       const [appToastKey, setAppToastKey] = useState(0);
@@ -2693,6 +2492,21 @@
         if (running && !paused) req(); else rel();
         return () => rel();
       }, [running, paused]);
+
+      // When switching to Metronome, force Click tab (Exercise tab is hidden)
+      useEffect(() => {
+        if (mode === MODE_CLICKONLY) setActiveTab('click');
+      }, [mode]);
+
+      // Seed Auto BPM range when ∞ or Metronome becomes active
+      useEffect(() => {
+        if (mode === MODE_CLICKONLY || sets === '∞') {
+          const halfSpan = Math.round(bpm * 0.035);
+          setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
+          setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
+          if (mode === MODE_CLICKONLY && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
+        }
+      }, [mode, sets]);
 
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
       const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
@@ -2897,6 +2711,27 @@
       const barsIncHandlers = useLongPress(incBars);
       const barsDecHandlers = useLongPress(decBars);
 
+      // Auto BPM stepper handlers (for click tab)
+      const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
+      const stepDec = () => setBpmAutoStep(s => Math.max(1, s - 1));
+      const stepIncHandlers = useLongPressSimple(stepInc);
+      const stepDecHandlers = useLongPressSimple(stepDec);
+      const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
+      const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
+      const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
+      const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
+      const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
+      const intervalIncHandlers = useLongPressSimple(intervalInc);
+      const intervalDecHandlers = useLongPressSimple(intervalDec);
+      const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
+      const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
+      const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
+      const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
+      const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
+      const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
+      const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
+      const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
+
       useEffect(() => {
         if (phase === "playing" && currentBeat === 0 && !paused) {
           setBarFlash(true);
@@ -2948,6 +2783,21 @@
 
       const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (sets === '∞' && mode !== MODE_CLICKONLY ? " ∞" : "");
 
+      const isMetronome = mode === MODE_CLICKONLY;
+      const showAutoBpm = isMetronome || sets === '∞';
+      const lengthDisabled = running || exMode === 'pick';
+      const panelDivider = <div className="settings-panel-divider" />;
+
+      // Tab swipe handlers
+      const tabSwipeHandlers = {
+        onTouchStart: (e) => { tabTouchX.current = e.touches[0].clientX; },
+        onTouchEnd: (e) => {
+          const dx = e.changedTouches[0].clientX - tabTouchX.current;
+          if (Math.abs(dx) > 40 && !isMetronome) {
+            setActiveTab(dx < 0 ? 'click' : 'exercise');
+          }
+        },
+      };
 
       return (
         <div className="app">
@@ -3086,7 +2936,7 @@
                 </div>
                 <div className="help-section">
                   <h3>BPM automation</h3>
-                  <p>Tap <strong>⚙&#xFE0E;</strong> next to BPM to open automation settings (available in Metronome and ∞ modes).</p>
+                  <p>Open the Click Controls tab to find Auto BPM settings (available in Metronome and ∞ modes).</p>
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li><strong>Shuffle/Sequence ∞</strong> — steps BPM up or down after each full set.</li>
                     <li><strong>Metronome</strong> — steps every N bars or every N seconds.</li>
@@ -3122,9 +2972,9 @@
             </>
           )}
 
-          <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-            <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+          <div className={`display${isMetronome ? " display--metro" : ""}`}>
+            <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
+              {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
             </div>
 
             {phase === "countin" ? (
@@ -3137,7 +2987,7 @@
               </div>
             ) : (
               <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-                {mode === MODE_CLICKONLY && displayMode === 'timer' && phase !== "idle"
+                {isMetronome && displayMode === 'timer' && phase !== "idle"
                   ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
                   : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
               </div>
@@ -3146,7 +2996,7 @@
             {phase === "idle" ? (
               setComplete ? (
                 <div className="idle-summary">&nbsp;</div>
-              ) : mode === MODE_CLICKONLY ? null : (
+              ) : isMetronome ? null : (
                 <div className="idle-summary">
                   {exMode === 'pick'
                     ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
@@ -3170,27 +3020,27 @@
             )}
 
             {!setComplete && (
-              <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
+              <div className={`beat-dots${isMetronome ? " tappable" : ""}`}>
                 {Array.from({ length: timeSig.beats }).map((_, i) => {
-                  const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
+                  const bState = isMetronome ? (beatStates[i] ?? 'normal') : null;
                   const isActive = phase === "playing" && !paused && currentBeat === i;
                   return (
                     <div
                       key={i}
                       className={[
                         'beat-dot',
-                        phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
+                        phase === "idle" && !isMetronome ? 'inactive' : '',
                         i === 0 ? 'beat1' : '',
                         isActive ? 'active' : '',
                         bState ? bState : '',
                       ].filter(Boolean).join(' ')}
-                      onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
+                      onClick={isMetronome ? () => cycleBeatState(i) : undefined}
                     />
                   );
                 })}
               </div>
             )}
-            {mode === MODE_CLICKONLY && subdivision > 1 && (
+            {isMetronome && subdivision > 1 && (
               <div className="subdiv-dots">
                 {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
                   const beatIndex = Math.floor(i / subdivision);
@@ -3204,7 +3054,7 @@
               </div>
             )}
 
-            {!setComplete && mode !== MODE_CLICKONLY && (
+            {!setComplete && !isMetronome && (
               <BarProgress
                 barsPerExercise={barsPerExercise}
                 currentRound={currentRound}
@@ -3227,157 +3077,94 @@
 
           </div>
 
+          {/* ── Mode header — above the controls grid ── */}
+          <div className={`mode-header${running ? " dimmed" : ""}`}>
+            <div className="selector-row mode-selector-row">
+              {[
+                { label: "Shuffle",   value: MODE_FULLSET },
+                { label: "Sequence",  value: MODE_SEQUENTIAL },
+                { label: "Metronome", value: MODE_CLICKONLY },
+              ].map(m => (
+                <button key={m.value}
+                  className={`sel-btn${mode === m.value ? " active" : ""}`}
+                  onClick={() => {
+                    if (m.value !== mode) {
+                      if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
+                        setsByMode.current[mode] = sets;
+                      }
+                      setMode(m.value);
+                      if (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) {
+                        setSets(setsByMode.current[m.value] ?? 1);
+                      } else {
+                        setSets(1);
+                      }
+                    }
+                  }} disabled={running}>
+                  {m.label}
+                </button>
+              ))}
+            </div>
+
+            {/* Sets sub-row (Shuffle/Sequence) */}
+            {!isMetronome && (
+              <div className="mode-sub-row">
+                <span className="mode-sub-label">Sets</span>
+                {[1, 2, 3, 5].map(n => (
+                  <button key={n}
+                    className={`mode-sub-pill${sets === n ? ' active' : ''}`}
+                    disabled={running}
+                    onClick={() => setSets(n)}>
+                    ×{n}
+                  </button>
+                ))}
+                {typeof sets === 'number' && ![1,2,3,5].includes(sets) && (
+                  <button className="mode-sub-pill active" disabled={running}>×{sets}</button>
+                )}
+                <button
+                  className={`mode-sub-pill${sets === '∞' ? ' active' : ''}`}
+                  disabled={running}
+                  onClick={() => setSets(s => s === '∞' ? 1 : '∞')}>∞</button>
+              </div>
+            )}
+
+            {/* Display sub-row (Metronome) */}
+            {isMetronome && (
+              <div className="mode-sub-row">
+                <span className="mode-sub-label">Display</span>
+                <button className={`mode-sub-pill${displayMode === 'bars' ? ' active' : ''}`}
+                  disabled={running}
+                  onClick={() => setDisplayMode('bars')}>Bars</button>
+                <button className={`mode-sub-pill${displayMode === 'timer' ? ' active' : ''}`}
+                  disabled={running}
+                  onClick={() => setDisplayMode('timer')}>Timer</button>
+              </div>
+            )}
+          </div>
+
           <div className="controls">
 
-            <div className="section-grid controls-grid">
+            <div className="controls-stack">
 
-              <div className={`control-group full-width${running ? " dimmed" : ""}`}>
-                <label>Mode</label>
-                <div className="selector-row">
-                  {[
-                    { label: "Shuffle",   value: MODE_FULLSET },
-                    { label: "Sequence",  value: MODE_SEQUENTIAL },
-                    { label: "Metronome", value: MODE_CLICKONLY },
-                  ].map(m => (
-                    <button key={m.value}
-                      className={`sel-btn${mode === m.value ? " active" : ""}`}
-                      onClick={() => {
-                        if (m.value !== mode) {
-                          if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
-                            setsByMode.current[mode] = sets;
-                          }
-                          setMode(m.value);
-                          if (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) {
-                            setSets(setsByMode.current[m.value] ?? 1);
-                          } else {
-                            setSets(1);
-                          }
-                        }
-                      }} disabled={running}
-                      >
-                      {m.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || sets === '∞') ? " gear-visible" : ""}`}>
-                <div className="control-group bpm-group">
-                  <label>BPM</label>
-                  <div className="bpm-widget-row">
-                    <div className="bpm-widget">
-                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                        onClick={!running ? handleTap : undefined}
-                        onMouseDown={e => e.preventDefault()}
-                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                          <span>{bpm}</span>
-                          {!running && <span className="bpm-tap-label">tap to set</span>}
-                        </div>
-                      </div>
-                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+              {/* ── BPM ── */}
+              <div className="control-group bpm-group">
+                <label>BPM</label>
+                <div className="bpm-widget">
+                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                    onClick={!running ? handleTap : undefined}
+                    onMouseDown={e => e.preventDefault()}
+                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                      <span>{bpm}</span>
+                      {!running && <span className="bpm-tap-label">tap to set</span>}
                     </div>
-                    {(mode === MODE_CLICKONLY || sets === '∞') && (
-                      <button
-                        ref={bpmGearBtnRef}
-                        className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
-                        onClick={() => setBpmAutoOpen(v => !v)}
-                        title="BPM automation"
-                      >⚙&#xFE0E;</button>
-                    )}
                   </div>
-                </div>
-
-                <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>
-                  <label>Time signature</label>
-                  <CompactSelector
-                    id="timeSig"
-                    value={timeSig}
-                    options={TIME_SIGS}
-                    onChange={setTimeSig}
-                    disabled={running}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={ts => ts.label}
-                  />
+                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                 </div>
               </div>
 
-              {/* Row: Count In + Subdivision (always, all modes) */}
-              <div className={`control-group${running ? " dimmed" : ""}`}>
-                <label>Count in</label>
-                <CompactSelector
-                  id="countIn"
-                  value={countInBars}
-                  options={[1, 2, 4]}
-                  onChange={setCountInBars}
-                  disabled={running}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
-                  footer={
-                    <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
-                      <input type="checkbox" checked={countInEvery}
-                        onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
-                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                      <span>Count in every exercise</span>
-                    </div>
-                  }
-                />
-              </div>
-
-              <div className={`control-group${running ? " dimmed" : ""}`}>
-                <label>Subdivision</label>
-                <CompactSelector
-                  id="subdivision"
-                  value={subdivision}
-                  options={[1, 2, 3, 4]}
-                  onChange={setSubdivision}
-                  disabled={running}
-                  openSelector={openSelector}
-                  setOpenSelector={setOpenSelector}
-                  getLabel={n => ["♩", "♪♪", "triplet", "♬"][n - 1]}
-                  renderOption={n => <SubdivSVG value={n} />}
-                  buttonLabel={<SubdivSVG value={subdivision} />}
-                  popupClassName="subdiv-popup"
-                />
-              </div>
-
-              {/* Col 3 of the Count In row on desktop: ExLength (Shuffle/Seq) or Display (Metro) */}
-              {mode !== MODE_CLICKONLY && (
-                <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-                  <label>Exercise length</label>
-                  <CompactSelector
-                    id="exLength"
-                    value={exerciseLength}
-                    options={[1, 2, 4]}
-                    onChange={setExerciseLength}
-                    disabled={running || exMode === 'pick'}
-                    openSelector={openSelector}
-                    setOpenSelector={setOpenSelector}
-                    getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  />
-                </div>
-              )}
-
-              {mode === MODE_CLICKONLY && (
-                <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
-                  <label>Display</label>
-                  <div className="selector-row">
-                    <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
-                      disabled={running}
-                      onClick={() => setDisplayMode('bars')}>Bars</button>
-                    <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
-                      disabled={running}
-                      onClick={() => setDisplayMode('timer')}>Timer</button>
-                  </div>
-                </div>
-              )}
-
-              {/* Exercises — col 1+2 on mobile, full-width on desktop */}
-              {mode !== MODE_CLICKONLY && (
+              {/* ── Exercises (Shuffle/Sequence only) ── */}
+              {!isMetronome && (
                 <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
                   <label>Exercises</label>
                   <div className="ex-control-row">
@@ -3413,37 +3200,189 @@
                 </div>
               )}
 
-              {/* Row: Rounds + Sets (Shuffle/Sequence) */}
-              {mode !== MODE_CLICKONLY && (
-                <div className={`control-group${running ? " dimmed" : ""}`}>
-                  <label>Rounds Per Exercise</label>
-                  <div className="stepper">
-                    <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
-                    <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
-                    <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
-                  </div>
-                </div>
-              )}
+              {/* ── Settings panel (tab section) ── */}
+              <div className="settings-panel">
 
-              {mode !== MODE_CLICKONLY && (
-                <div className={`control-group sets-group${running ? " dimmed" : ""}`}>
-                  <label>Sets</label>
-                  <div className="sets-stepper">
-                    <button className="stepper-btn left" disabled={running || sets === 1}
-                      onClick={() => setSets(s => s === '∞' ? 99 : Math.max(1, s - 1))}>−</button>
-                    <div className="stepper-val sets-val" style={running ? { opacity: 0.25 } : {}}>
-                      {sets === '∞' ? '∞' : `×${sets}`}
-                    </div>
-                    <button className="stepper-btn right" disabled={running || sets === '∞'}
-                      onClick={() => setSets(s => s === '∞' ? '∞' : s + 1)}>+</button>
+                {/* Tab bar */}
+                <div className="settings-tab-bar">
+                  {!isMetronome && (
                     <button
-                      className={`sets-inf-btn${sets === '∞' ? " active" : ""}`}
-                      disabled={running}
-                      onClick={() => setSets(s => s === '∞' ? 1 : '∞')}>∞</button>
-                  </div>
+                      className={`settings-tab-btn${activeTab === 'exercise' ? ' active' : ''}`}
+                      onClick={() => setActiveTab('exercise')}>
+                      Exercise Controls
+                    </button>
+                  )}
+                  <button
+                    className={`settings-tab-btn${activeTab === 'click' ? ' active' : ''}`}
+                    onClick={() => setActiveTab('click')}>
+                    Click Controls
+                  </button>
                 </div>
-              )}
 
+                {/* Tab content */}
+                <div className="settings-tab-content" {...tabSwipeHandlers}>
+
+                  {/* Exercise Controls tab */}
+                  {activeTab === 'exercise' && !isMetronome && (
+                    <div className="settings-tab-pane">
+                      <div className={`settings-row${lengthDisabled ? ' dimmed' : ''}`}>
+                        <span className="settings-row-label">Length</span>
+                        <div className="selector-row">
+                          {[1, 2, 4].map(n => (
+                            <button key={n}
+                              className={`sel-btn${exerciseLength === n ? ' active' : ''}`}
+                              onClick={() => setExerciseLength(n)}
+                              disabled={lengthDisabled}>
+                              {n === 1 ? '1 bar' : `${n} bars`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                        <span className="settings-row-label">Rounds</span>
+                        <div className="stepper">
+                          <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
+                          <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
+                          <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Click Controls tab */}
+                  {activeTab === 'click' && (
+                    <div className="settings-tab-pane">
+                      {/* Count in */}
+                      <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                        <span className="settings-row-label">Count in</span>
+                        <div className="selector-row">
+                          {[1, 2, 4].map(n => (
+                            <button key={n}
+                              className={`sel-btn${countInBars === n ? ' active' : ''}`}
+                              onClick={() => setCountInBars(n)}
+                              disabled={running}>
+                              {n === 1 ? '1 bar' : `${n} bars`}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Count in every exercise */}
+                      <div className={`check-row${isMetronome ? ' disabled' : ''}${running ? ' dimmed' : ''}`} style={{ paddingLeft: '4.75rem' }}>
+                        <input type="checkbox" checked={countInEvery}
+                          onChange={e => setCountInEvery(e.target.checked)}
+                          disabled={isMetronome || running}
+                          style={{ accentColor: '#ff4500', width: 18, height: 18 }} />
+                        <span>Count in every exercise</span>
+                      </div>
+                      {/* Subdivision */}
+                      <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                        <span className="settings-row-label">Subdiv</span>
+                        <div className="selector-row">
+                          {[1, 2, 3, 4].map(n => (
+                            <button key={n}
+                              className={`sel-btn${subdivision === n ? ' active' : ''}`}
+                              onClick={() => setSubdivision(n)}
+                              disabled={running}>
+                              <SubdivSVG value={n} />
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Time signature */}
+                      <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                        <span className="settings-row-label">Time sig</span>
+                        <div className="selector-row">
+                          {TIME_SIGS.map(ts => (
+                            <button key={ts.label}
+                              className={`sel-btn${timeSig.label === ts.label ? ' active' : ''}`}
+                              style={{ minWidth: '2.6rem' }}
+                              onClick={() => setTimeSig(ts)}
+                              disabled={running}>
+                              {ts.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Auto BPM — only when metronome or ∞ */}
+                      {showAutoBpm && (
+                        <>
+                          {panelDivider}
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                            <button
+                              className={`bpm-auto-master-toggle${bpmAuto ? ' active' : ''}`}
+                              onClick={() => setBpmAuto(v => !v)}>
+                              Auto BPM
+                            </button>
+                            {!isMetronome && (
+                              <div className="bpm-auto-trigger-label">Changes every set</div>
+                            )}
+                            <div className={bpmAuto ? 'bpm-auto-inner' : 'bpm-auto-disabled'}>
+                              {isMetronome && (
+                                <div className="bpm-auto-row">
+                                  <span className="bpm-auto-label">Every</span>
+                                  <div className="bpm-auto-stepper">
+                                    <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
+                                    <span className="bpm-auto-step-val">{activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}</span>
+                                    <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
+                                  </div>
+                                  <div className="bpm-auto-unit-row">
+                                    <button className={`sel-btn${bpmAutoTrigger === 'bars' ? ' active' : ''}`}
+                                      onClick={() => setBpmAutoTrigger('bars')}>bars</button>
+                                    <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? ' active' : ''}`}
+                                      onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
+                                  </div>
+                                </div>
+                              )}
+                              {!bpmAutoRandom && (
+                                <div className="bpm-auto-row">
+                                  <span className="bpm-auto-label">Step</span>
+                                  <div className="bpm-auto-stepper">
+                                    <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
+                                    <span className="bpm-auto-step-val">{bpmAutoStep}</span>
+                                    <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
+                                  </div>
+                                  <div className="bpm-auto-unit-row">
+                                    <button className={`sel-btn${bpmAutoDir === 'up' ? ' active' : ''}`}
+                                      onClick={() => setBpmAutoDir('up')}>▲ Up</button>
+                                    <button className={`sel-btn${bpmAutoDir === 'down' ? ' active' : ''}`}
+                                      onClick={() => setBpmAutoDir('down')}>▼ Down</button>
+                                  </div>
+                                </div>
+                              )}
+                              {!isMetronome && (
+                                <div className="bpm-auto-secondary">
+                                  <button className={`bpm-auto-random-toggle${bpmAutoRandom ? ' active' : ''}`}
+                                    onClick={() => setBpmAutoRandom(v => !v)}>
+                                    {bpmAutoRandom ? '✓ Random tempo' : 'Random tempo'}
+                                  </button>
+                                  {bpmAutoRandom && (
+                                    <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
+                                      <span className="bpm-auto-label">Min</span>
+                                      <div className="bpm-auto-stepper">
+                                        <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
+                                        <span className="bpm-auto-step-val">{bpmAutoMin}</span>
+                                        <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+                                      </div>
+                                      <span className="bpm-auto-label">Max</span>
+                                      <div className="bpm-auto-stepper">
+                                        <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
+                                        <span className="bpm-auto-step-val">{bpmAutoMax}</span>
+                                        <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  )}
+
+                </div>
+              </div>
 
             </div>
 
@@ -3463,7 +3402,7 @@
               </>
             ) : (
               <>
-                {mode === MODE_CLICKONLY ? (
+                {isMetronome ? (
                   <button className="action-btn stop" onClick={handleStop}>
                     Stop
                   </button>
@@ -3507,7 +3446,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.9.15.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.15.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -3534,24 +3473,6 @@
               onClose={() => setPickerOpen(false)}
               letterMode={letterMode}
             />
-          )}
-
-          {bpmAutoOpen && (mode === MODE_CLICKONLY || sets === '∞') && ReactDOM.createPortal(
-            <BpmAutoPopup
-              mode={mode} bpm={bpm}
-              bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
-              bpmAutoStep={bpmAutoStep} setBpmAutoStep={setBpmAutoStep}
-              bpmAutoDir={bpmAutoDir} setBpmAutoDir={setBpmAutoDir}
-              bpmAutoTrigger={bpmAutoTrigger} setBpmAutoTrigger={setBpmAutoTrigger}
-              bpmAutoBarInterval={bpmAutoBarInterval} setBpmAutoBarInterval={setBpmAutoBarInterval}
-              bpmAutoSecInterval={bpmAutoSecInterval} setBpmAutoSecInterval={setBpmAutoSecInterval}
-              bpmAutoRandom={bpmAutoRandom} setBpmAutoRandom={setBpmAutoRandom}
-              bpmAutoMin={bpmAutoMin} setBpmAutoMin={setBpmAutoMin}
-              bpmAutoMax={bpmAutoMax} setBpmAutoMax={setBpmAutoMax}
-              anchorRef={bpmGearBtnRef}
-              onClose={() => setBpmAutoOpen(false)}
-            />,
-            document.body
           )}
 
           {showLetterModePopup && ReactDOM.createPortal(

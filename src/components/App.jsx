@@ -10,7 +10,6 @@ import { useDrumTimer } from '../useDrumTimer.js';
 import { useLongPress, useSwipeInput } from '../useInteraction.js';
 import { NumpadPopup, BarPickerPopup, fmt, numToLetter, fmtEx } from './NumpadComponents.jsx';
 import { BarProgress } from './BarProgress.jsx';
-import { CompactSelector } from './CompactSelector.jsx';
 import '../styles.css';
 
 function useNudge(setter, delta) {
@@ -79,152 +78,6 @@ function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdi
         </div>
       )}
     </div>
-  );
-}
-
-function BpmAutoPopup({
-  mode, bpm, bpmAuto, setBpmAuto,
-  bpmAutoStep, setBpmAutoStep, bpmAutoDir, setBpmAutoDir,
-  bpmAutoTrigger, setBpmAutoTrigger,
-  bpmAutoBarInterval, setBpmAutoBarInterval,
-  bpmAutoSecInterval, setBpmAutoSecInterval,
-  bpmAutoRandom, setBpmAutoRandom, bpmAutoMin, setBpmAutoMin, bpmAutoMax, setBpmAutoMax,
-  anchorRef, onClose,
-}) {
-  const [popupStyle, setPopupStyle] = useState({});
-
-  useEffect(() => {
-    if (anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      const popupWidth = 260;
-      const centreLeft = Math.round((window.innerWidth - popupWidth) / 2);
-      const anchorLeft = Math.min(rect.left, window.innerWidth - popupWidth - 8);
-      setPopupStyle({
-        left: Math.max(8, window.innerWidth < 500 ? centreLeft : anchorLeft),
-        bottom: window.innerHeight - rect.top + 6,
-      });
-    }
-    // Seed random range from current BPM each time popup opens
-    const halfSpan = Math.round(bpm * 0.035);
-    setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
-    setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
-    // In Metronome mode, 'set' trigger is invalid — default to 'bars'
-    if (isMetronome && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
-  }, []);
-
-  const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
-  const stepDec = () => setBpmAutoStep(s => Math.max(1, s - 1));
-  const stepIncHandlers = useLongPressSimple(stepInc);
-  const stepDecHandlers = useLongPressSimple(stepDec);
-
-  const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
-  const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
-  const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
-  const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
-  const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
-  const intervalIncHandlers = useLongPressSimple(intervalInc);
-  const intervalDecHandlers = useLongPressSimple(intervalDec);
-
-  const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
-  const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
-  const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
-  const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
-  const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
-  const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
-  const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
-  const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
-
-  const isMetronome = mode === MODE_CLICKONLY;
-
-  return ReactDOM.createPortal(
-    <>
-      <div className="bpm-auto-backdrop" onClick={onClose} />
-      <div className="bpm-auto-popup" style={popupStyle}>
-
-        {/* Master toggle — prominent header */}
-        <button
-          className={`bpm-auto-master-toggle${bpmAuto ? " active" : ""}`}
-          onClick={() => setBpmAuto(v => !v)}
-        >
-          Auto BPM
-        </button>
-
-        {/* Trigger label — infinite modes */}
-        {!isMetronome && (
-          <div className="bpm-auto-trigger-label">Changes every set</div>
-        )}
-
-        <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
-
-        {/* Trigger interval — Metronome only */}
-        {isMetronome && (
-          <div className="bpm-auto-row">
-            <span className="bpm-auto-label">Every</span>
-            <div className="bpm-auto-stepper">
-              <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
-              <span className="bpm-auto-step-val">
-                {activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
-              </span>
-              <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
-            </div>
-            <div className="bpm-auto-unit-row">
-              <button className={`sel-btn${bpmAutoTrigger === 'bars' ? " active" : ""}`}
-                onClick={() => setBpmAutoTrigger('bars')}>bars</button>
-              <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? " active" : ""}`}
-                onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
-            </div>
-          </div>
-        )}
-
-        {/* Step / direction — primary controls */}
-        {!bpmAutoRandom && (
-          <div className="bpm-auto-row">
-            <span className="bpm-auto-label">Step</span>
-            <div className="bpm-auto-stepper">
-              <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
-              <span className="bpm-auto-step-val">{bpmAutoStep}</span>
-              <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
-            </div>
-            <div className="bpm-auto-unit-row">
-              <button className={`sel-btn${bpmAutoDir === 'up' ? " active" : ""}`}
-                onClick={() => setBpmAutoDir('up')}>▲ Up</button>
-              <button className={`sel-btn${bpmAutoDir === 'down' ? " active" : ""}`}
-                onClick={() => setBpmAutoDir('down')}>▼ Down</button>
-            </div>
-          </div>
-        )}
-
-        {/* Random — secondary section, Shuffle/Sequence ∞ only */}
-        {!isMetronome && (
-          <div className="bpm-auto-secondary">
-            <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
-              onClick={() => setBpmAutoRandom(v => !v)}>
-              {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
-            </button>
-            {bpmAutoRandom && (
-              <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
-                <span className="bpm-auto-label">Min</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMin}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
-                </div>
-                <span className="bpm-auto-label">Max</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMax}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-        </div>{/* end bpm-auto-disabled wrapper */}
-
-      </div>
-    </>,
-    document.body
   );
 }
 
@@ -325,7 +178,6 @@ export function App() {
   const [tapped,          setTapped]          = useState(false);
   const [showVolume,      setShowVolume]      = useState(false);
   const [showHelp,        setShowHelp]        = useState(false);
-  const [openSelector,    setOpenSelector]    = useState(null);
   const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
   const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
   const helpOverlayRef = useRef(null);
@@ -357,10 +209,10 @@ export function App() {
   const [bpmAutoRandom,      setBpmAutoRandom]      = useState(() => saved?.bpmAutoRandom ?? false);
   const [bpmAutoMin,         setBpmAutoMin]         = useState(bpm);
   const [bpmAutoMax,         setBpmAutoMax]         = useState(bpm);
-  const [bpmAutoOpen,      setBpmAutoOpen]      = useState(false);
+  const [activeTab,          setActiveTab]          = useState('exercise');
+  const tabTouchX = useRef(0);
   const autoBarCountRef  = useRef(0);
   const autoTimerRef     = useRef(null);
-  const bpmGearBtnRef    = useRef(null);
   const appToastTimer = useRef(null);
   const [appToastMsg, setAppToastMsg] = useState(null);
   const [appToastKey, setAppToastKey] = useState(0);
@@ -436,6 +288,21 @@ export function App() {
     if (running && !paused) req(); else rel();
     return () => rel();
   }, [running, paused]);
+
+  // When switching to Metronome, force Click tab (Exercise tab is hidden)
+  useEffect(() => {
+    if (mode === MODE_CLICKONLY) setActiveTab('click');
+  }, [mode]);
+
+  // Seed Auto BPM range when ∞ or Metronome becomes active
+  useEffect(() => {
+    if (mode === MODE_CLICKONLY || sets === '∞') {
+      const halfSpan = Math.round(bpm * 0.035);
+      setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
+      setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
+      if (mode === MODE_CLICKONLY && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
+    }
+  }, [mode, sets]);
 
   const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
   const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
@@ -640,6 +507,27 @@ export function App() {
   const barsIncHandlers = useLongPress(incBars);
   const barsDecHandlers = useLongPress(decBars);
 
+  // Auto BPM stepper handlers (for click tab)
+  const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
+  const stepDec = () => setBpmAutoStep(s => Math.max(1, s - 1));
+  const stepIncHandlers = useLongPressSimple(stepInc);
+  const stepDecHandlers = useLongPressSimple(stepDec);
+  const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
+  const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
+  const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
+  const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
+  const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
+  const intervalIncHandlers = useLongPressSimple(intervalInc);
+  const intervalDecHandlers = useLongPressSimple(intervalDec);
+  const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
+  const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
+  const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
+  const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
+  const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
+  const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
+  const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
+  const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
+
   useEffect(() => {
     if (phase === "playing" && currentBeat === 0 && !paused) {
       setBarFlash(true);
@@ -691,6 +579,21 @@ export function App() {
 
   const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (sets === '∞' && mode !== MODE_CLICKONLY ? " ∞" : "");
 
+  const isMetronome = mode === MODE_CLICKONLY;
+  const showAutoBpm = isMetronome || sets === '∞';
+  const lengthDisabled = running || exMode === 'pick';
+  const panelDivider = <div className="settings-panel-divider" />;
+
+  // Tab swipe handlers
+  const tabSwipeHandlers = {
+    onTouchStart: (e) => { tabTouchX.current = e.touches[0].clientX; },
+    onTouchEnd: (e) => {
+      const dx = e.changedTouches[0].clientX - tabTouchX.current;
+      if (Math.abs(dx) > 40 && !isMetronome) {
+        setActiveTab(dx < 0 ? 'click' : 'exercise');
+      }
+    },
+  };
 
   return (
     <div className="app">
@@ -829,7 +732,7 @@ export function App() {
             </div>
             <div className="help-section">
               <h3>BPM automation</h3>
-              <p>Tap <strong>⚙&#xFE0E;</strong> next to BPM to open automation settings (available in Metronome and ∞ modes).</p>
+              <p>Open the Click Controls tab to find Auto BPM settings (available in Metronome and ∞ modes).</p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li><strong>Shuffle/Sequence ∞</strong> — steps BPM up or down after each full set.</li>
                 <li><strong>Metronome</strong> — steps every N bars or every N seconds.</li>
@@ -865,9 +768,9 @@ export function App() {
         </>
       )}
 
-      <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-        <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+      <div className={`display${isMetronome ? " display--metro" : ""}`}>
+        <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
+          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -880,7 +783,7 @@ export function App() {
           </div>
         ) : (
           <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-            {mode === MODE_CLICKONLY && displayMode === 'timer' && phase !== "idle"
+            {isMetronome && displayMode === 'timer' && phase !== "idle"
               ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
               : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
           </div>
@@ -889,7 +792,7 @@ export function App() {
         {phase === "idle" ? (
           setComplete ? (
             <div className="idle-summary">&nbsp;</div>
-          ) : mode === MODE_CLICKONLY ? null : (
+          ) : isMetronome ? null : (
             <div className="idle-summary">
               {exMode === 'pick'
                 ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
@@ -913,27 +816,27 @@ export function App() {
         )}
 
         {!setComplete && (
-          <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
+          <div className={`beat-dots${isMetronome ? " tappable" : ""}`}>
             {Array.from({ length: timeSig.beats }).map((_, i) => {
-              const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
+              const bState = isMetronome ? (beatStates[i] ?? 'normal') : null;
               const isActive = phase === "playing" && !paused && currentBeat === i;
               return (
                 <div
                   key={i}
                   className={[
                     'beat-dot',
-                    phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
+                    phase === "idle" && !isMetronome ? 'inactive' : '',
                     i === 0 ? 'beat1' : '',
                     isActive ? 'active' : '',
                     bState ? bState : '',
                   ].filter(Boolean).join(' ')}
-                  onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
+                  onClick={isMetronome ? () => cycleBeatState(i) : undefined}
                 />
               );
             })}
           </div>
         )}
-        {mode === MODE_CLICKONLY && subdivision > 1 && (
+        {isMetronome && subdivision > 1 && (
           <div className="subdiv-dots">
             {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
               const beatIndex = Math.floor(i / subdivision);
@@ -947,7 +850,7 @@ export function App() {
           </div>
         )}
 
-        {!setComplete && mode !== MODE_CLICKONLY && (
+        {!setComplete && !isMetronome && (
           <BarProgress
             barsPerExercise={barsPerExercise}
             currentRound={currentRound}
@@ -970,157 +873,94 @@ export function App() {
 
       </div>
 
+      {/* ── Mode header — above the controls grid ── */}
+      <div className={`mode-header${running ? " dimmed" : ""}`}>
+        <div className="selector-row mode-selector-row">
+          {[
+            { label: "Shuffle",   value: MODE_FULLSET },
+            { label: "Sequence",  value: MODE_SEQUENTIAL },
+            { label: "Metronome", value: MODE_CLICKONLY },
+          ].map(m => (
+            <button key={m.value}
+              className={`sel-btn${mode === m.value ? " active" : ""}`}
+              onClick={() => {
+                if (m.value !== mode) {
+                  if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
+                    setsByMode.current[mode] = sets;
+                  }
+                  setMode(m.value);
+                  if (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) {
+                    setSets(setsByMode.current[m.value] ?? 1);
+                  } else {
+                    setSets(1);
+                  }
+                }
+              }} disabled={running}>
+              {m.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Sets sub-row (Shuffle/Sequence) */}
+        {!isMetronome && (
+          <div className="mode-sub-row">
+            <span className="mode-sub-label">Sets</span>
+            {[1, 2, 3, 5].map(n => (
+              <button key={n}
+                className={`mode-sub-pill${sets === n ? ' active' : ''}`}
+                disabled={running}
+                onClick={() => setSets(n)}>
+                ×{n}
+              </button>
+            ))}
+            {typeof sets === 'number' && ![1,2,3,5].includes(sets) && (
+              <button className="mode-sub-pill active" disabled={running}>×{sets}</button>
+            )}
+            <button
+              className={`mode-sub-pill${sets === '∞' ? ' active' : ''}`}
+              disabled={running}
+              onClick={() => setSets(s => s === '∞' ? 1 : '∞')}>∞</button>
+          </div>
+        )}
+
+        {/* Display sub-row (Metronome) */}
+        {isMetronome && (
+          <div className="mode-sub-row">
+            <span className="mode-sub-label">Display</span>
+            <button className={`mode-sub-pill${displayMode === 'bars' ? ' active' : ''}`}
+              disabled={running}
+              onClick={() => setDisplayMode('bars')}>Bars</button>
+            <button className={`mode-sub-pill${displayMode === 'timer' ? ' active' : ''}`}
+              disabled={running}
+              onClick={() => setDisplayMode('timer')}>Timer</button>
+          </div>
+        )}
+      </div>
+
       <div className="controls">
 
-        <div className="section-grid controls-grid">
+        <div className="controls-stack">
 
-          <div className={`control-group full-width${running ? " dimmed" : ""}`}>
-            <label>Mode</label>
-            <div className="selector-row">
-              {[
-                { label: "Shuffle",   value: MODE_FULLSET },
-                { label: "Sequence",  value: MODE_SEQUENTIAL },
-                { label: "Metronome", value: MODE_CLICKONLY },
-              ].map(m => (
-                <button key={m.value}
-                  className={`sel-btn${mode === m.value ? " active" : ""}`}
-                  onClick={() => {
-                    if (m.value !== mode) {
-                      if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
-                        setsByMode.current[mode] = sets;
-                      }
-                      setMode(m.value);
-                      if (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) {
-                        setSets(setsByMode.current[m.value] ?? 1);
-                      } else {
-                        setSets(1);
-                      }
-                    }
-                  }} disabled={running}
-                  >
-                  {m.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || sets === '∞') ? " gear-visible" : ""}`}>
-            <div className="control-group bpm-group">
-              <label>BPM</label>
-              <div className="bpm-widget-row">
-                <div className="bpm-widget">
-                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
-                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}
-                    onClick={!running ? handleTap : undefined}
-                    onMouseDown={e => e.preventDefault()}
-                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
-                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
-                      <span>{bpm}</span>
-                      {!running && <span className="bpm-tap-label">tap to set</span>}
-                    </div>
-                  </div>
-                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
+          {/* ── BPM ── */}
+          <div className="control-group bpm-group">
+            <label>BPM</label>
+            <div className="bpm-widget">
+              <button className="bpm-btn left" {...bpmDecHandlers}>−</button>
+              <div className={`bpm-tap${tapped ? " tapped" : ""}`}
+                onClick={!running ? handleTap : undefined}
+                onMouseDown={e => e.preventDefault()}
+                style={running ? { cursor: "default", pointerEvents: "none" } : {}}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
+                  <span>{bpm}</span>
+                  {!running && <span className="bpm-tap-label">tap to set</span>}
                 </div>
-                {(mode === MODE_CLICKONLY || sets === '∞') && (
-                  <button
-                    ref={bpmGearBtnRef}
-                    className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
-                    onClick={() => setBpmAutoOpen(v => !v)}
-                    title="BPM automation"
-                  >⚙&#xFE0E;</button>
-                )}
               </div>
-            </div>
-
-            <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>
-              <label>Time signature</label>
-              <CompactSelector
-                id="timeSig"
-                value={timeSig}
-                options={TIME_SIGS}
-                onChange={setTimeSig}
-                disabled={running}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={ts => ts.label}
-              />
+              <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
             </div>
           </div>
 
-          {/* Row: Count In + Subdivision (always, all modes) */}
-          <div className={`control-group${running ? " dimmed" : ""}`}>
-            <label>Count in</label>
-            <CompactSelector
-              id="countIn"
-              value={countInBars}
-              options={[1, 2, 4]}
-              onChange={setCountInBars}
-              disabled={running}
-              openSelector={openSelector}
-              setOpenSelector={setOpenSelector}
-              getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
-              footer={
-                <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
-                  <input type="checkbox" checked={countInEvery}
-                    onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
-                    style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                  <span>Count in every exercise</span>
-                </div>
-              }
-            />
-          </div>
-
-          <div className={`control-group${running ? " dimmed" : ""}`}>
-            <label>Subdivision</label>
-            <CompactSelector
-              id="subdivision"
-              value={subdivision}
-              options={[1, 2, 3, 4]}
-              onChange={setSubdivision}
-              disabled={running}
-              openSelector={openSelector}
-              setOpenSelector={setOpenSelector}
-              getLabel={n => ["♩", "♪♪", "triplet", "♬"][n - 1]}
-              renderOption={n => <SubdivSVG value={n} />}
-              buttonLabel={<SubdivSVG value={subdivision} />}
-              popupClassName="subdiv-popup"
-            />
-          </div>
-
-          {/* Col 3 of the Count In row on desktop: ExLength (Shuffle/Seq) or Display (Metro) */}
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group ex-length-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
-              <label>Exercise length</label>
-              <CompactSelector
-                id="exLength"
-                value={exerciseLength}
-                options={[1, 2, 4]}
-                onChange={setExerciseLength}
-                disabled={running || exMode === 'pick'}
-                openSelector={openSelector}
-                setOpenSelector={setOpenSelector}
-                getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              />
-            </div>
-          )}
-
-          {mode === MODE_CLICKONLY && (
-            <div className={`control-group display-toggle-group${running ? " dimmed" : ""}`}>
-              <label>Display</label>
-              <div className="selector-row">
-                <button className={`sel-btn${displayMode === 'bars' ? " active" : ""}`}
-                  disabled={running}
-                  onClick={() => setDisplayMode('bars')}>Bars</button>
-                <button className={`sel-btn${displayMode === 'timer' ? " active" : ""}`}
-                  disabled={running}
-                  onClick={() => setDisplayMode('timer')}>Timer</button>
-              </div>
-            </div>
-          )}
-
-          {/* Exercises — col 1+2 on mobile, full-width on desktop */}
-          {mode !== MODE_CLICKONLY && (
+          {/* ── Exercises (Shuffle/Sequence only) ── */}
+          {!isMetronome && (
             <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
               <label>Exercises</label>
               <div className="ex-control-row">
@@ -1156,37 +996,189 @@ export function App() {
             </div>
           )}
 
-          {/* Row: Rounds + Sets (Shuffle/Sequence) */}
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group${running ? " dimmed" : ""}`}>
-              <label>Rounds Per Exercise</label>
-              <div className="stepper">
-                <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
-                <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
-                <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
-              </div>
-            </div>
-          )}
+          {/* ── Settings panel (tab section) ── */}
+          <div className="settings-panel">
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group sets-group${running ? " dimmed" : ""}`}>
-              <label>Sets</label>
-              <div className="sets-stepper">
-                <button className="stepper-btn left" disabled={running || sets === 1}
-                  onClick={() => setSets(s => s === '∞' ? 99 : Math.max(1, s - 1))}>−</button>
-                <div className="stepper-val sets-val" style={running ? { opacity: 0.25 } : {}}>
-                  {sets === '∞' ? '∞' : `×${sets}`}
-                </div>
-                <button className="stepper-btn right" disabled={running || sets === '∞'}
-                  onClick={() => setSets(s => s === '∞' ? '∞' : s + 1)}>+</button>
+            {/* Tab bar */}
+            <div className="settings-tab-bar">
+              {!isMetronome && (
                 <button
-                  className={`sets-inf-btn${sets === '∞' ? " active" : ""}`}
-                  disabled={running}
-                  onClick={() => setSets(s => s === '∞' ? 1 : '∞')}>∞</button>
-              </div>
+                  className={`settings-tab-btn${activeTab === 'exercise' ? ' active' : ''}`}
+                  onClick={() => setActiveTab('exercise')}>
+                  Exercise Controls
+                </button>
+              )}
+              <button
+                className={`settings-tab-btn${activeTab === 'click' ? ' active' : ''}`}
+                onClick={() => setActiveTab('click')}>
+                Click Controls
+              </button>
             </div>
-          )}
 
+            {/* Tab content */}
+            <div className="settings-tab-content" {...tabSwipeHandlers}>
+
+              {/* Exercise Controls tab */}
+              {activeTab === 'exercise' && !isMetronome && (
+                <div className="settings-tab-pane">
+                  <div className={`settings-row${lengthDisabled ? ' dimmed' : ''}`}>
+                    <span className="settings-row-label">Length</span>
+                    <div className="selector-row">
+                      {[1, 2, 4].map(n => (
+                        <button key={n}
+                          className={`sel-btn${exerciseLength === n ? ' active' : ''}`}
+                          onClick={() => setExerciseLength(n)}
+                          disabled={lengthDisabled}>
+                          {n === 1 ? '1 bar' : `${n} bars`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                    <span className="settings-row-label">Rounds</span>
+                    <div className="stepper">
+                      <button className="stepper-btn left" disabled={running} {...barsDecHandlers}>−</button>
+                      <div className="stepper-val" style={running ? { opacity: 0.25 } : {}}>{barsPerExercise}</div>
+                      <button className="stepper-btn right" disabled={running} {...barsIncHandlers}>+</button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Click Controls tab */}
+              {activeTab === 'click' && (
+                <div className="settings-tab-pane">
+                  {/* Count in */}
+                  <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                    <span className="settings-row-label">Count in</span>
+                    <div className="selector-row">
+                      {[1, 2, 4].map(n => (
+                        <button key={n}
+                          className={`sel-btn${countInBars === n ? ' active' : ''}`}
+                          onClick={() => setCountInBars(n)}
+                          disabled={running}>
+                          {n === 1 ? '1 bar' : `${n} bars`}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Count in every exercise */}
+                  <div className={`check-row${isMetronome ? ' disabled' : ''}${running ? ' dimmed' : ''}`} style={{ paddingLeft: '4.75rem' }}>
+                    <input type="checkbox" checked={countInEvery}
+                      onChange={e => setCountInEvery(e.target.checked)}
+                      disabled={isMetronome || running}
+                      style={{ accentColor: '#ff4500', width: 18, height: 18 }} />
+                    <span>Count in every exercise</span>
+                  </div>
+                  {/* Subdivision */}
+                  <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                    <span className="settings-row-label">Subdiv</span>
+                    <div className="selector-row">
+                      {[1, 2, 3, 4].map(n => (
+                        <button key={n}
+                          className={`sel-btn${subdivision === n ? ' active' : ''}`}
+                          onClick={() => setSubdivision(n)}
+                          disabled={running}>
+                          <SubdivSVG value={n} />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  {/* Time signature */}
+                  <div className={`settings-row${running ? ' dimmed' : ''}`}>
+                    <span className="settings-row-label">Time sig</span>
+                    <div className="selector-row">
+                      {TIME_SIGS.map(ts => (
+                        <button key={ts.label}
+                          className={`sel-btn${timeSig.label === ts.label ? ' active' : ''}`}
+                          style={{ minWidth: '2.6rem' }}
+                          onClick={() => setTimeSig(ts)}
+                          disabled={running}>
+                          {ts.label}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Auto BPM — only when metronome or ∞ */}
+                  {showAutoBpm && (
+                    <>
+                      {panelDivider}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                        <button
+                          className={`bpm-auto-master-toggle${bpmAuto ? ' active' : ''}`}
+                          onClick={() => setBpmAuto(v => !v)}>
+                          Auto BPM
+                        </button>
+                        {!isMetronome && (
+                          <div className="bpm-auto-trigger-label">Changes every set</div>
+                        )}
+                        <div className={bpmAuto ? 'bpm-auto-inner' : 'bpm-auto-disabled'}>
+                          {isMetronome && (
+                            <div className="bpm-auto-row">
+                              <span className="bpm-auto-label">Every</span>
+                              <div className="bpm-auto-stepper">
+                                <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
+                                <span className="bpm-auto-step-val">{activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}</span>
+                                <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
+                              </div>
+                              <div className="bpm-auto-unit-row">
+                                <button className={`sel-btn${bpmAutoTrigger === 'bars' ? ' active' : ''}`}
+                                  onClick={() => setBpmAutoTrigger('bars')}>bars</button>
+                                <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? ' active' : ''}`}
+                                  onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
+                              </div>
+                            </div>
+                          )}
+                          {!bpmAutoRandom && (
+                            <div className="bpm-auto-row">
+                              <span className="bpm-auto-label">Step</span>
+                              <div className="bpm-auto-stepper">
+                                <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
+                                <span className="bpm-auto-step-val">{bpmAutoStep}</span>
+                                <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
+                              </div>
+                              <div className="bpm-auto-unit-row">
+                                <button className={`sel-btn${bpmAutoDir === 'up' ? ' active' : ''}`}
+                                  onClick={() => setBpmAutoDir('up')}>▲ Up</button>
+                                <button className={`sel-btn${bpmAutoDir === 'down' ? ' active' : ''}`}
+                                  onClick={() => setBpmAutoDir('down')}>▼ Down</button>
+                              </div>
+                            </div>
+                          )}
+                          {!isMetronome && (
+                            <div className="bpm-auto-secondary">
+                              <button className={`bpm-auto-random-toggle${bpmAutoRandom ? ' active' : ''}`}
+                                onClick={() => setBpmAutoRandom(v => !v)}>
+                                {bpmAutoRandom ? '✓ Random tempo' : 'Random tempo'}
+                              </button>
+                              {bpmAutoRandom && (
+                                <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
+                                  <span className="bpm-auto-label">Min</span>
+                                  <div className="bpm-auto-stepper">
+                                    <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
+                                    <span className="bpm-auto-step-val">{bpmAutoMin}</span>
+                                    <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+                                  </div>
+                                  <span className="bpm-auto-label">Max</span>
+                                  <div className="bpm-auto-stepper">
+                                    <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
+                                    <span className="bpm-auto-step-val">{bpmAutoMax}</span>
+                                    <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
+
+            </div>
+          </div>
 
         </div>
 
@@ -1206,7 +1198,7 @@ export function App() {
           </>
         ) : (
           <>
-            {mode === MODE_CLICKONLY ? (
+            {isMetronome ? (
               <button className="action-btn stop" onClick={handleStop}>
                 Stop
               </button>
@@ -1250,7 +1242,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.15.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.15.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
@@ -1277,24 +1269,6 @@ export function App() {
           onClose={() => setPickerOpen(false)}
           letterMode={letterMode}
         />
-      )}
-
-      {bpmAutoOpen && (mode === MODE_CLICKONLY || sets === '∞') && ReactDOM.createPortal(
-        <BpmAutoPopup
-          mode={mode} bpm={bpm}
-          bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
-          bpmAutoStep={bpmAutoStep} setBpmAutoStep={setBpmAutoStep}
-          bpmAutoDir={bpmAutoDir} setBpmAutoDir={setBpmAutoDir}
-          bpmAutoTrigger={bpmAutoTrigger} setBpmAutoTrigger={setBpmAutoTrigger}
-          bpmAutoBarInterval={bpmAutoBarInterval} setBpmAutoBarInterval={setBpmAutoBarInterval}
-          bpmAutoSecInterval={bpmAutoSecInterval} setBpmAutoSecInterval={setBpmAutoSecInterval}
-          bpmAutoRandom={bpmAutoRandom} setBpmAutoRandom={setBpmAutoRandom}
-          bpmAutoMin={bpmAutoMin} setBpmAutoMin={setBpmAutoMin}
-          bpmAutoMax={bpmAutoMax} setBpmAutoMax={setBpmAutoMax}
-          anchorRef={bpmGearBtnRef}
-          onClose={() => setBpmAutoOpen(false)}
-        />,
-        document.body
       )}
 
       {showLetterModePopup && ReactDOM.createPortal(

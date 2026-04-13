@@ -446,71 +446,53 @@ src = patch(src,
     "      const decBars   = useCallback(() => { if (!running && watchScreen !== \"app\") setBarsPerExercise(b => Math.max(BARS_MIN, b - 1)); }, [running, watchScreen]);"
 )
 
-# Mode control group
-src = patch(src, 
-    '              <div className={`control-group full-width${running ? " dimmed" : ""}`}>',
-    '              <div className={`control-group full-width${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>'
+# Mode header — lock when student is sharing
+src = patch(src,
+    '      <div className={`mode-header${running ? " dimmed" : ""}`}>',
+    '      <div className={`mode-header${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>'
 )
 
 # Mode buttons: no disabled for watchScreen (pointer-events: none on parent handles it)
 # (leave disabled={running} as-is; the watch-locked class already blocks interaction)
 
-# BPM control group (inside bpm-timesig-row > bpm-group)
+# BPM control group — lock when student is sharing
 src = patch(src,
-    '                <div className="control-group bpm-group">\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
-    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                        onClick={!running ? handleTap : undefined}\n'
-    '                        onMouseDown={e => e.preventDefault()}\n'
-    '                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                          <span>{bpm}</span>\n'
-    '                          {!running && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                        </div>\n'
-    '                      </div>\n'
-    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
-    '                <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                  <label>BPM</label>\n                  <div className="bpm-widget-row">\n                    <div className="bpm-widget">\n'
-    '                      <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
-    '                      <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
-    '                        onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
-    '                        onMouseDown={e => e.preventDefault()}\n'
-    '                        style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
-    '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
-    '                          <span>{bpm}</span>\n'
-    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
-    '                        </div>\n'
-    '                      </div>\n'
-    '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
+    '              <div className="control-group bpm-group">\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
+    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                    onClick={!running ? handleTap : undefined}\n'
+    '                    onMouseDown={e => e.preventDefault()}\n'
+    '                    style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                      <span>{bpm}</span>\n'
+    '                      {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                    </div>\n'
+    '                  </div>\n'
+    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
+    '              <div className={`control-group bpm-group${watchScreen === "app" ? " watch-locked" : ""}`}>\n                <label>BPM</label>\n                <div className="bpm-widget">\n'
+    '                  <button className="bpm-btn left" {...bpmDecHandlers}>−</button>\n'
+    '                  <div className={`bpm-tap${tapped ? " tapped" : ""}`}\n'
+    '                    onClick={!running && watchScreen !== "app" ? handleTap : undefined}\n'
+    '                    onMouseDown={e => e.preventDefault()}\n'
+    '                    style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
+    '                    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
+    '                      <span>{bpm}</span>\n'
+    '                      {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                    </div>\n'
+    '                  </div>\n'
+    '                  <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
 )
 
-# Time signature control group (inside bpm-timesig-row, has timesig-group class)
-src = patch(src,
-    '                <div className={`control-group timesig-group${running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>',
-    '                <div className={`control-group timesig-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Time signature</label>'
-)
-
-# Count in control group
-src = patch(src,
-    '              <div className={`control-group${running ? " dimmed" : ""}`}>\n                <label>Count in</label>',
-    '              <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                <label>Count in</label>'
-)
-
-# Exercise length control group
-src = patch(src,
-    '                <div className={`control-group ex-length-group${running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>',
-    '                <div className={`control-group ex-length-group${watchScreen === "app" ? " watch-locked" : running || exMode === \'pick\' ? " dimmed" : ""}`}>\n                  <label>Exercise length</label>'
-)
-
-# Exercises control group
+# Exercises control group — lock when student is sharing
 src = patch(src,
     '                <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>',
     '                <div className={`control-group exercises-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Exercises</label>'
 )
 
-# Rounds Per Exercise control group
+# Settings panel — lock entirely when student is sharing (covers both Exercise and Click tabs)
 src = patch(src,
-    '                <div className={`control-group${running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>',
-    '                <div className={`control-group${watchScreen === "app" ? " watch-locked" : running ? " dimmed" : ""}`}>\n                  <label>Rounds Per Exercise</label>'
+    '          <div className="settings-panel">',
+    '          <div className={`settings-panel${watchScreen === "app" ? " watch-locked" : ""}`}>'
 )
 
 # Settings menu: replace with sharing indicator when student is sharing
