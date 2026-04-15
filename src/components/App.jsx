@@ -777,9 +777,9 @@ export function App() {
                   {soundMenuOpen && (
                     <div className="settings-menu-submenu">
                       {[
-                        { id: 'digital1', label: 'Digital'   },
-                        { id: 'digital2', label: 'Digital 2' },
-                        { id: 'tick',     label: 'Tick'      },
+                        { id: 'digital1', label: 'Blip' },
+                        { id: 'digital2', label: 'Ping' },
+                        { id: 'tick',     label: 'Tick' },
                       ].map(({ id, label }) => (
                         <button key={id}
                           className={`settings-menu-submenu-item${metSound === id ? ' settings-menu-submenu-item--active' : ''}`}
@@ -1282,7 +1282,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.15.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.15.beta.15 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

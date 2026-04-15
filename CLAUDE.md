@@ -74,7 +74,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 ## Key technical decisions
 
 - Lookahead scheduler (25ms interval, 0.2s lookahead) for accurate timing
-- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally
+- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally. Metronome click sound (`metSound`) is user-selectable: `digital1` (Blip, sine, default), `digital2` (Ping, triangle), `tick` (Tick, noise). This preference is persisted to localStorage but intentionally excluded from "Reset to defaults" and "Share settings" — it's a device-level preference, not a session setting.
 - Audio context is never suspended on pause — scheduler interval is cleared instead, avoids rogue clicks on resume
 - schedulerFn ref stores the scheduler function so resume can restart it without re-picking exercises
 - Settings persisted to localStorage under key shuffle_settings_v7; URL params (`?bpm=`, `?sig=`, `?min=`, `?max=`, `?mode=`, `?rounds=`, `?exlen=`, `?cib=`, `?cie=`, `?exmode=`, `?picks=`, `?lm=`, `?inf=`, `?sw=`) override localStorage on load and are stripped from the URL immediately via `history.replaceState`
@@ -123,7 +123,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
-- A `☰` menu button sits in the header (right side, balanced by an invisible spacer on the left); opens a dropdown with four items: **How to use** (opens the help overlay), **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults. Hidden when student is sharing in Watch mode.
+- A `☰` menu button sits in the header (right side, balanced by an invisible spacer on the left); opens a dropdown with four items: **How to use** (opens the help overlay), **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults — but does NOT reset `metSound` (click sound), which is a device-level preference. **Share settings** also does not include `metSound`. Hidden when student is sharing in Watch mode.
 - Letter mode displays exercises as A–Z instead of numbers; toggled via the `☰` menu; limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
 - Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
 - useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app
