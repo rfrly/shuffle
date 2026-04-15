@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clave sound test</title>
+<style>
+  body { background: #0f0f0f; color: #ccc; font-family: monospace; padding: 2rem; max-width: 480px; margin: 0 auto; }
+  h2 { color: #f5c842; margin-bottom: 1.5rem; font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+  label { width: 120px; flex-shrink: 0; font-size: 0.75rem; color: #aaa; }
+  input[type=range] { flex: 1; accent-color: #f5c842; }
+  .val { width: 50px; text-align: right; font-size: 0.8rem; color: #f5c842; }
+  .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+  .btn-row button { margin-top: 0; flex: 1; }
+  button { margin-top: 1rem; padding: 0.8rem 1rem; background: #f5c842; color: #000; border: none; font-family: monospace; font-size: 0.82rem; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; }
+  button:active { opacity: 0.8; }
+  #loopBtn.playing { background: #c8a030; }
+  .btn-secondary { background: #333 !important; color: #ccc !important; }
+  .section { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #222; }
+  .section h3 { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #666; margin-bottom: 0.75rem; }
+  .hint { font-size: 0.68rem; color: #555; margin-top: 1.5rem; line-height: 1.6; }
+  #copyBtn { background: #1a1a1a; color: #f5c842; border: 1px solid #333; }
+  #copyFeedback { font-size: 0.68rem; color: #f5c842; margin-top: 0.5rem; min-height: 1em; text-align: center; word-break: break-all; }
+  .filter-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .filter-btn { margin-top: 0; padding: 0.4rem 0.7rem; font-size: 0.7rem; background: #222; color: #aaa; border: 1px solid #333; border-radius: 3px; width: auto; flex: none; }
+  .filter-btn.active { background: #f5c842; color: #000; border-color: #f5c842; }
+  .subhead { font-size: 0.68rem; color: #666; margin-bottom: 0.5rem; letter-spacing: 0.05em; }
+</style>
+</head>
+<body>
+<h2>Clave sound test</h2>
+
+<!-- Layer 1 (primary) -->
+<div class="subhead">Layer 1</div>
+<div class="filter-btns" id="filterBtns1">
+  <button class="filter-btn active" data-val="bandpass">bandpass</button>
+  <button class="filter-btn" data-val="lowpass">lowpass</button>
+  <button class="filter-btn" data-val="highpass">highpass</button>
+  <button class="filter-btn" data-val="none">none</button>
+</div>
+<div class="row">
+  <label>Freq (Hz)</label>
+  <input type="range" id="freq" min="100" max="3000" step="50" value="500">
+  <span class="val" id="freqVal">500</span>
+</div>
+<div class="row">
+  <label>Q</label>
+  <input type="range" id="q" min="0.5" max="15" step="0.5" value="2">
+  <span class="val" id="qVal">2</span>
+</div>
+<div class="row">
+  <label>Exponent</label>
+  <input type="range" id="exp" min="1" max="30" step="1" value="18">
+  <span class="val" id="expVal">18</span>
+</div>
+<div class="row">
+  <label>Decay (ms)</label>
+  <input type="range" id="decay" min="10" max="200" step="5" value="30">
+  <span class="val" id="decayVal">30</span>
+</div>
+
+<!-- Layer 2 -->
+<div class="section">
+  <h3>Layer 2 <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(optional second noise burst mixed in)</span></h3>
+  <div class="filter-btns" id="filterBtns2">
+    <button class="filter-btn active" data-val="none">none</button>
+    <button class="filter-btn" data-val="bandpass">bandpass</button>
+    <button class="filter-btn" data-val="lowpass">lowpass</button>
+    <button class="filter-btn" data-val="highpass">highpass</button>
+  </div>
+  <div class="row">
+    <label>Freq 2 (Hz)</label>
+    <input type="range" id="freq2" min="100" max="3000" step="50" value="200">
+    <span class="val" id="freq2Val">200</span>
+  </div>
+  <div class="row">
+    <label>Q 2</label>
+    <input type="range" id="q2" min="0.5" max="15" step="0.5" value="2">
+    <span class="val" id="q2Val">2</span>
+  </div>
+  <div class="row">
+    <label>Mix 2</label>
+    <input type="range" id="mix2" min="0" max="1" step="0.05" value="0.5">
+    <span class="val" id="mix2Val">0.5</span>
+  </div>
+</div>
+
+<!-- Reverb -->
+<div class="section">
+  <h3>Space</h3>
+  <div class="row">
+    <label>Reverb</label>
+    <input type="range" id="reverb" min="0" max="1" step="0.05" value="0">
+    <span class="val" id="reverbVal">0</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="btn-row">
+    <button id="singleBtn">▶ Once</button>
+    <button id="loopBtn">▶ 110 BPM</button>
+  </div>
+  <button id="copyBtn">⎘ Copy settings</button>
+  <div id="copyFeedback"></div>
+</div>
+
+<div class="section">
+  <h3>Compare</h3>
+  <div class="btn-row">
+    <button class="btn-secondary" id="playTickBtn">▶ Tick</button>
+    <button class="btn-secondary" id="playTriBtn">▶ Count-in △</button>
+  </div>
+</div>
+
+<p class="hint">
+  Freq = filter centre. Q = resonance (bandpass only; higher = narrower). Exponent = noise shape (higher = sharper attack, less body). Decay = length. Layer 2 = second noise burst at a different frequency mixed underneath. Mix 2 = how loud layer 2 is relative to layer 1.
+</p>
+
+<script>
+let ctx;
+function getCtx() {
+  if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
+  if (ctx.state === 'suspended') ctx.resume();
+  return ctx;
+}
+
+function getCompressor(c) {
+  if (c._comp) return c._comp;
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 4;
+  comp.attack.value = 0.003; comp.release.value = 0.15;
+  comp.connect(c.destination);
+  c._comp = comp;
+  return comp;
+}
+
+function getReverb(c) {
+  if (c._reverb) return c._reverb;
+  const sr = c.sampleRate;
+  const len = Math.floor(sr * 0.08);
+  const buf = c.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  }
+  const conv = c.createConvolver();
+  conv.buffer = buf;
+  conv.connect(getCompressor(c));
+  c._reverb = conv;
+  return conv;
+}
+
+// Generate shaped noise buffer (shared between layers for efficiency)
+function makeNoiseBuf(c, decay, exp) {
+  const bufSize = Math.floor(c.sampleRate * decay);
+  const buf = c.createBuffer(1, bufSize, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++)
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, exp);
+  return buf;
+}
+
+function scheduleLayer(c, t, noiseBuf, filterType, freq, q, gainVal, decay, reverbWet) {
+  const src = c.createBufferSource();
+  src.buffer = noiseBuf;
+
+  let node;
+  if (filterType === 'none') {
+    node = src;
+  } else {
+    const filter = c.createBiquadFilter();
+    filter.type = filterType;
+    filter.frequency.value = freq;
+    filter.Q.value = q;
+    src.connect(filter);
+    node = filter;
+  }
+
+  const dryGain = c.createGain();
+  dryGain.gain.setValueAtTime(gainVal * (1 - reverbWet * 0.4), t);
+  dryGain.gain.exponentialRampToValueAtTime(0.001, t + decay);
+  node.connect(dryGain);
+  dryGain.connect(getCompressor(c));
+
+  if (reverbWet > 0) {
+    const wetGain = c.createGain();
+    wetGain.gain.setValueAtTime(gainVal * reverbWet * 0.6, t);
+    wetGain.gain.exponentialRampToValueAtTime(0.001, t + decay);
+    node.connect(wetGain);
+    wetGain.connect(getReverb(c));
+  }
+
+  src.start(t);
+  src.stop(t + decay + 0.1);
+}
+
+function playNoise(c, t, p) {
+  const GAIN = 6.0;
+  const noiseBuf = makeNoiseBuf(c, p.decay, p.exp);
+
+  // Layer 1
+  scheduleLayer(c, t, noiseBuf, p.filter1, p.freq, p.q, GAIN, p.decay, p.reverbWet);
+
+  // Layer 2 (only if filter type is not 'none')
+  if (p.filter2 !== 'none') {
+    scheduleLayer(c, t, noiseBuf, p.filter2, p.freq2, p.q2, GAIN * p.mix2, p.decay, p.reverbWet);
+  }
+}
+
+function playTriangle(c, t, freq, gain) {
+  const osc = c.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.value = freq;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  osc.connect(g); g.connect(getCompressor(c));
+  osc.start(t); osc.stop(t + 0.08);
+}
+
+// Filter button state
+let filterVal1 = 'bandpass';
+let filterVal2 = 'none';
+
+function initFilterBtns(groupId, onChange) {
+  const btns = document.querySelectorAll(`#${groupId} .filter-btn`);
+  btns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      btns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn.dataset.val);
+    });
+  });
+}
+
+initFilterBtns('filterBtns1', v => { filterVal1 = v; });
+initFilterBtns('filterBtns2', v => { filterVal2 = v; });
+
+function vals() {
+  return {
+    freq:      parseFloat(document.getElementById('freq').value),
+    q:         parseFloat(document.getElementById('q').value),
+    exp:       parseFloat(document.getElementById('exp').value),
+    decay:     parseFloat(document.getElementById('decay').value) / 1000,
+    filter1:   filterVal1,
+    freq2:     parseFloat(document.getElementById('freq2').value),
+    q2:        parseFloat(document.getElementById('q2').value),
+    mix2:      parseFloat(document.getElementById('mix2').value),
+    filter2:   filterVal2,
+    reverbWet: parseFloat(document.getElementById('reverb').value),
+  };
+}
+
+['freq','q','exp','decay','freq2','q2','mix2','reverb'].forEach(id => {
+  const el = document.getElementById(id);
+  const disp = document.getElementById(id + 'Val');
+  el.addEventListener('input', () => { disp.textContent = el.value; });
+});
+
+document.getElementById('singleBtn').addEventListener('click', () => {
+  const c = getCtx();
+  playNoise(c, c.currentTime + 0.02, vals());
+});
+
+const INTERVAL = 25, LOOKAHEAD = 0.15, BEAT_SEC = 60 / 110;
+let loopRunning = false, schedulerTimer = null, nextBeatTime = 0;
+
+function schedulerTick() {
+  const c = getCtx(), v = vals();
+  while (nextBeatTime < c.currentTime + LOOKAHEAD) {
+    playNoise(c, nextBeatTime, v);
+    nextBeatTime += BEAT_SEC;
+  }
+}
+
+function startLoop() {
+  const c = getCtx();
+  nextBeatTime = c.currentTime + 0.05;
+  loopRunning = true;
+  schedulerTimer = setInterval(schedulerTick, INTERVAL);
+  document.getElementById('loopBtn').textContent = '■ Stop';
+  document.getElementById('loopBtn').classList.add('playing');
+}
+
+function stopLoop() {
+  clearInterval(schedulerTimer);
+  schedulerTimer = null;
+  loopRunning = false;
+  document.getElementById('loopBtn').textContent = '▶ 110 BPM';
+  document.getElementById('loopBtn').classList.remove('playing');
+}
+
+document.getElementById('loopBtn').addEventListener('click', () => {
+  if (loopRunning) stopLoop(); else startLoop();
+});
+
+document.getElementById('playTickBtn').addEventListener('click', () => {
+  const c = getCtx();
+  playNoise(c, c.currentTime + 0.02, {
+    freq: 1200, q: 5, exp: 14, decay: 0.05, filter1: 'bandpass',
+    freq2: 0, q2: 1, mix2: 0, filter2: 'none', reverbWet: 0,
+  });
+});
+
+document.getElementById('playTriBtn').addEventListener('click', () => {
+  const c = getCtx();
+  playTriangle(c, c.currentTime + 0.02, 880, 0.55);
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const v = vals();
+  const l2 = v.filter2 !== 'none'
+    ? `, layer2: ${v.filter2} ${v.freq2}Hz q${v.q2} mix${v.mix2}`
+    : '';
+  const text = `filter: ${v.filter1}, freq: ${v.freq}, q: ${v.q}, exp: ${v.exp}, decay: ${Math.round(v.decay*1000)}ms${l2}, reverb: ${v.reverbWet}`;
+  const fb = document.getElementById('copyFeedback');
+  navigator.clipboard.writeText(text).then(() => {
+    fb.textContent = 'Copied: ' + text;
+    setTimeout(() => { fb.textContent = ''; }, 4000);
+  }).catch(() => { fb.textContent = text; });
+});
+</script>
+</body>
+</html>
