@@ -392,7 +392,7 @@
     .bpm-gear-btn:active { background: #2a2a2a; }
     .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
 
-    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; }
+    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
     .bpm-auto-popup {
       position: fixed; z-index: 50;
       background: #1c1c1c; border: 1px solid #383838;
@@ -425,29 +425,34 @@
     }
     .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
     .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
-    .bpm-auto-master-toggle {
-      width: 100%; padding: 0.45rem 0.6rem;
-      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
-      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
-      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
+    .bpm-auto-master-row {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0.2rem 0; cursor: pointer; user-select: none;
     }
-    .bpm-auto-master-toggle:active { background: #252525; }
-    .bpm-auto-master-toggle.active { border-color: #f5c842; color: #f5c842; background: #1e1c12; }
+    .bpm-auto-master-label {
+      font-family: var(--font-mono); font-size: 0.8rem; color: #bbb;
+    }
+    .bpm-auto-toggle {
+      width: 44px; height: 26px; border-radius: 13px;
+      background: #333; border: 1px solid #444;
+      position: relative; transition: background 0.2s, border-color 0.2s;
+      flex-shrink: 0;
+    }
+    .bpm-auto-toggle.active { background: #f5c842; border-color: #f5c842; }
+    .bpm-auto-toggle-thumb {
+      position: absolute; top: 3px; left: 3px;
+      width: 18px; height: 18px; border-radius: 50%;
+      background: #888; transition: transform 0.2s, background 0.2s;
+    }
+    .bpm-auto-toggle.active .bpm-auto-toggle-thumb {
+      transform: translateX(18px); background: #1a1a1a;
+    }
     .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
     .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
     .bpm-auto-trigger-label {
       font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
       padding: 0.1rem 0; margin-bottom: -0.4rem;
     }
-    .bpm-auto-secondary { border-top: 1px solid #2a2a2a; padding-top: 0.6rem; }
-    .bpm-auto-random-toggle {
-      width: 100%; padding: 0.45rem 0.6rem;
-      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
-      color: #666; font-family: var(--font-mono); font-size: 0.8rem;
-      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
-    }
-    .bpm-auto-random-toggle:active { background: #252525; }
-    .bpm-auto-random-toggle.active { border-color: #aaa; color: #bbb; background: #202020; }
 
     /* ── Vol popup subdiv rows ── */
     .vol-subdiv-inactive { opacity: 0.18; }
@@ -987,36 +992,10 @@
     .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
     .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
 
-    .bpm-auto-master-toggle {
-      width: 100%; padding: 0.45rem 0.6rem;
-      background: #1a1a1a; border: 1px solid #444; border-radius: 4px;
-      color: #bbb; font-family: var(--font-mono); font-size: 0.8rem;
-      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
-    }
-    .bpm-auto-master-toggle:active { background: #252525; }
-    .bpm-auto-master-toggle.active {
-      border-color: #f5c842; color: #f5c842; background: #1e1c12;
-    }
 
     .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
     .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
 
-    .bpm-auto-trigger-label {
-      font-size: 0.6rem; color: #555; text-align: center; letter-spacing: 0.06em;
-      padding: 0.1rem 0; margin-bottom: -0.4rem;
-    }
-
-    .bpm-auto-secondary {
-      border-top: 1px solid #2a2a2a; padding-top: 0.6rem;
-    }
-    .bpm-auto-random-toggle {
-      width: 100%; padding: 0.45rem 0.6rem;
-      background: #1a1a1a; border: 1px solid #333; border-radius: 4px;
-      color: #666; font-family: var(--font-mono); font-size: 0.8rem;
-      cursor: pointer; text-align: center; transition: background 0.1s, border-color 0.1s, color 0.1s;
-    }
-    .bpm-auto-random-toggle:active { background: #252525; }
-    .bpm-auto-random-toggle.active { border-color: #aaa; color: #bbb; background: #202020; }
 
     /* ── Numpad popup ─────────────────────────────────────────────────────────── */
     .numpad-backdrop { position: fixed; inset: 0; z-index: 59; background: rgba(0,0,0,0.5); }
