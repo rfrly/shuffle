@@ -7,6 +7,7 @@ import {
 } from '../constants.js';
 import { loadSettings, saveSettings, loadUrlParams } from '../storage.js';
 import { useDrumTimer } from '../useDrumTimer.js';
+import { scheduleMetronomeClick, getCompressor } from '../audio.js';
 import { useLongPress, useSwipeInput } from '../useInteraction.js';
 import { NumpadPopup, BarPickerPopup, fmt, numToLetter, fmtEx } from './NumpadComponents.jsx';
 import { BarProgress } from './BarProgress.jsx';
@@ -341,6 +342,8 @@ export function App() {
   const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
   const letterModeMountedRef = useRef(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [soundMenuOpen,    setSoundMenuOpen]    = useState(false);
+  const [metSound,         setMetSound]         = useState(() => saved?.metSound ?? 'digital1');
   const [bpmAuto,          setBpmAuto]          = useState(() => saved?.bpmAuto ?? false);
   const [bpmAutoStep,        setBpmAutoStep]        = useState(() => saved?.bpmAutoStep ?? 2);
   const [bpmAutoDir,         setBpmAutoDir]         = useState(() => saved?.bpmAutoDir ?? 'up');
@@ -373,8 +376,9 @@ export function App() {
                    exMode, pickedNums, letterMode,
                    subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
                    bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
-                   bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+                   bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+                   metSound });
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -483,6 +487,7 @@ export function App() {
     countInEveryRound: countInEvery,
     mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
     exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+    metSound,
   });
 
   useEffect(() => {
@@ -743,10 +748,10 @@ export function App() {
             {settingsMenuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
-                     onClick={() => setSettingsMenuOpen(false)} />
+                     onClick={() => { setSettingsMenuOpen(false); setSoundMenuOpen(false); }} />
                 <div className="settings-menu-panel">
                   <button className="settings-menu-item settings-menu-item--help" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     setShowHelp(true); setHelpScrolledToEnd(false);
                     if (helpPulse) {
                       setHelpPulse(false);
@@ -755,7 +760,7 @@ export function App() {
                     }
                   }}>How to use</button>
                   <button className="settings-menu-item" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     const next = !letterMode;
                     setLetterMode(next);
                     showAppToast(next ? "Letter mode" : "Number mode");
@@ -765,8 +770,35 @@ export function App() {
                       setShowLetterModePopup(true);
                     }
                   }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                  <div className="settings-menu-item settings-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
+                    <span>Click sound</span>
+                    <span className={`settings-menu-arrow${soundMenuOpen ? ' settings-menu-arrow--open' : ''}`}>›</span>
+                  </div>
+                  {soundMenuOpen && (
+                    <div className="settings-menu-submenu">
+                      {[
+                        { id: 'digital1', label: 'Digital'   },
+                        { id: 'digital2', label: 'Digital 2' },
+                        { id: 'tick',     label: 'Tick'      },
+                      ].map(({ id, label }) => (
+                        <button key={id}
+                          className={`settings-menu-submenu-item${metSound === id ? ' settings-menu-submenu-item--active' : ''}`}
+                          onClick={() => {
+                            try {
+                              const previewCtx = new (window.AudioContext || window.webkitAudioContext)();
+                              scheduleMetronomeClick(previewCtx, previewCtx.currentTime + 0.02, 'accent', volume, false, id);
+                              setTimeout(() => { try { previewCtx.close(); } catch {} }, 300);
+                            } catch {}
+                            setMetSound(id);
+                          }}>
+                          <span className="settings-menu-submenu-dot">{metSound === id ? '●' : ''}</span>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <button className="settings-menu-item" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     const p = new URLSearchParams();
                     p.set("bpm",    String(bpm));
                     p.set("sig",    timeSig.label);
@@ -792,7 +824,7 @@ export function App() {
                       .catch(() => showAppToast("Copy failed"));
                   }}>Share settings</button>
                   <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     handleStop();
                     setBpm(80);
                     setTimeSig(TIME_SIGS[2]);
@@ -1250,7 +1282,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.9.15.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.9.15.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

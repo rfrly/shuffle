@@ -1619,13 +1619,15 @@ src = patch(src,
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 }) {",
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n"
+    "                            metSound }) {",
     "    function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,\n"
     "                            onNewExercise, onNextExercise, onSetComplete, onSetLoop,\n"
     "                            running, paused, resuming,\n"
     "                            countInBars, countInEveryRound,\n"
     "                            mode, volume, looping, infinite, setComplete,\n"
-    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, keepCtxAlive }) {"
+    "                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n"
+    "                            metSound, keepCtxAlive }) {"
 )
 src = patch(src, 
     "          if (setComplete) {\n"
@@ -1646,8 +1648,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n      });",
-    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        metSound,\n      });",
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        metSound,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────

@@ -855,6 +855,30 @@
     .settings-menu-item:active { background: #222; }
     .settings-menu-item--help { border-bottom: 2px solid #333 !important; }
     .settings-menu-item--destructive { color: #a04040; }
+    .settings-menu-item--expandable {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; padding: 0.75rem 0.9rem; cursor: pointer;
+      border-bottom: 1px solid #222; color: #ccc;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .settings-menu-item--expandable:active { background: #222; }
+    .settings-menu-arrow {
+      display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
+    }
+    .settings-menu-arrow--open { transform: rotate(90deg); }
+    .settings-menu-submenu { background: #111; border-bottom: 1px solid #222; }
+    .settings-menu-submenu-item {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.65rem 0.9rem 0.65rem 1.2rem; min-height: 44px;
+      background: none; border: none; border-bottom: 1px solid #1e1e1e;
+      color: #aaa; font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
+    }
+    .settings-menu-submenu-item:last-child { border-bottom: none; }
+    .settings-menu-submenu-item:active { background: #1a1a1a; }
+    .settings-menu-submenu-item--active { color: #f5c842; }
+    .settings-menu-submenu-dot { width: 1.1em; flex-shrink: 0; }
 
     @keyframes pulse-amber {
       0%, 100% { color: #666; }
@@ -1350,14 +1374,30 @@
       return comp;
     }
 
-    function scheduleWoodblock(ctx, time, isDownbeat, vol) {
-      // Synthesised woodblock: white noise shaped by an exponential decay envelope.
+    function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1') {
+      // When metronome sound is tick or clave (both noise-based), the count-in uses
+      // a digital triangle oscillator instead of the woodblock — the contrast between
+      // a pitched digital count-in and a noise click makes the phase transition clearer.
+      // Swift port: generate an AVAudioPCMBuffer with the same noise + envelope math,
+      // or use an AVAudioPlayerNode scheduled via scheduleBuffer(atTime:).
+      if (sound === 'tick') {
+        // Digital count-in for tick: triangle oscillator, octave-up on downbeat.
+        // Pitched count-in contrasts clearly with the noise-based tick click.
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = isDownbeat ? 1760 : 880;
+        osc.connect(gain); gain.connect(getCompressor(ctx));
+        gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.55) * vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        osc.start(time); osc.stop(time + 0.08);
+        return;
+      }
+      // Default woodblock: white noise shaped by an exponential decay envelope.
       // Math.pow(1 - i/bufSize, 10) produces a fast initial attack that tails off
       // sharply — exponent 10 makes it more percussive than a linear fade would be.
       // Downbeats use a higher bandpass frequency (2000 Hz vs 1400 Hz) and louder gain
       // (2.8 vs 2.0) so beat 1 stands out clearly from the other beats.
-      // Swift port: generate an AVAudioPCMBuffer with the same noise + envelope math,
-      // or use an AVAudioPlayerNode scheduled via scheduleBuffer(atTime:).
       const bufSize = Math.floor(ctx.sampleRate * 0.05);
       const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
       const data = buf.getChannelData(0);
@@ -1395,13 +1435,64 @@
       src.start(time); src.stop(time + 0.09);
     }
 
-    function scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSubdivision) {
+    function scheduleMetronomeClick(ctx, time, beatStateOrDownbeat, vol, isSubdivision, sound = 'digital1') {
       // beatStateOrDownbeat: "accent" | "normal" | "silent" | true (downbeat) | false (non-downbeat)
       // Legacy boolean usage (non-metronome-view paths): true = downbeat, false = normal
+      // sound: 'digital1' | 'digital2' | 'tick'
       const beatState = typeof beatStateOrDownbeat === 'string'
         ? beatStateOrDownbeat
         : beatStateOrDownbeat ? 'accent' : 'normal';
       if (beatState === 'silent') return;
+
+      if (sound === 'tick') {
+        // Tick: noise click. Accent uses a higher bandpass frequency (2000 Hz vs
+        // 1200 Hz) so beat 1 has a clearly different pitch character, not just more
+        // volume. Gains are high to compensate for bandpass energy loss.
+        const freq    = isSubdivision ? 900  : (beatState === 'accent' ? 2000 : 1200);
+        const q       = isSubdivision ? 4    : (beatState === 'accent' ? 5    : 5);
+        const gainVal = isSubdivision ? 6.0  : (beatState === 'accent' ? 14.0 : 10.0);
+        const decay   = 0.05;
+        const bufSize = Math.floor(ctx.sampleRate * decay);
+        const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+        const data = buf.getChannelData(0);
+        for (let i = 0; i < bufSize; i++)
+          data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 14);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const filter = ctx.createBiquadFilter();
+        filter.type = "bandpass";
+        filter.frequency.value = freq;
+        filter.Q.value = q;
+        const gain = ctx.createGain();
+        gain.gain.setValueAtTime(gainVal * vol, time);
+        gain.gain.exponentialRampToValueAtTime(0.001, time + decay);
+        src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
+        src.start(time); src.stop(time + decay + 0.005);
+        return;
+      }
+
+      if (sound === 'digital2') {
+        // Digital 2: triangle wave click at the same pitches as the count-in triangle
+        // oscillator (880 Hz normal, 1760 Hz accent). This is the same sound the user
+        // hears during the count-in when using digital1/digital2 — familiar, warm,
+        // pitched. Subdivision uses 440 Hz (one octave below normal) for distinction.
+        const osc = ctx.createOscillator();
+        osc.type = 'triangle';
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(getCompressor(ctx));
+        if (isSubdivision) {
+          osc.frequency.value = 440;
+          gain.gain.setValueAtTime(0.35 * vol, time);
+        } else {
+          osc.frequency.value = beatState === 'accent' ? 1760 : 880;
+          gain.gain.setValueAtTime((beatState === 'accent' ? 0.9 : 0.55) * vol, time);
+        }
+        gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
+        osc.start(time); osc.stop(time + 0.08);
+        return;
+      }
+
+      // digital1: original sine click (unchanged)
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.connect(gain); gain.connect(getCompressor(ctx));
@@ -1512,7 +1603,8 @@
                             running, paused, resuming,
                             countInBars, countInEveryRound,
                             mode, volume, looping, infinite, setComplete,
-                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 }) {
+                            exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+                            metSound }) {
 
       const audioCtx          = useRef(null);
       const silentLoop        = useRef(null);
@@ -1604,7 +1696,8 @@
         stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                              onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                              countInBars, countInEveryRound,
-                             mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3 };
+                             mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+                             metSound };
       });
 
       const resumingRef = useRef(false);
@@ -1744,7 +1837,7 @@
                   onNewExercise: onChange, onNextExercise: onNext,
                   onSetComplete: onDone, onSetLoop: onLoop,
                   countInBars: cib2, countInEveryRound: cier,
-                  mode: currentMode, volume: vol } = stateRef.current;
+                  mode: currentMode, volume: vol, metSound: mSound } = stateRef.current;
 
           const beatLen           = 60 / b;
           const countInBeats      = bpb2 * cib2;
@@ -1762,7 +1855,7 @@
             // ── Phase 1: initial count-in (beatCount 0 → countInBeats-1) ──
             if (bc < countInBeats) {
               const beatInCI = bc % bpb2;
-              scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
+              scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol, mSound);
               const t = nextBeatTime.current;
               // stoppedRef guard: the user may hit Stop between scheduling this beat
               // and the setTimeout firing. Without the guard, stale state updates would
@@ -1792,7 +1885,7 @@
               // playing phase resumes from playBeatCount = 0 (the new exercise's beat 1).
               if (inInterCountIn) {
                 const interPos = countInBeatPos.current;
-                scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
+                scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol, mSound);
                 const t = nextBeatTime.current;
                 setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
                   Math.max(0, (t - ctx.currentTime) * 1000));
@@ -1817,13 +1910,13 @@
                   const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                     ? bStates[beatInBar]
                     : (isDownbeat ? 'accent' : 'normal');
-                  scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
+                  scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
                   if (subdiv > 1) {
                     const subdivLen = (60 / b) / subdiv;
                     for (let s = 1; s < subdiv; s++) {
                       // subdiv=3 (triplets): use sVol3. subdiv=4 (16ths): s=2 is 8th position (sVol), s=1,3 are pure 16ths (sVol2). subdiv=2 (8ths): sVol.
                       const subMul = subdiv === 3 ? sVol3 : (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
-                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true);
+                      scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true, mSound);
                       const tSub = nextBeatTime.current + subdivLen * s;
                       setTimeout(() => {
                         if (stoppedRef.current) return;
@@ -1903,7 +1996,7 @@
                         countInProgress.current = true;
                         countInBeatPos.current = 1;
                         playBeatCount.current = 0;
-                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol, mSound);
                         if (countInBeatPos.current >= interCountInBeats) {
                           countInProgress.current = false; countInBeatPos.current = 0;
                           setTimeout(() => { if (stoppedRef.current) return; setPhase("playing"); },
@@ -1932,7 +2025,7 @@
                         countInProgress.current = true;
                         countInBeatPos.current = 1;
                         playBeatCount.current = 0;
-                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                        scheduleWoodblock(ctx, nextBeatTime.current, true, vol, mSound);
                         if (countInBeatPos.current >= interCountInBeats) {
                           countInProgress.current = false; countInBeatPos.current = 0;
                           setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
@@ -2579,6 +2672,8 @@
       const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
       const letterModeMountedRef = useRef(false);
       const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+      const [soundMenuOpen,    setSoundMenuOpen]    = useState(false);
+      const [metSound,         setMetSound]         = useState(() => saved?.metSound ?? 'digital1');
       const [bpmAuto,          setBpmAuto]          = useState(() => saved?.bpmAuto ?? false);
       const [bpmAutoStep,        setBpmAutoStep]        = useState(() => saved?.bpmAutoStep ?? 2);
       const [bpmAutoDir,         setBpmAutoDir]         = useState(() => saved?.bpmAutoDir ?? 'up');
@@ -2611,8 +2706,9 @@
                        exMode, pickedNums, letterMode,
                        subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
                        bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
-                       bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+                       bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+                       metSound });
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -2721,6 +2817,7 @@
         countInEveryRound: countInEvery,
         mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
         exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+        metSound,
       });
 
       useEffect(() => {
@@ -2981,10 +3078,10 @@
                 {settingsMenuOpen && (
                   <>
                     <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
-                         onClick={() => setSettingsMenuOpen(false)} />
+                         onClick={() => { setSettingsMenuOpen(false); setSoundMenuOpen(false); }} />
                     <div className="settings-menu-panel">
                       <button className="settings-menu-item settings-menu-item--help" onClick={() => {
-                        setSettingsMenuOpen(false);
+                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         setShowHelp(true); setHelpScrolledToEnd(false);
                         if (helpPulse) {
                           setHelpPulse(false);
@@ -2993,7 +3090,7 @@
                         }
                       }}>How to use</button>
                       <button className="settings-menu-item" onClick={() => {
-                        setSettingsMenuOpen(false);
+                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         const next = !letterMode;
                         setLetterMode(next);
                         showAppToast(next ? "Letter mode" : "Number mode");
@@ -3003,8 +3100,35 @@
                           setShowLetterModePopup(true);
                         }
                       }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                      <div className="settings-menu-item settings-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
+                        <span>Click sound</span>
+                        <span className={`settings-menu-arrow${soundMenuOpen ? ' settings-menu-arrow--open' : ''}`}>›</span>
+                      </div>
+                      {soundMenuOpen && (
+                        <div className="settings-menu-submenu">
+                          {[
+                            { id: 'digital1', label: 'Digital'   },
+                            { id: 'digital2', label: 'Digital 2' },
+                            { id: 'tick',     label: 'Tick'      },
+                          ].map(({ id, label }) => (
+                            <button key={id}
+                              className={`settings-menu-submenu-item${metSound === id ? ' settings-menu-submenu-item--active' : ''}`}
+                              onClick={() => {
+                                try {
+                                  const previewCtx = new (window.AudioContext || window.webkitAudioContext)();
+                                  scheduleMetronomeClick(previewCtx, previewCtx.currentTime + 0.02, 'accent', volume, false, id);
+                                  setTimeout(() => { try { previewCtx.close(); } catch {} }, 300);
+                                } catch {}
+                                setMetSound(id);
+                              }}>
+                              <span className="settings-menu-submenu-dot">{metSound === id ? '●' : ''}</span>
+                              {label}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       <button className="settings-menu-item" onClick={() => {
-                        setSettingsMenuOpen(false);
+                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         const p = new URLSearchParams();
                         p.set("bpm",    String(bpm));
                         p.set("sig",    timeSig.label);
@@ -3030,7 +3154,7 @@
                           .catch(() => showAppToast("Copy failed"));
                       }}>Share settings</button>
                       <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
-                        setSettingsMenuOpen(false);
+                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         handleStop();
                         setBpm(80);
                         setTimeSig(TIME_SIGS[2]);
@@ -3488,7 +3612,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.9.15.beta.13 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.15.beta.14 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

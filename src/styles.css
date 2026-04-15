@@ -830,6 +830,30 @@
     .settings-menu-item:active { background: #222; }
     .settings-menu-item--help { border-bottom: 2px solid #333 !important; }
     .settings-menu-item--destructive { color: #a04040; }
+    .settings-menu-item--expandable {
+      display: flex; justify-content: space-between; align-items: center;
+      width: 100%; padding: 0.75rem 0.9rem; cursor: pointer;
+      border-bottom: 1px solid #222; color: #ccc;
+      font-family: var(--font-mono); font-size: 0.68rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+    }
+    .settings-menu-item--expandable:active { background: #222; }
+    .settings-menu-arrow {
+      display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
+    }
+    .settings-menu-arrow--open { transform: rotate(90deg); }
+    .settings-menu-submenu { background: #111; border-bottom: 1px solid #222; }
+    .settings-menu-submenu-item {
+      display: flex; align-items: center; width: 100%;
+      padding: 0.65rem 0.9rem 0.65rem 1.2rem; min-height: 44px;
+      background: none; border: none; border-bottom: 1px solid #1e1e1e;
+      color: #aaa; font-family: var(--font-mono); font-size: 0.65rem;
+      letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; text-align: left;
+    }
+    .settings-menu-submenu-item:last-child { border-bottom: none; }
+    .settings-menu-submenu-item:active { background: #1a1a1a; }
+    .settings-menu-submenu-item--active { color: #f5c842; }
+    .settings-menu-submenu-dot { width: 1.1em; flex-shrink: 0; }
 
     @keyframes pulse-amber {
       0%, 100% { color: #666; }
