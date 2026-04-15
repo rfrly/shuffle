@@ -559,7 +559,7 @@ src = patch(src,
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
     '              <div className="watch-student-status-item">{bpm} BPM</div>\n'
-    '              <div className="watch-student-status-item">{countInBars}-bar count in</div>\n'
+    '              <div className="watch-student-status-item">{countInBars}-bar count</div>\n'
     '              <div className="watch-student-status-item">\n'
     '                {exMode === "pick"\n'
     '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : `ex ${pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", ")}`)\n'
@@ -643,6 +643,43 @@ firebase_and_observer = r"""
       return a + "-" + b;
     }
 
+    // ── Observer vol popup (portal-rendered, positioned above vol button) ────────
+    function ObsVolPopup({ btnRef, obsVolume, obsSubdivision, obsSubdivVol, obsSubdivVol2, onSendCmd }) {
+      const [style, setStyle] = React.useState({});
+      React.useEffect(() => {
+        if (btnRef.current) {
+          const rect = btnRef.current.getBoundingClientRect();
+          setStyle({ position: 'fixed', right: window.innerWidth - rect.right, bottom: window.innerHeight - rect.top + 6, zIndex: 51 });
+        }
+      }, []);
+      return (
+        <div className="vol-slider-row" style={style}>
+          <div className="vol-slider-item">
+            <span>Master</span>
+            <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
+            <input type="range" min={0} max={1} step={0.05} value={obsVolume ?? 1} onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
+            <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
+          </div>
+          {obsSubdivision > 1 && (
+            <div className="vol-slider-item">
+              <span>{obsSubdivision === 4 ? "8th" : obsSubdivision === 3 ? "Triplet" : "8th"}</span>
+              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
+              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol ?? 1} onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
+              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
+            </div>
+          )}
+          {obsSubdivision === 4 && (
+            <div className="vol-slider-item">
+              <span>16th</span>
+              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.max(0, Math.round(((obsSubdivVol2 ?? 1) - 0.05) * 100) / 100) })}>−</button>
+              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol2 ?? 1} onChange={e => onSendCmd({ subdivVol2: Number(e.target.value) })} />
+              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.min(1, Math.round(((obsSubdivVol2 ?? 1) + 0.05) * 100) / 100) })}>+</button>
+            </div>
+          )}
+        </div>
+      );
+    }
+
     // ── Observer display component ─────────────────────────────────────────────
     function ObserverDisplay({ state, code, onDisconnect, onSendCmd }) {
       const {
@@ -675,6 +712,7 @@ firebase_and_observer = r"""
       const toastTimer = React.useRef(null);
       const [menuOpen, setMenuOpen] = React.useState(false);
       const [showObsVolume, setShowObsVolume] = React.useState(false);
+      const obsVolBtnRef = React.useRef(null);
       const showToast = (msg) => {
         setToastMsg(msg);
         setToastKey(k => k + 1);
@@ -1230,48 +1268,18 @@ firebase_and_observer = r"""
                 </div>
               </>
             )}
-          </div>
-
-          <div className="vol-wrap">
-            <button className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
+            <div className="vol-wrap">
+            <button ref={obsVolBtnRef} className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
             </button>
             {showObsVolume && ReactDOM.createPortal(
-              <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />,
+              <>
+                <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />
+                <ObsVolPopup btnRef={obsVolBtnRef} obsVolume={obsVolume} obsSubdivision={obsSubdivision} obsSubdivVol={obsSubdivVol} obsSubdivVol2={obsSubdivVol2} onSendCmd={onSendCmd} />
+              </>,
               document.body
             )}
-            {showObsVolume && (
-              <div className="vol-slider-row">
-                <div className="vol-slider-item">
-                  <span>Master</span>
-                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
-                  <input type="range" min={0} max={1} step={0.05}
-                    value={obsVolume ?? 1}
-                    onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
-                  <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
-                </div>
-                {obsSubdivision > 1 && (
-                  <div className="vol-slider-item">
-                    <span>{obsSubdivision === 4 ? "8th" : obsSubdivision === 3 ? "Triplet" : "8th"}</span>
-                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
-                    <input type="range" min={0} max={1} step={0.05}
-                      value={obsSubdivVol ?? 1}
-                      onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
-                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
-                  </div>
-                )}
-                {obsSubdivision === 4 && (
-                  <div className="vol-slider-item">
-                    <span>16th</span>
-                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.max(0, Math.round(((obsSubdivVol2 ?? 1) - 0.05) * 100) / 100) })}>−</button>
-                    <input type="range" min={0} max={1} step={0.05}
-                      value={obsSubdivVol2 ?? 1}
-                      onChange={e => onSendCmd({ subdivVol2: Number(e.target.value) })} />
-                    <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.min(1, Math.round(((obsSubdivVol2 ?? 1) + 0.05) * 100) / 100) })}>+</button>
-                  </div>
-                )}
-              </div>
-            )}
+            </div>
           </div>
 
           {numpadOpen === "min" && (
@@ -1704,7 +1712,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.14 · watch 1.63</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.14 · watch 1.64</div>
           </div>
         )}
         {watchScreen === "share" && (
