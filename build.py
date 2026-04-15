@@ -559,7 +559,7 @@ src = patch(src,
     '          {watchScreen === "app" && (\n'
     '            <div className="watch-student-status">\n'
     '              <div className="watch-student-status-item">{bpm} BPM</div>\n'
-    '              <div className="watch-student-status-item">{countInBars}-bar count in</div>\n'
+    '              <div className="watch-student-status-item">{countInBars}-bar count</div>\n'
     '              <div className="watch-student-status-item">\n'
     '                {exMode === "pick"\n'
     '                  ? (pickedNums.length === 0 ? "no ex" : pickedNums.length > 4 ? `${pickedNums.length} ex` : `ex ${pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", ")}`)\n'
@@ -1230,9 +1230,7 @@ firebase_and_observer = r"""
                 </div>
               </>
             )}
-          </div>
-
-          <div className="vol-wrap">
+            <div className="vol-wrap">
             <button className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
             </button>
@@ -1272,6 +1270,7 @@ firebase_and_observer = r"""
                 )}
               </div>
             )}
+            </div>
           </div>
 
           {numpadOpen === "min" && (
@@ -1704,7 +1703,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.14 · watch 1.63</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.14 · watch 1.64</div>
           </div>
         )}
         {watchScreen === "share" && (
