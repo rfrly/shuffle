@@ -716,7 +716,7 @@ export function App() {
 
   const isMetronome = mode === MODE_CLICKONLY;
   const showAutoBpm = isMetronome || sets !== 1;
-  const setsSuffix = !isMetronome && sets !== 1 ? (sets === '∞' ? ' ∞' : ` ×${sets}`) : '';
+  const setsSuffix = !isMetronome ? (sets === '∞' ? ' ∞' : ` ×${sets}`) : '';
   const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + setsSuffix;
 
   return (
@@ -851,7 +851,7 @@ export function App() {
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to cycle through sets: ×2, ×3, ∞ (loop).</li>
                 <li>Sequence — plays exercises in order, then stops. Tap Sequence again to cycle sets the same way.</li>
-                <li>Metronome — runs until stopped. Tap Metronome again to toggle between bar counter [#] and timer [⏱].</li>
+                <li>Metronome — runs until stopped. Tap Metronome again to toggle between bar counter [#] and timer [⏱︎].</li>
               </ul>
             </div>
             <div className="help-section">

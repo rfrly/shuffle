@@ -84,16 +84,6 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 
 ---
 
-## Fonts and colours
-
-- Share Tech Mono (monospace) and Barlow (body)
-- Amber #f5c842 — current exercise, title, Start button
-- Orange #ff4500 — count-in beats, active beat dot
-- White — beat 1 dot
-- Background #0f0f0f, display zone #1a1a1a
-
----
-
 ## Modes
 
 - Shuffle — plays every exercise once in random order, then stops
@@ -112,6 +102,8 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 ---
 
 ## UI and behaviour
+
+**Fonts and colours:** Share Tech Mono (monospace) and Barlow (body). Amber #f5c842 — current exercise, title, Start button. Orange #ff4500 — count-in beats, active beat dot. White — beat 1 dot. Background #0f0f0f, display zone #1a1a1a.
 
 - Single unified controls grid — no section divider; 3-col on tablet/desktop, 2-col on mobile
 - Control order (left to right, top to bottom): Mode (full-width), BPM + Time sig (share a row on mobile via `bpm-timesig-row`; split to separate cells on desktop via `display: contents`), Count in, Exercise length, Exercises, Rounds Per Exercise. In Metronome mode: Mode, BPM + Time sig, Count in (Exercise length/Exercises/Rounds Per Exercise hidden).
