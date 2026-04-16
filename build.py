@@ -1332,6 +1332,7 @@ watch_state = """
       const watchSilentLoop = useRef(null);
       const [audioRestoreNeeded, setAudioRestoreNeeded] = useState(false);
       const modeRef         = useRef(mode);
+      const setsByMode      = useRef({ [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 });
 
 """
 src = patch(src, 
@@ -1684,7 +1685,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.65</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.66</div>
           </div>
         )}
         {watchScreen === "share" && (
