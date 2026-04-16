@@ -137,6 +137,57 @@
   </div>
 </div>
 
+<div class="section">
+  <h3>Explore new sounds <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(tap to hear · loads params into sliders above)</span></h3>
+  <div class="subhead" style="margin-bottom:0.5rem">Rimshot / sidestick</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="rimshot-accent">Rimshot accent</button>
+    <button class="btn-secondary preset-btn" data-preset="rimshot-normal">Rimshot normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Woodblock / clave</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-accent">A accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-normal">A normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A — 2000Hz, Q6, dry (original)</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a2-accent">A2 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a2-normal">A2 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A2 — 2500Hz, Q5</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a3-accent">A3 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a3-normal">A3 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A3 — 3000Hz, Q4</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a4-accent">A4 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a4-normal">A4 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A4 — 3500Hz, Q4</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a5-accent">A5 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a5-normal">A5 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A5 — 4000Hz, Q3</div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Hi-hat / shaker</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="hat-accent">Hat accent</button>
+    <button class="btn-secondary preset-btn" data-preset="hat-normal">Hat normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Finger snap</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="snap-accent">Snap accent</button>
+    <button class="btn-secondary preset-btn" data-preset="snap-normal">Snap normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Conga / bongo tap</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="conga-accent">Conga accent</button>
+    <button class="btn-secondary preset-btn" data-preset="conga-normal">Conga normal</button>
+  </div>
+  <div id="presetLabel" style="font-size:0.68rem;color:#f5c842;margin-top:0.75rem;text-align:center;min-height:1em"></div>
+</div>
+
 <p class="hint">
   Freq = filter centre. Q = resonance (bandpass; higher = narrower). Exponent = noise shape (higher = sharper attack). Decay = length. Gain = volume. Osc = pitched tone blended under the noise for warmth. Osc Mix = how loud the oscillator is relative to the noise.
 </p>
@@ -548,6 +599,86 @@ document.getElementById('copyCompareBtn').addEventListener('click', () => {
     fb.textContent = 'Copied';
     setTimeout(() => { fb.textContent = ''; }, 2000);
   }).catch(() => { fb.textContent = text; });
+});
+
+// ── New sound presets ────────────────────────────────────────────────────────
+// Each preset: { filter, freq, q, exp, decay(ms), gain, oscWave, oscFreq, oscMix, reverb }
+// Loaded into the main sliders so the user can tweak from there.
+const PRESETS = {
+  // Rimshot: sharp noise burst at 4kHz + low sine thud for body
+  'rimshot-accent': { filter:'bandpass', freq:4000, q:3,   exp:18, decay:30,  gain:8,   oscWave:'sine', oscFreq:200, oscMix:0.4,  reverb:0,    label:'Rimshot accent' },
+  'rimshot-normal': { filter:'bandpass', freq:3500, q:3,   exp:18, decay:25,  gain:6,   oscWave:'sine', oscFreq:180, oscMix:0.3,  reverb:0,    label:'Rimshot normal' },
+  // Woodblock A: original — tight mid-range, dry
+  'woodblock-accent':    { filter:'bandpass', freq:2200, q:6, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A accent (2000Hz)' },
+  'woodblock-normal':    { filter:'bandpass', freq:1800, q:6, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A normal (1800Hz)' },
+  // Woodblock A2: 2500Hz
+  'woodblock-a2-accent': { filter:'bandpass', freq:2500, q:5, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A2 accent (2500Hz)' },
+  'woodblock-a2-normal': { filter:'bandpass', freq:2500, q:5, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A2 normal (2500Hz)' },
+  // Woodblock A3: 3000Hz
+  'woodblock-a3-accent': { filter:'bandpass', freq:3000, q:4, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A3 accent (3000Hz)' },
+  'woodblock-a3-normal': { filter:'bandpass', freq:3000, q:4, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A3 normal (3000Hz)' },
+  // Woodblock A4: 3500Hz
+  'woodblock-a4-accent': { filter:'bandpass', freq:3500, q:4, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A4 accent (3500Hz)' },
+  'woodblock-a4-normal': { filter:'bandpass', freq:3500, q:4, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A4 normal (3500Hz)' },
+  // Woodblock A5: 4000Hz
+  'woodblock-a5-accent': { filter:'bandpass', freq:4000, q:3, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A5 accent (4000Hz)' },
+  'woodblock-a5-normal': { filter:'bandpass', freq:4000, q:3, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A5 normal (4000Hz)' },
+  // Hi-hat: very high bandpass, very short — airy, metallic
+  'hat-accent':   { filter:'highpass',  freq:7000, q:1,   exp:20, decay:20,  gain:4,   oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0.05, label:'Hat accent' },
+  'hat-normal':   { filter:'highpass',  freq:7000, q:1,   exp:20, decay:15,  gain:2.5, oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0.05, label:'Hat normal' },
+  // Snap: softer mid-range, rounder attack — less click, more snap
+  'snap-accent':  { filter:'bandpass',  freq:1400, q:2.5, exp:8,  decay:65,  gain:5,   oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0,    label:'Snap accent' },
+  'snap-normal':  { filter:'bandpass',  freq:1200, q:2.5, exp:8,  decay:55,  gain:3.5, oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0,    label:'Snap normal' },
+  // Conga: low-mid noise + descending sine pitch
+  'conga-accent': { filter:'bandpass',  freq:600,  q:2,   exp:10, decay:80,  gain:6,   oscWave:'sine', oscFreq:300, oscMix:0.6,  reverb:0,    label:'Conga accent' },
+  'conga-normal': { filter:'bandpass',  freq:500,  q:2,   exp:10, decay:70,  gain:4,   oscWave:'sine', oscFreq:220, oscMix:0.5,  reverb:0,    label:'Conga normal' },
+};
+
+function applyPreset(p) {
+  // Load into main sliders
+  const setSlider = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    document.getElementById(id + 'Val').textContent = val;
+  };
+  setSlider('freq',    p.freq);
+  setSlider('q',       p.q);
+  setSlider('exp',     p.exp);
+  setSlider('decay',   p.decay);
+  setSlider('gain',    p.gain);
+  setSlider('oscFreq', p.oscFreq);
+  setSlider('oscMix',  p.oscMix);
+  setSlider('reverb',  p.reverb);
+  // Filter pill
+  filterVal = p.filter;
+  document.querySelectorAll('#filterBtns .pill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === p.filter);
+  });
+  // Osc wave pill
+  waveVal = p.oscWave;
+  document.querySelectorAll('#waveBtns .pill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === p.oscWave);
+  });
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = PRESETS[btn.dataset.preset];
+    if (!p) return;
+    applyPreset(p);
+    getCtx().then(c => {
+      const t = c.currentTime + 0.02;
+      playSound(c, t, {
+        filter: p.filter, freq: p.freq, q: p.q, exp: p.exp,
+        decay: p.decay / 1000, gain: p.gain,
+        oscWave: p.oscWave, oscFreq: p.oscFreq, oscMix: p.oscMix,
+        reverb: p.reverb,
+      });
+      document.getElementById('presetLabel').textContent = p.label + ' — params loaded into sliders';
+      setTimeout(() => { document.getElementById('presetLabel').textContent = ''; }, 3000);
+    }).catch(e => setStatus('ERROR: ' + e.message));
+  });
 });
 
 document.getElementById('copyBtn').addEventListener('click', () => {

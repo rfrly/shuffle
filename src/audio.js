@@ -30,27 +30,57 @@ export function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1'
     osc.start(time); osc.stop(time + 0.08);
     return;
   }
-  // Default woodblock: white noise shaped by an exponential decay envelope.
-  // Math.pow(1 - i/bufSize, 10) produces a fast initial attack that tails off
-  // sharply — exponent 10 makes it more percussive than a linear fade would be.
-  // Downbeats use a higher bandpass frequency (2000 Hz vs 1400 Hz) and louder gain
-  // (2.8 vs 2.0) so beat 1 stands out clearly from the other beats.
-  const bufSize = Math.floor(ctx.sampleRate * 0.05);
-  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
-  const data = buf.getChannelData(0);
-  for (let i = 0; i < bufSize; i++)
-    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, 10);
-  const src = ctx.createBufferSource();
-  src.buffer = buf;
-  const filter = ctx.createBiquadFilter();
-  filter.type = "bandpass";
-  filter.frequency.value = isDownbeat ? 2000 : 1400;
-  filter.Q.value = 4;
-  const gain = ctx.createGain();
-  gain.gain.setValueAtTime((isDownbeat ? 2.8 : 2.0) * vol, time);
-  gain.gain.exponentialRampToValueAtTime(0.001, time + 0.05);
-  src.connect(filter); filter.connect(gain); gain.connect(getCompressor(ctx));
-  src.start(time); src.stop(time + 0.06);
+  // Default woodblock: pre-rendered via OfflineAudioContext with seeded PRNG,
+  // same approach as the tick click — eliminates per-hit volume variance from
+  // fresh random noise synthesis. Two variants: downbeat (2000 Hz) and normal (1400 Hz).
+  // Gain envelope baked in; playback applies only the master vol scalar.
+  const wbKey = '_woodblockBufs';
+  if (!ctx[wbKey]) {
+    function seededRand(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function renderWoodblock(freq, gainVal, seed) {
+      const rand    = seededRand(seed);
+      const decay   = 0.05;
+      const sr      = ctx.sampleRate;
+      const bufSize = Math.floor(sr * decay);
+      const offline = new OfflineAudioContext(1, bufSize, sr);
+      const noiseBuf = offline.createBuffer(1, bufSize, sr);
+      const data = noiseBuf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        data[i] = (rand() * 2 - 1) * Math.pow(1 - i / bufSize, 10);
+      const src = offline.createBufferSource();
+      src.buffer = noiseBuf;
+      const filter = offline.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.value = freq;
+      filter.Q.value = 4;
+      const gain = offline.createGain();
+      gain.gain.setValueAtTime(gainVal, 0);
+      gain.gain.exponentialRampToValueAtTime(0.001, decay);
+      src.connect(filter); filter.connect(gain); gain.connect(offline.destination);
+      src.start(0);
+      return offline.startRendering();
+    }
+    ctx[wbKey] = Promise.all([
+      renderWoodblock(2000, 2.8, 0xdeadbeef),  // downbeat
+      renderWoodblock(1400, 2.0, 0xcafebabe),  // normal beat
+    ]);
+  }
+  ctx[wbKey].then(([downbeatBuf, normalBuf]) => {
+    const renderedBuf = isDownbeat ? downbeatBuf : normalBuf;
+    const src = ctx.createBufferSource();
+    src.buffer = renderedBuf;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(vol, time);
+    src.connect(gain); gain.connect(getCompressor(ctx));
+    src.start(time);
+  });
 }
 
 export function scheduleEndBell(ctx, time, vol) {
