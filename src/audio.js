@@ -11,7 +11,7 @@ export function getCompressor(ctx) {
   return comp;
 }
 
-export function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1') {
+export function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1', isSubdivision = false) {
   // When metronome sound is tick or clave (both noise-based), the count-in uses
   // a digital triangle oscillator instead of the woodblock — the contrast between
   // a pitched digital count-in and a noise click makes the phase transition clearer.
@@ -20,12 +20,18 @@ export function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1'
   if (sound === 'tick') {
     // Digital count-in for tick: triangle oscillator, octave-up on downbeat.
     // Pitched count-in contrasts clearly with the noise-based tick click.
+    // Subdivision uses 440 Hz (one octave below normal) at reduced gain.
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = 'triangle';
-    osc.frequency.value = isDownbeat ? 1760 : 880;
     osc.connect(gain); gain.connect(getCompressor(ctx));
-    gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.55) * vol, time);
+    if (isSubdivision) {
+      osc.frequency.value = 440;
+      gain.gain.setValueAtTime(0.3 * vol, time);
+    } else {
+      osc.frequency.value = isDownbeat ? 1760 : 880;
+      gain.gain.setValueAtTime((isDownbeat ? 0.9 : 0.55) * vol, time);
+    }
     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.07);
     osc.start(time); osc.stop(time + 0.08);
     return;
@@ -70,10 +76,11 @@ export function scheduleWoodblock(ctx, time, isDownbeat, vol, sound = 'digital1'
     ctx[wbKey] = Promise.all([
       renderWoodblock(2000, 2.8, 0xdeadbeef),  // downbeat
       renderWoodblock(1400, 2.0, 0xcafebabe),  // normal beat
+      renderWoodblock(900,  1.4, 0xf0e1d2c3),  // subdivision
     ]);
   }
-  ctx[wbKey].then(([downbeatBuf, normalBuf]) => {
-    const renderedBuf = isDownbeat ? downbeatBuf : normalBuf;
+  ctx[wbKey].then(([downbeatBuf, normalBuf, subdivBuf]) => {
+    const renderedBuf = isSubdivision ? subdivBuf : isDownbeat ? downbeatBuf : normalBuf;
     const src = ctx.createBufferSource();
     src.buffer = renderedBuf;
     const gain = ctx.createGain();
