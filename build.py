@@ -254,9 +254,9 @@ watch_css = r"""
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
-    .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 22vw, 9rem); }
-    .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
+    .watch-active .exercise-number { font-size: clamp(4rem, 16vw, 7rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(3rem, 12vw, 5.5rem); }
+    .watch-active .countdown-display { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -543,7 +543,7 @@ src = patch(src,
     '              </div>\n'
     '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
     '              <div className="watch-student-status-item">\n'
-    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{sets !== 1 && mode !== MODE_CLICKONLY ? (sets === "\u221e" ? " \u221e" : " \u00d7" + sets) : ""}{mode === MODE_CLICKONLY && displayMode === "timer" ? " \u23F1\uFE0E" : ""}\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{mode !== MODE_CLICKONLY ? (sets === "\u221e" ? " [\u221e]" : sets > 1 ? " [\u00d7" + sets + "]" : " [\u00d71]") : (displayMode === "timer" ? " [\u23F1\uFE0E]" : " [#]")}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -1303,7 +1303,7 @@ firebase_and_observer = r"""
             )}
             <div className="vol-wrap">
             <button ref={obsVolBtnRef} className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={obsSubdivision || 1} /></span>
             </button>
             {showObsVolume && ReactDOM.createPortal(
               <>
@@ -1494,6 +1494,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setExMode("range");
         setPickedNums([]);
         setLetterMode(false);
+        setMetSound('digital1');
         // Clean up stale silent loop so a fresh one is created on "Open Shuffle" tap
         if (watchSilentLoop.current) {
           try { watchSilentLoop.current.stop(); } catch {}
@@ -1735,7 +1736,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.3</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.4</div>
           </div>
         )}
         {watchScreen === "share" && (
