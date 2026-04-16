@@ -106,10 +106,34 @@
 </div>
 
 <div class="section">
-  <h3>Compare</h3>
+  <h3>Compare sounds <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(exact production params from audio.js)</span></h3>
+  <div class="subhead" style="margin-bottom:0.5rem">Blip (digital1 · sine)</div>
   <div class="btn-row">
-    <button class="btn-secondary" id="playTickBtn">▶ Tick</button>
-    <button class="btn-secondary" id="playTriBtn">▶ Count-in △</button>
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="accent">Blip accent</button>
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="normal">Blip normal</button>
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="subdiv">Blip subdiv</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Ping (digital2 · triangle)</div>
+  <div class="btn-row">
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="accent">Ping accent</button>
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="normal">Ping normal</button>
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="subdiv">Ping subdiv</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Tick (noise · bandpass)</div>
+  <div class="btn-row">
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="accent">Tick accent</button>
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="normal">Tick normal</button>
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="subdiv">Tick subdiv</button>
+  </div>
+  <div style="margin-top:1rem">
+    <canvas id="waveCanvas" width="440" height="80" style="width:100%;background:#111;border-radius:4px;display:block"></canvas>
+    <div style="font-size:0.62rem;color:#555;margin-top:0.3rem;display:flex;gap:1.2rem">
+      <span><span style="color:#f5c842">— —</span> peak hold</span>
+      <span><span style="color:#ff4500">— —</span> RMS (stable across repeated taps)</span>
+    </div>
+    <div id="peakReadout" style="font-size:0.68rem;color:#aaa;margin-top:0.3rem;text-align:center;min-height:1em"></div>
+    <button id="copyCompareBtn" class="btn-secondary" style="margin-top:0.75rem;background:#1a1a1a;color:#f5c842;border:1px solid #333">⎘ Copy readout</button>
+    <div id="copyCompareFeedback" style="font-size:0.68rem;color:#f5c842;margin-top:0.3rem;min-height:1em;text-align:center"></div>
   </div>
 </div>
 
@@ -320,12 +344,210 @@ document.getElementById('loopBtn').addEventListener('click', () => {
   if (loopRunning) stopLoop(); else startLoop();
 });
 
-document.getElementById('playTickBtn').addEventListener('click', () => {
-  getCtx().then(c => playNoiseFixed(c, c.currentTime + 0.02, 1200, 5, 14, 0.05, 6));
+// ── Analyser / waveform visualiser ──────────────────────────────────────────
+let analyser = null, analyserRaf = null;
+
+function getAnalyser(c) {
+  if (analyser) return analyser;
+  analyser = c.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0;
+  analyser.connect(c.destination);
+  return analyser;
+}
+
+function drawWave(label) {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx2d  = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const buf = new Float32Array(analyser.fftSize);
+  let peak = 0, framesSincePeak = 0;
+  // RMS: accumulate across all frames while signal is active, then hold
+  let rmsSumSq = 0, rmsSampleCount = 0, lastRms = 0;
+  const HOLD_FRAMES = 60; // ~1s at 60fps
+
+  cancelAnimationFrame(analyserRaf);
+
+  function frame() {
+    analyser.getFloatTimeDomainData(buf);
+    const framePeak = buf.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    if (framePeak >= peak) { peak = framePeak; framesSincePeak = 0; }
+    else if (framesSincePeak++ > HOLD_FRAMES) peak = framePeak;
+
+    // Accumulate RMS while any signal is present
+    if (framePeak > 0.001) {
+      for (let i = 0; i < buf.length; i++) rmsSumSq += buf[i] * buf[i];
+      rmsSampleCount += buf.length;
+      lastRms = Math.sqrt(rmsSumSq / rmsSampleCount);
+    }
+
+    ctx2d.fillStyle = '#111';
+    ctx2d.fillRect(0, 0, W, H);
+
+    // Centre line
+    ctx2d.strokeStyle = '#222';
+    ctx2d.lineWidth = 1;
+    ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
+
+    // Peak hold bars (amber, dashed)
+    const peakY = H/2 - peak * (H/2 - 4);
+    ctx2d.strokeStyle = peak > 0.8 ? '#ff4500' : '#f5c842';
+    ctx2d.lineWidth = 1;
+    ctx2d.setLineDash([2, 3]);
+    ctx2d.beginPath(); ctx2d.moveTo(0, peakY); ctx2d.lineTo(W, peakY); ctx2d.stroke();
+    ctx2d.beginPath(); ctx2d.moveTo(0, H - peakY); ctx2d.lineTo(W, H - peakY); ctx2d.stroke();
+    ctx2d.setLineDash([]);
+
+    // RMS hold bars (orange, dashed — stable across repeated taps)
+    if (lastRms > 0) {
+      const rmsY = H/2 - lastRms * (H/2 - 4);
+      ctx2d.strokeStyle = '#ff4500';
+      ctx2d.lineWidth = 1;
+      ctx2d.setLineDash([4, 4]);
+      ctx2d.beginPath(); ctx2d.moveTo(0, rmsY); ctx2d.lineTo(W, rmsY); ctx2d.stroke();
+      ctx2d.beginPath(); ctx2d.moveTo(0, H - rmsY); ctx2d.lineTo(W, H - rmsY); ctx2d.stroke();
+      ctx2d.setLineDash([]);
+    }
+
+    // Waveform
+    ctx2d.strokeStyle = '#f5c842';
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath();
+    for (let i = 0; i < buf.length; i++) {
+      const x = (i / buf.length) * W;
+      const y = H/2 - buf[i] * (H/2 - 4);
+      i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    const peakDb = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '—';
+    const rmsDb  = lastRms > 0 ? (20 * Math.log10(lastRms)).toFixed(1) : '—';
+    document.getElementById('peakReadout').textContent =
+      label + '  |  peak ' + peakDb + ' dBFS  ·  RMS ' + rmsDb + ' dBFS';
+
+    analyserRaf = requestAnimationFrame(frame);
+  }
+  analyserRaf = requestAnimationFrame(frame);
+}
+
+// ── Production sound functions (exact params from audio.js) ─────────────────
+function playCompareSound(c, sound, beat) {
+  const an = getAnalyser(c);
+  const t  = c.currentTime + 0.02;
+  const isSub = beat === 'subdiv';
+
+  function noiseClick(freq, q, gainVal, decay, exp) {
+    const bufSize = Math.floor(c.sampleRate * decay);
+    const buf = c.createBuffer(1, bufSize, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++)
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, exp);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const flt = c.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = freq; flt.Q.value = q;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + decay);
+    src.connect(flt); flt.connect(g); g.connect(an);
+    src.start(t); src.stop(t + decay + 0.005);
+  }
+
+  function oscClick(type, freq, gainVal) {
+    const osc = c.createOscillator();
+    osc.type = type; osc.frequency.value = freq;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    osc.connect(g); g.connect(an);
+    osc.start(t); osc.stop(t + 0.08);
+  }
+
+  if (sound === 'blip') {
+    // digital1: sine
+    if (isSub) oscClick('sine', 500, 0.22);
+    else oscClick('sine', beat === 'accent' ? 1000 : 700, beat === 'accent' ? 0.9 : 0.5);
+  } else if (sound === 'ping') {
+    // digital2: triangle
+    if (isSub) oscClick('triangle', 440, 0.35);
+    else oscClick('triangle', beat === 'accent' ? 1760 : 880, beat === 'accent' ? 0.9 : 0.55);
+  } else if (sound === 'tick') {
+    // tick: pre-rendered and cached on the context (same pattern as audio.js).
+    // Rendered once, reused on every tap — deterministic, no per-click variance.
+    const tickKey = '_compareTick';
+    function seededRand(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function renderVariant(freq, q, gainVal, seed) {
+      const rand = seededRand(seed);
+      const decay = 0.05, sr = c.sampleRate;
+      const bufSize = Math.floor(sr * decay);
+      const offline = new OfflineAudioContext(1, bufSize, sr);
+      const noiseBuf = offline.createBuffer(1, bufSize, sr);
+      const nd = noiseBuf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        nd[i] = (rand() * 2 - 1) * Math.pow(1 - i / bufSize, 14);
+      const os = offline.createBufferSource(); os.buffer = noiseBuf;
+      const of2 = offline.createBiquadFilter();
+      of2.type = 'bandpass'; of2.frequency.value = freq; of2.Q.value = q;
+      const og = offline.createGain();
+      og.gain.setValueAtTime(gainVal, 0);
+      og.gain.exponentialRampToValueAtTime(0.001, decay);
+      os.connect(of2); of2.connect(og); og.connect(offline.destination);
+      os.start(0);
+      return offline.startRendering();
+    }
+    if (!c[tickKey]) {
+      c[tickKey] = Promise.all([
+        renderVariant(2000, 5, 14.0, 0x1a2b3c4d),  // accent — same seeds as audio.js
+        renderVariant(1200, 5, 10.0, 0x5e6f7a8b),  // normal
+        renderVariant(900,  4,  6.0, 0x9cad0ebe),  // subdiv
+      ]);
+    }
+    c[tickKey].then(([accentBuf, normalBuf, subdivBuf]) => {
+      const rendered = isSub ? subdivBuf : beat === 'accent' ? accentBuf : normalBuf;
+      const pb = c.createBufferSource(); pb.buffer = rendered;
+      pb.connect(an); pb.start(t);
+      // Compute RMS directly from the buffer samples — immune to analyser timing
+      const data = rendered.getChannelData(0);
+      let sumSq = 0;
+      for (let i = 0; i < data.length; i++) sumSq += data[i] * data[i];
+      const rms = Math.sqrt(sumSq / data.length);
+      const peak = data.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      const rmsDb  = rms  > 0 ? (20 * Math.log10(rms)).toFixed(1)  : '—';
+      const peakDb = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '—';
+      document.getElementById('peakReadout').textContent =
+        `Tick ${beat}  |  peak ${peakDb} dBFS  ·  RMS ${rmsDb} dBFS  (buffer)`;
+    });
+    return;
+  }
+}
+
+document.querySelectorAll('.compare-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sound = btn.dataset.sound;
+    const beat  = btn.dataset.beat;
+    const label = btn.textContent;
+    getCtx().then(c => {
+      playCompareSound(c, sound, beat);
+      drawWave(label);
+    }).catch(e => setStatus('ERROR: ' + e.message));
+  });
 });
 
-document.getElementById('playTriBtn').addEventListener('click', () => {
-  getCtx().then(c => playTriangleFixed(c, c.currentTime + 0.02, 880, 0.55));
+document.getElementById('copyCompareBtn').addEventListener('click', () => {
+  const text = document.getElementById('peakReadout').textContent;
+  const fb = document.getElementById('copyCompareFeedback');
+  if (!text) { fb.textContent = 'Nothing to copy yet'; setTimeout(() => { fb.textContent = ''; }, 2000); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    fb.textContent = 'Copied';
+    setTimeout(() => { fb.textContent = ''; }, 2000);
+  }).catch(() => { fb.textContent = text; });
 });
 
 document.getElementById('copyBtn').addEventListener('click', () => {
