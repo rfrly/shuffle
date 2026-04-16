@@ -886,7 +886,7 @@ firebase_and_observer = r"""
                   }}>{effectiveLm ? "Turn letter mode off" : "Turn letter mode on"}</button>
                   <div className="obs-menu-item obs-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
                     <span>Click sound</span>
-                    <span className={`settings-menu-arrow${soundMenuOpen ? " settings-menu-arrow--open" : ""}`}>\u203a</span>
+                    <span className={`settings-menu-arrow${soundMenuOpen ? " settings-menu-arrow--open" : ""}`}>›</span>
                   </div>
                   {soundMenuOpen && (
                     <div className="settings-menu-submenu">
@@ -937,7 +937,7 @@ firebase_and_observer = r"""
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
                       mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
-                      volume: 1.0, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7 });
+                      volume: 1.0, subdivision: 1, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7 });
                     setLetterModeOverride(false);
                     showToast("Settings reset");
                   }}>Reset to defaults</button>
@@ -1495,6 +1495,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setPickedNums([]);
         setLetterMode(false);
         setMetSound('digital1');
+        setSubdivision(1);
         // Clean up stale silent loop so a fresh one is created on "Open Shuffle" tap
         if (watchSilentLoop.current) {
           try { watchSilentLoop.current.stop(); } catch {}
@@ -1736,7 +1737,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.2 · watch 1.5</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.3 · watch 1.6</div>
           </div>
         )}
         {watchScreen === "share" && (

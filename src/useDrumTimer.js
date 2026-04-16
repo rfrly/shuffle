@@ -387,6 +387,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               const totalBarsPerSet = totalInSet * bpe;
               if (playingBars.current % totalBarsPerSet === 0) {
                 const t2 = t;
+                exercisesPlayed.current = 0;
                 setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
               }
               if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
