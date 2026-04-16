@@ -867,6 +867,7 @@
     .settings-menu-item--expandable:active { background: #222; }
     .settings-menu-arrow {
       display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
+      font-family: var(--font-body);
     }
     .settings-menu-arrow--open { transform: rotate(90deg); }
     .settings-menu-submenu { background: #111; border-bottom: 1px solid #222; }
@@ -4433,7 +4434,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.4</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.2 · watch 1.5</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -5076,7 +5077,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.0 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
