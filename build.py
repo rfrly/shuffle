@@ -254,9 +254,9 @@ watch_css = r"""
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
-    .watch-active .exercise-number { font-size: clamp(7rem, 28vw, 12rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 22vw, 9rem); }
-    .watch-active .countdown-display { font-size: clamp(7rem, 28vw, 12rem); }
+    .watch-active .exercise-number { font-size: clamp(4rem, 16vw, 7rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(3rem, 12vw, 5.5rem); }
+    .watch-active .countdown-display { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -542,7 +542,7 @@ src = patch(src,
     '              </div>\n'
     '              <div className="watch-student-status-item">{barsPerExercise} round{barsPerExercise !== 1 ? "s" : ""}</div>\n'
     '              <div className="watch-student-status-item">\n'
-    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{sets !== 1 && mode !== MODE_CLICKONLY ? (sets === "\u221e" ? " \u221e" : " \u00d7" + sets) : ""}{mode === MODE_CLICKONLY && displayMode === "timer" ? " \u23F1\uFE0E" : ""}\n'
+    '                {mode === MODE_FULLSET ? "Shuffle" : mode === MODE_SEQUENTIAL ? "Sequence" : "Metronome"}{mode !== MODE_CLICKONLY ? (sets === "\u221e" ? " [\u221e]" : sets > 1 ? " [\u00d7" + sets + "]" : " [\u00d71]") : (displayMode === "timer" ? " [\u23F1\uFE0E]" : " [#]")}\n'
     '              </div>\n'
     '            </div>\n'
     '          )}\n'
@@ -619,7 +619,51 @@ firebase_and_observer = r"""
     }
 
     // ── Observer vol popup (portal-rendered, positioned above vol button) ────────
-    function ObsVolPopup({ btnRef, obsVolume, obsSubdivision, obsSubdivVol, obsSubdivVol2, onSendCmd }) {
+    function ObsSubdivSVG({ value }) {
+      if (value === 2) return (
+        <svg viewBox="0 0 30 36" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+        </svg>
+      );
+      if (value === 4) return (
+        <svg viewBox="0 0 46 36" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
+          <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
+          <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+          <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
+        </svg>
+      );
+      if (value === 3) return (
+        <svg viewBox="0 -10 46 46" className="subdiv-svg">
+          <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+          <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+          <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
+          <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+          <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+          <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
+          <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
+        </svg>
+      );
+      return (
+        <svg viewBox="0 0 16 36" className="subdiv-svg">
+          <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
+          <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+        </svg>
+      );
+    }
+    function ObsVolPopup({ btnRef, obsVolume, obsSubdivision, obsSubdivVol, obsSubdivVol2, obsSubdivVol3, onSendCmd }) {
       const [style, setStyle] = React.useState({});
       React.useEffect(() => {
         if (btnRef.current) {
@@ -627,6 +671,12 @@ firebase_and_observer = r"""
           setStyle({ position: 'fixed', right: window.innerWidth - rect.right, bottom: window.innerHeight - rect.top + 6, zIndex: 51 });
         }
       }, []);
+      const sub = obsSubdivision || 1;
+      const rows = [
+        { value: 2, vol: obsSubdivVol  ?? 0.7, field: 'subdivVol'  },
+        { value: 4, vol: obsSubdivVol2 ?? 0.7, field: 'subdivVol2' },
+        { value: 3, vol: obsSubdivVol3 ?? 0.7, field: 'subdivVol3' },
+      ];
       return (
         <div className="vol-slider-row" style={style}>
           <div className="vol-slider-item">
@@ -635,22 +685,22 @@ firebase_and_observer = r"""
             <input type="range" min={0} max={1} step={0.05} value={obsVolume ?? 1} onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
             <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
           </div>
-          {obsSubdivision > 1 && (
-            <div className="vol-slider-item">
-              <span>{obsSubdivision === 4 ? "8th" : obsSubdivision === 3 ? "Triplet" : "8th"}</span>
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
-              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol ?? 1} onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
-            </div>
-          )}
-          {obsSubdivision === 4 && (
-            <div className="vol-slider-item">
-              <span>16th</span>
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.max(0, Math.round(((obsSubdivVol2 ?? 1) - 0.05) * 100) / 100) })}>−</button>
-              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol2 ?? 1} onChange={e => onSendCmd({ subdivVol2: Number(e.target.value) })} />
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.min(1, Math.round(((obsSubdivVol2 ?? 1) + 0.05) * 100) / 100) })}>+</button>
-            </div>
-          )}
+          {rows.map(row => {
+            const active = sub === row.value || (row.value === 2 && sub === 4);
+            const isSelector = row.value !== 2 || sub !== 4;
+            return (
+              <div key={row.value} className={`vol-slider-item${active ? '' : ' vol-subdiv-inactive'}`}>
+                <button className="vol-subdiv-icon-btn"
+                  onClick={() => { if (isSelector) onSendCmd({ subdivision: sub === row.value ? 1 : row.value }); }}
+                  style={!isSelector ? { cursor: 'default' } : {}}>
+                  <ObsSubdivSVG value={row.value} />
+                </button>
+                <button className="vol-nudge-btn" onClick={() => onSendCmd({ [row.field]: Math.max(0, Math.round((row.vol - 0.05) * 100) / 100) })}>−</button>
+                <input type="range" min={0} max={1} step={0.05} value={row.vol} onChange={e => onSendCmd({ [row.field]: Number(e.target.value) })} />
+                <button className="vol-nudge-btn" onClick={() => onSendCmd({ [row.field]: Math.min(1, Math.round((row.vol + 0.05) * 100) / 100) })}>+</button>
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -1032,9 +1082,26 @@ firebase_and_observer = r"""
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${obsMode === m.value ? " active" : ""}`}
-                      onClick={() => { if (m.value !== obsMode) onSendCmd({ mode: m.value }); }}
+                      onClick={() => {
+                        if (m.value === obsMode) {
+                          if (m.value === "clickonly") {
+                            const next = obsDisplayMode === "bars" ? "timer" : "bars";
+                            onSendCmd({ displayMode: next });
+                          } else {
+                            const next = obsSets === 1 ? 2 : obsSets === 2 ? 3 : obsSets === 3 ? "\u221e" : 1;
+                            onSendCmd({ sets: next });
+                          }
+                        } else {
+                          onSendCmd({ mode: m.value });
+                        }
+                      }}
                       disabled={disabled || obsRunning}>
                       {m.label}
+                      {m.value === obsMode && m.value !== "clickonly"
+                        ? (obsSets === "\u221e" ? " [\u221e]" : ` [\u00d7${obsSets}]`)
+                        : m.value === obsMode && m.value === "clickonly"
+                        ? (obsDisplayMode === "timer" ? " [\u23F1\uFE0E]" : " [#]")
+                        : ""}
                     </button>
                   ))}
                 </div>
@@ -1254,12 +1321,12 @@ firebase_and_observer = r"""
             )}
             <div className="vol-wrap">
             <button ref={obsVolBtnRef} className={`vol-label-btn${showObsVolume ? " active" : ""}`} onClick={() => setShowObsVolume(v => !v)}>
-              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol
+              <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><rect x="1" y="5" width="3" height="6" fill="currentColor"/><polygon points="4,5 8,2 8,14 4,11" fill="currentColor"/><path d="M10 5.5 C11.5 6.5 11.5 9.5 10 10.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/><path d="M11.5 3.5 C13.5 5 13.5 11 11.5 12.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" fill="none"/></svg>&nbsp;vol <span className="vol-subdiv-badge"><ObsSubdivSVG value={obsSubdivision || 1} /></span>
             </button>
             {showObsVolume && ReactDOM.createPortal(
               <>
                 <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />
-                <ObsVolPopup btnRef={obsVolBtnRef} obsVolume={obsVolume} obsSubdivision={obsSubdivision} obsSubdivVol={obsSubdivVol} obsSubdivVol2={obsSubdivVol2} onSendCmd={onSendCmd} />
+                <ObsVolPopup btnRef={obsVolBtnRef} obsVolume={obsVolume} obsSubdivision={obsSubdivision} obsSubdivVol={obsSubdivVol} obsSubdivVol2={obsSubdivVol2} obsSubdivVol3={obsSubdivVol3} onSendCmd={onSendCmd} />
               </>,
               document.body
             )}
@@ -1445,6 +1512,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setExMode("range");
         setPickedNums([]);
         setLetterMode(false);
+        setMetSound('digital1');
         // Clean up stale silent loop so a fresh one is created on "Open Shuffle" tap
         if (watchSilentLoop.current) {
           try { watchSilentLoop.current.stop(); } catch {}
@@ -1685,7 +1753,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.2</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.4</div>
           </div>
         )}
         {watchScreen === "share" && (
