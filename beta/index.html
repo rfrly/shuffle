@@ -2015,6 +2015,7 @@
                   const totalBarsPerSet = totalInSet * bpe;
                   if (playingBars.current % totalBarsPerSet === 0) {
                     const t2 = t;
+                    exercisesPlayed.current = 1;
                     setTimeout(() => { if (stoppedRef.current) return; onLoop(); }, Math.max(0, (t2 - ctx.currentTime) * 1000));
                   }
                   if (totalInSet > 1 && playingBars.current % totalBarsPerSet === totalBarsPerSet - bpe) {
@@ -3701,7 +3702,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.3.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.3.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
