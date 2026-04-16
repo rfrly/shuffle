@@ -7,6 +7,7 @@ import {
 } from '../constants.js';
 import { loadSettings, saveSettings, loadUrlParams } from '../storage.js';
 import { useDrumTimer } from '../useDrumTimer.js';
+import { scheduleMetronomeClick, getCompressor } from '../audio.js';
 import { useLongPress, useSwipeInput } from '../useInteraction.js';
 import { NumpadPopup, BarPickerPopup, fmt, numToLetter, fmtEx } from './NumpadComponents.jsx';
 import { BarProgress } from './BarProgress.jsx';
@@ -34,7 +35,7 @@ function useNudge(setter, delta) {
   return { onMouseDown: start, onMouseUp: stop, onMouseLeave: stop, onTouchStart: (e) => { e.preventDefault(); start(); }, onTouchEnd: stop };
 }
 
-function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdivVol2, setSubdivVol2, subdivision }) {
+function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdivVol2, setSubdivVol2, subdivVol3, setSubdivVol3, subdivision, setSubdivision }) {
   const [style, setStyle] = useState({});
   useEffect(() => {
     if (volBtnRef.current) {
@@ -47,39 +48,67 @@ function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdi
       });
     }
   }, []);
-  const volDown  = useNudge(setVolume,    -0.05);
-  const volUp    = useNudge(setVolume,     0.05);
-  const subDown  = useNudge(setSubdivVol, -0.05);
-  const subUp    = useNudge(setSubdivVol,  0.05);
+  const volDown  = useNudge(setVolume,     -0.05);
+  const volUp    = useNudge(setVolume,      0.05);
+  const subDown  = useNudge(setSubdivVol,  -0.05);
+  const subUp    = useNudge(setSubdivVol,   0.05);
   const sub2Down = useNudge(setSubdivVol2, -0.05);
   const sub2Up   = useNudge(setSubdivVol2,  0.05);
-  const subdiv8Label  = subdivision === 3 ? 'Triplet' : '8th';
+  const sub3Down = useNudge(setSubdivVol3, -0.05);
+  const sub3Up   = useNudge(setSubdivVol3,  0.05);
+
+  const rows = [
+    { value: 2, nudgeDown: subDown,  nudgeUp: subUp,  vol: subdivVol,  setVol: setSubdivVol },
+    { value: 4, nudgeDown: sub2Down, nudgeUp: sub2Up, vol: subdivVol2, setVol: setSubdivVol2 },
+    { value: 3, nudgeDown: sub3Down, nudgeUp: sub3Up, vol: subdivVol3, setVol: setSubdivVol3 },
+  ];
+
   return (
     <div className="vol-slider-row" style={style}>
+      {/* Master volume */}
       <div className="vol-slider-item">
         <span>Master</span>
         <button className="vol-nudge-btn" {...volDown}>−</button>
         <input type="range" min={0} max={1} step={0.05} value={volume} onChange={e => setVolume(Number(e.target.value))} />
         <button className="vol-nudge-btn" {...volUp}>+</button>
       </div>
-      {subdivision > 1 && (
-        <div className="vol-slider-item">
-          <span>{subdivision === 4 ? '8th' : subdiv8Label}</span>
-          <button className="vol-nudge-btn" {...subDown}>−</button>
-          <input type="range" min={0} max={1} step={0.05} value={subdivVol} onChange={e => setSubdivVol(Number(e.target.value))} />
-          <button className="vol-nudge-btn" {...subUp}>+</button>
-        </div>
-      )}
-      {subdivision === 4 && (
-        <div className="vol-slider-item">
-          <span>16th</span>
-          <button className="vol-nudge-btn" {...sub2Down}>−</button>
-          <input type="range" min={0} max={1} step={0.05} value={subdivVol2} onChange={e => setSubdivVol2(Number(e.target.value))} />
-          <button className="vol-nudge-btn" {...sub2Up}>+</button>
-        </div>
-      )}
+      {/* Subdivision rows — always visible, tap icon to activate/deactivate */}
+      {rows.map(row => {
+        const active = subdivision === row.value || (row.value === 2 && subdivision === 4);
+        const isSelector = row.value !== 2 || subdivision !== 4; // ♪♪ in 16th mode = vol only, not selector
+        return (
+          <div key={row.value} className={`vol-slider-item${active ? '' : ' vol-subdiv-inactive'}`}>
+            <button
+              className="vol-subdiv-icon-btn"
+              onClick={() => {
+                if (isSelector) setSubdivision(subdivision === row.value ? 1 : row.value);
+              }}
+              style={!isSelector ? { cursor: 'default' } : {}}>
+              <SubdivSVG value={row.value} />
+            </button>
+            <button className="vol-nudge-btn" {...row.nudgeDown}>−</button>
+            <input type="range" min={0} max={1} step={0.05} value={row.vol} onChange={e => row.setVol(Number(e.target.value))} />
+            <button className="vol-nudge-btn" {...row.nudgeUp}>+</button>
+          </div>
+        );
+      })}
     </div>
   );
+}
+
+function useLongPressSimple(callback) {
+  const timerRef = useRef(null);
+  const start = (e) => {
+    e.preventDefault();
+    callback();
+    timerRef.current = setTimeout(() => {
+      timerRef.current = setInterval(callback, 80);
+    }, 400);
+  };
+  const stop = () => {
+    if (timerRef.current) { clearInterval(timerRef.current); clearTimeout(timerRef.current); timerRef.current = null; }
+  };
+  return { onPointerDown: start, onPointerUp: stop, onPointerLeave: stop, onPointerCancel: stop };
 }
 
 function BpmAutoPopup({
@@ -92,6 +121,8 @@ function BpmAutoPopup({
   anchorRef, onClose,
 }) {
   const [popupStyle, setPopupStyle] = useState({});
+  const [localMode, setLocalMode] = useState(bpmAutoRandom ? 'random' : 'increment');
+  const isMetronome = mode === MODE_CLICKONLY;
 
   useEffect(() => {
     if (anchorRef.current) {
@@ -104,11 +135,9 @@ function BpmAutoPopup({
         bottom: window.innerHeight - rect.top + 6,
       });
     }
-    // Seed random range from current BPM each time popup opens
     const halfSpan = Math.round(bpm * 0.035);
     setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
     setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
-    // In Metronome mode, 'set' trigger is invalid — default to 'bars'
     if (isMetronome && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
   }, []);
 
@@ -134,113 +163,123 @@ function BpmAutoPopup({
   const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
   const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
 
-  const isMetronome = mode === MODE_CLICKONLY;
-
   return ReactDOM.createPortal(
     <>
       <div className="bpm-auto-backdrop" onClick={onClose} />
       <div className="bpm-auto-popup" style={popupStyle}>
-
-        {/* Master toggle — prominent header */}
-        <button
-          className={`bpm-auto-master-toggle${bpmAuto ? " active" : ""}`}
-          onClick={() => setBpmAuto(v => !v)}
-        >
-          Auto BPM
-        </button>
-
-        {/* Trigger label — infinite modes */}
-        {!isMetronome && (
-          <div className="bpm-auto-trigger-label">Changes every set</div>
-        )}
-
+        <div className="bpm-auto-master-row" onClick={() => setBpmAuto(v => !v)}>
+          <span className="bpm-auto-master-label">Auto BPM</span>
+          <div className={`bpm-auto-toggle${bpmAuto ? " active" : ""}`}>
+            <div className="bpm-auto-toggle-thumb" />
+          </div>
+        </div>
         <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
-
-        {/* Trigger interval — Metronome only */}
-        {isMetronome && (
-          <div className="bpm-auto-row">
-            <span className="bpm-auto-label">Every</span>
-            <div className="bpm-auto-stepper">
-              <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
-              <span className="bpm-auto-step-val">
-                {activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}
-              </span>
-              <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
-            </div>
+          {!isMetronome && (
             <div className="bpm-auto-unit-row">
-              <button className={`sel-btn${bpmAutoTrigger === 'bars' ? " active" : ""}`}
-                onClick={() => setBpmAutoTrigger('bars')}>bars</button>
-              <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? " active" : ""}`}
-                onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
+              <button className={`sel-btn${localMode === 'increment' ? " active" : ""}`} onClick={() => { setLocalMode('increment'); setBpmAutoRandom(false); }}>Increment</button>
+              <button className={`sel-btn${localMode === 'random' ? " active" : ""}`} onClick={() => { setLocalMode('random'); setBpmAutoRandom(true); }}>Random</button>
             </div>
-          </div>
-        )}
-
-        {/* Step / direction — primary controls */}
-        {!bpmAutoRandom && (
-          <div className="bpm-auto-row">
-            <span className="bpm-auto-label">Step</span>
-            <div className="bpm-auto-stepper">
-              <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
-              <span className="bpm-auto-step-val">{bpmAutoStep}</span>
-              <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
-            </div>
-            <div className="bpm-auto-unit-row">
-              <button className={`sel-btn${bpmAutoDir === 'up' ? " active" : ""}`}
-                onClick={() => setBpmAutoDir('up')}>▲ Up</button>
-              <button className={`sel-btn${bpmAutoDir === 'down' ? " active" : ""}`}
-                onClick={() => setBpmAutoDir('down')}>▼ Down</button>
-            </div>
-          </div>
-        )}
-
-        {/* Random — secondary section, Shuffle/Sequence ∞ only */}
-        {!isMetronome && (
-          <div className="bpm-auto-secondary">
-            <button className={`bpm-auto-random-toggle${bpmAutoRandom ? " active" : ""}`}
-              onClick={() => setBpmAutoRandom(v => !v)}>
-              {bpmAutoRandom ? "✓ Random tempo" : "Random tempo"}
-            </button>
-            {bpmAutoRandom && (
-              <div className="bpm-auto-row" style={{ marginTop: '0.4rem' }}>
-                <span className="bpm-auto-label">Min</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMin}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
-                </div>
-                <span className="bpm-auto-label">Max</span>
-                <div className="bpm-auto-stepper">
-                  <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
-                  <span className="bpm-auto-step-val">{bpmAutoMax}</span>
-                  <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
-                </div>
+          )}
+          {isMetronome && (
+            <div className="bpm-auto-row">
+              <span className="bpm-auto-label">Every</span>
+              <div className="bpm-auto-stepper">
+                <button className="bpm-auto-step-btn left" {...intervalDecHandlers}>−</button>
+                <span className="bpm-auto-step-val">{activeInterval}{bpmAutoTrigger === 'seconds' ? 's' : ''}</span>
+                <button className="bpm-auto-step-btn right" {...intervalIncHandlers}>+</button>
               </div>
-            )}
-          </div>
-        )}
-
-        </div>{/* end bpm-auto-disabled wrapper */}
-
+              <div className="bpm-auto-unit-row">
+                <button className={`sel-btn${bpmAutoTrigger === 'bars' ? " active" : ""}`} onClick={() => setBpmAutoTrigger('bars')}>bars</button>
+                <button className={`sel-btn${bpmAutoTrigger === 'seconds' ? " active" : ""}`} onClick={() => setBpmAutoTrigger('seconds')}>sec</button>
+              </div>
+            </div>
+          )}
+          {!isMetronome && localMode === 'increment' && (
+            <div className="bpm-auto-trigger-label">Changes every set</div>
+          )}
+          {(isMetronome || localMode === 'increment') && (
+            <div className="bpm-auto-row">
+              <span className="bpm-auto-label">Step</span>
+              <div className="bpm-auto-stepper">
+                <button className="bpm-auto-step-btn left" {...stepDecHandlers}>−</button>
+                <span className="bpm-auto-step-val">{bpmAutoStep}</span>
+                <button className="bpm-auto-step-btn right" {...stepIncHandlers}>+</button>
+              </div>
+              <div className="bpm-auto-unit-row">
+                <button className={`sel-btn${bpmAutoDir === 'up' ? " active" : ""}`} onClick={() => setBpmAutoDir('up')}>▲ Up</button>
+                <button className={`sel-btn${bpmAutoDir === 'down' ? " active" : ""}`} onClick={() => setBpmAutoDir('down')}>▼ Down</button>
+              </div>
+            </div>
+          )}
+          {!isMetronome && localMode === 'random' && (
+            <div className="bpm-auto-trigger-label">Picks a random BPM each set</div>
+          )}
+          {!isMetronome && localMode === 'random' && (
+            <div className="bpm-auto-row">
+              <span className="bpm-auto-label">Min</span>
+              <div className="bpm-auto-stepper">
+                <button className="bpm-auto-step-btn left" {...rangeMinDecHandlers}>−</button>
+                <span className="bpm-auto-step-val">{bpmAutoMin}</span>
+                <button className="bpm-auto-step-btn right" {...rangeMinIncHandlers}>+</button>
+              </div>
+              <span className="bpm-auto-label">Max</span>
+              <div className="bpm-auto-stepper">
+                <button className="bpm-auto-step-btn left" {...rangeMaxDecHandlers}>−</button>
+                <span className="bpm-auto-step-val">{bpmAutoMax}</span>
+                <button className="bpm-auto-step-btn right" {...rangeMaxIncHandlers}>+</button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </>,
     document.body
   );
 }
 
-function useLongPressSimple(callback) {
-  const timerRef = useRef(null);
-  const start = (e) => {
-    e.preventDefault();
-    callback();
-    timerRef.current = setTimeout(() => {
-      timerRef.current = setInterval(callback, 80);
-    }, 400);
-  };
-  const stop = () => {
-    if (timerRef.current) { clearInterval(timerRef.current); clearTimeout(timerRef.current); timerRef.current = null; }
-  };
-  return { onPointerDown: start, onPointerUp: stop, onPointerLeave: stop, onPointerCancel: stop };
+function SubdivSVG({ value }) {
+  if (value === 1) return (
+    <svg viewBox="0 0 16 36" className="subdiv-svg">
+      <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
+      <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+    </svg>
+  );
+  if (value === 2) return (
+    <svg viewBox="0 0 30 36" className="subdiv-svg">
+      <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+      <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+      <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+    </svg>
+  );
+  if (value === 3) return (
+    <svg viewBox="0 -10 46 46" className="subdiv-svg">
+      <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+      <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
+      <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
+      <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+      <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
+      <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
+    </svg>
+  );
+  return (
+    <svg viewBox="0 0 46 36" className="subdiv-svg">
+      <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
+      <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
+      <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
+      <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
+      <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
+      <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
+    </svg>
+  );
 }
 
 function defaultBeatStates(timeSigLabel) {
@@ -264,16 +303,16 @@ export function App() {
   const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
   const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
   const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
-  const [infinite,        setInfinite]        = useState(() => saved?.infinite ?? false);
-  const [stopwatch,       setStopwatch]       = useState(() => saved?.stopwatch ?? false);
-  const [infiniteByMode,  setInfiniteByMode]  = useState(() => saved?.infiniteByMode ?? { [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-  const [stopwatchPref,   setStopwatchPref]   = useState(() => saved?.stopwatchPref ?? false);
+  const [sets,            setSets]            = useState(() => saved?.sets ?? 1);
+  const [displayMode,     setDisplayMode]     = useState(() => saved?.displayMode ?? 'bars');
+
   const [elapsedSeconds,  setElapsedSeconds]  = useState(0);
   const timerStartRef  = useRef(null);
   const elapsedAccumRef = useRef(0);
   const [volume,          setVolume]          = useState(() => saved?.volume ?? 1.0);
   const [subdivVol,       setSubdivVol]       = useState(() => saved?.subdivVol ?? 0.7);
   const [subdivVol2,      setSubdivVol2]      = useState(() => saved?.subdivVol2 ?? 0.7);
+  const [subdivVol3,      setSubdivVol3]      = useState(() => saved?.subdivVol3 ?? 0.7);
   const [exercise,        setExercise]        = useState(null);
   const [nextEx,          setNextEx]          = useState(null);
   const [setCount,        setSetCount]        = useState(1);
@@ -281,7 +320,6 @@ export function App() {
   const [tapped,          setTapped]          = useState(false);
   const [showVolume,      setShowVolume]      = useState(false);
   const [showHelp,        setShowHelp]        = useState(false);
-  const [openSelector,    setOpenSelector]    = useState(null);
   const [helpScrolledToEnd, setHelpScrolledToEnd] = useState(false);
   const [helpNeedsScroll, setHelpNeedsScroll] = useState(false);
   const helpOverlayRef = useRef(null);
@@ -304,6 +342,8 @@ export function App() {
   const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
   const letterModeMountedRef = useRef(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
+  const [soundMenuOpen,    setSoundMenuOpen]    = useState(false);
+  const [metSound,         setMetSound]         = useState(() => saved?.metSound ?? 'digital1');
   const [bpmAuto,          setBpmAuto]          = useState(() => saved?.bpmAuto ?? false);
   const [bpmAutoStep,        setBpmAutoStep]        = useState(() => saved?.bpmAutoStep ?? 2);
   const [bpmAutoDir,         setBpmAutoDir]         = useState(() => saved?.bpmAutoDir ?? 'up');
@@ -313,10 +353,11 @@ export function App() {
   const [bpmAutoRandom,      setBpmAutoRandom]      = useState(() => saved?.bpmAutoRandom ?? false);
   const [bpmAutoMin,         setBpmAutoMin]         = useState(bpm);
   const [bpmAutoMax,         setBpmAutoMax]         = useState(bpm);
-  const [bpmAutoOpen,      setBpmAutoOpen]      = useState(false);
+  const [openSelector,       setOpenSelector]       = useState(null);
+  const [bpmAutoOpen,        setBpmAutoOpen]        = useState(false);
+  const bpmGearBtnRef = useRef(null);
   const autoBarCountRef  = useRef(0);
   const autoTimerRef     = useRef(null);
-  const bpmGearBtnRef    = useRef(null);
   const appToastTimer = useRef(null);
   const [appToastMsg, setAppToastMsg] = useState(null);
   const [appToastKey, setAppToastKey] = useState(0);
@@ -331,12 +372,13 @@ export function App() {
 
   useEffect(() => {
     saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                   minEx, maxEx, countInBars, countInEvery, mode, infinite, volume,
-                   exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref,
-                   subdivision, beatStates, subdivVol, subdivVol2,
+                   minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume,
+                   exMode, pickedNums, letterMode,
+                   subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
                    bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
-                   bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, infinite, volume, exMode, pickedNums, letterMode, stopwatch, infiniteByMode, stopwatchPref, subdivision, beatStates, subdivVol, subdivVol2, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom]);
+                   bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
+                   metSound });
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -393,6 +435,16 @@ export function App() {
     return () => rel();
   }, [running, paused]);
 
+  // Seed Auto BPM range when ∞ or Metronome becomes active
+  useEffect(() => {
+    if (mode === MODE_CLICKONLY || sets === '∞') {
+      const halfSpan = Math.round(bpm * 0.035);
+      setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
+      setBpmAutoMax(Math.min(BPM_MAX, bpm + halfSpan));
+      if (mode === MODE_CLICKONLY && bpmAutoTrigger === 'set') setBpmAutoTrigger('bars');
+    }
+  }, [mode, sets]);
+
   const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
   const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
 
@@ -433,8 +485,9 @@ export function App() {
     running, paused, resuming,
     countInBars,
     countInEveryRound: countInEvery,
-    mode, volume, looping, infinite, setComplete,
-    exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2,
+    mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
+    exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+    metSound,
   });
 
   useEffect(() => {
@@ -517,7 +570,7 @@ export function App() {
   const handleLoop = () => setLooping(l => !l);
 
   useEffect(() => {
-    if (mode !== MODE_CLICKONLY || !stopwatch) {
+    if (mode !== MODE_CLICKONLY || displayMode !== 'timer') {
       timerStartRef.current = null; elapsedAccumRef.current = 0; setElapsedSeconds(0);
       return;
     }
@@ -532,7 +585,7 @@ export function App() {
       elapsedAccumRef.current += Math.floor((Date.now() - timerStartRef.current) / 1000);
       timerStartRef.current = null;
     }
-  }, [phase, paused, mode, stopwatch]);
+  }, [phase, paused, mode, displayMode]);
 
   useEffect(() => {
     if (!isResuming && resuming) setResuming(false);
@@ -596,6 +649,27 @@ export function App() {
   const barsIncHandlers = useLongPress(incBars);
   const barsDecHandlers = useLongPress(decBars);
 
+  // Auto BPM stepper handlers (for click tab)
+  const stepInc = () => setBpmAutoStep(s => Math.min(10, s + 1));
+  const stepDec = () => setBpmAutoStep(s => Math.max(1, s - 1));
+  const stepIncHandlers = useLongPressSimple(stepInc);
+  const stepDecHandlers = useLongPressSimple(stepDec);
+  const activeInterval = bpmAutoTrigger === 'seconds' ? bpmAutoSecInterval : bpmAutoBarInterval;
+  const setActiveInterval = bpmAutoTrigger === 'seconds' ? setBpmAutoSecInterval : setBpmAutoBarInterval;
+  const intervalMax = bpmAutoTrigger === 'seconds' ? 3600 : 999;
+  const intervalInc = () => setActiveInterval(s => Math.min(intervalMax, s + 1));
+  const intervalDec = () => setActiveInterval(s => Math.max(1, s - 1));
+  const intervalIncHandlers = useLongPressSimple(intervalInc);
+  const intervalDecHandlers = useLongPressSimple(intervalDec);
+  const rangeMinInc = () => setBpmAutoMin(v => Math.min(bpmAutoMax, v + 1));
+  const rangeMinDec = () => setBpmAutoMin(v => Math.max(BPM_MIN, v - 1));
+  const rangeMaxInc = () => setBpmAutoMax(v => Math.min(BPM_MAX, Math.min(bpmAutoMin + 8, v + 1)));
+  const rangeMaxDec = () => setBpmAutoMax(v => Math.max(bpmAutoMin, v - 1));
+  const rangeMinIncHandlers = useLongPressSimple(rangeMinInc);
+  const rangeMinDecHandlers = useLongPressSimple(rangeMinDec);
+  const rangeMaxIncHandlers = useLongPressSimple(rangeMaxInc);
+  const rangeMaxDecHandlers = useLongPressSimple(rangeMaxDec);
+
   useEffect(() => {
     if (phase === "playing" && currentBeat === 0 && !paused) {
       setBarFlash(true);
@@ -645,8 +719,10 @@ export function App() {
     </svg>
   );
 
-  const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + (infinite && mode !== MODE_CLICKONLY ? " ∞" : "");
-
+  const isMetronome = mode === MODE_CLICKONLY;
+  const showAutoBpm = isMetronome || sets !== 1;
+  const setsSuffix = !isMetronome ? (sets === '∞' ? ' ∞' : ` ×${sets}`) : '';
+  const modeSummary = (mode === MODE_FULLSET ? "shuffle" : mode === MODE_SEQUENTIAL ? "sequence" : "metronome") + setsSuffix;
 
   return (
     <div className="app">
@@ -672,10 +748,10 @@ export function App() {
             {settingsMenuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
-                     onClick={() => setSettingsMenuOpen(false)} />
+                     onClick={() => { setSettingsMenuOpen(false); setSoundMenuOpen(false); }} />
                 <div className="settings-menu-panel">
                   <button className="settings-menu-item settings-menu-item--help" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     setShowHelp(true); setHelpScrolledToEnd(false);
                     if (helpPulse) {
                       setHelpPulse(false);
@@ -684,7 +760,7 @@ export function App() {
                     }
                   }}>How to use</button>
                   <button className="settings-menu-item" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     const next = !letterMode;
                     setLetterMode(next);
                     showAppToast(next ? "Letter mode" : "Number mode");
@@ -694,8 +770,35 @@ export function App() {
                       setShowLetterModePopup(true);
                     }
                   }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                  <div className="settings-menu-item settings-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
+                    <span>Click sound</span>
+                    <span className={`settings-menu-arrow${soundMenuOpen ? ' settings-menu-arrow--open' : ''}`}>›</span>
+                  </div>
+                  {soundMenuOpen && (
+                    <div className="settings-menu-submenu">
+                      {[
+                        { id: 'digital1', label: 'Blip' },
+                        { id: 'digital2', label: 'Ping' },
+                        { id: 'tick',     label: 'Tick' },
+                      ].map(({ id, label }) => (
+                        <button key={id}
+                          className={`settings-menu-submenu-item${metSound === id ? ' settings-menu-submenu-item--active' : ''}`}
+                          onClick={() => {
+                            try {
+                              const previewCtx = new (window.AudioContext || window.webkitAudioContext)();
+                              scheduleMetronomeClick(previewCtx, previewCtx.currentTime + 0.02, 'accent', volume, false, id);
+                              setTimeout(() => { try { previewCtx.close(); } catch {} }, 300);
+                            } catch {}
+                            setMetSound(id);
+                          }}>
+                          <span className="settings-menu-submenu-dot">{metSound === id ? '●' : ''}</span>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <button className="settings-menu-item" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     const p = new URLSearchParams();
                     p.set("bpm",    String(bpm));
                     p.set("sig",    timeSig.label);
@@ -712,16 +815,37 @@ export function App() {
                     p.set("cib",  String(countInBars));
                     if (countInEvery) p.set("cie", "1");
                     p.set("mode", mode);
-                    if (infinite && mode !== MODE_CLICKONLY) p.set("inf", "1");
-                    if (stopwatch && mode === MODE_CLICKONLY) p.set("sw", "1");
+                    if (sets !== 1 && mode !== MODE_CLICKONLY) p.set("sets", String(sets));
+                    if (displayMode === 'timer' && mode === MODE_CLICKONLY) p.set("dm", "timer");
                     if (letterMode) p.set("lm", "1");
+                    const summaryParts = [];
+                    if (mode !== MODE_CLICKONLY) {
+                      if (exMode === "pick" && pickedNums.length > 0) {
+                        if (pickedNums.length > 4) summaryParts.push(`${pickedNums.length} exercises`);
+                        else summaryParts.push(pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", "));
+                      } else {
+                        const lo = letterMode ? numToLetter(minEx) : String(minEx);
+                        const hi = letterMode ? numToLetter(maxEx) : String(maxEx);
+                        summaryParts.push(`${lo}–${hi}`);
+                      }
+                    }
+                    summaryParts.push(`${bpm} BPM`);
+                    if (timeSig.label !== "4/4") summaryParts.push(timeSig.label);
+                    if (mode !== MODE_CLICKONLY) {
+                      summaryParts.push(`${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}`);
+                      if (countInEvery) summaryParts.push("count in every exercise");
+                    }
+                    const modeWord = mode === MODE_FULLSET ? "Shuffle mode" : mode === MODE_SEQUENTIAL ? "Sequence mode" : "Metronome mode";
+                    const setsSuf = !isMetronome ? (sets === "∞" ? " ∞" : sets !== 1 ? ` ×${sets}` : "") : "";
+                    summaryParts.push(`${modeWord}${setsSuf}`);
+                    const summary = summaryParts.join(", ");
                     const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
-                    navigator.clipboard.writeText(url)
-                      .then(() => showAppToast("Link copied!"))
+                    navigator.clipboard.writeText(`${summary}\n${url}`)
+                      .then(() => showAppToast("Copied to clipboard!"))
                       .catch(() => showAppToast("Copy failed"));
                   }}>Share settings</button>
                   <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
-                    setSettingsMenuOpen(false);
+                    setSettingsMenuOpen(false); setSoundMenuOpen(false);
                     handleStop();
                     setBpm(80);
                     setTimeSig(TIME_SIGS[2]);
@@ -732,10 +856,8 @@ export function App() {
                     setCountInBars(1);
                     setCountInEvery(true);
                     setMode(MODE_FULLSET);
-                    setInfinite(false);
-                    setStopwatch(false);
-                    setInfiniteByMode({ [MODE_FULLSET]: false, [MODE_SEQUENTIAL]: false });
-                    setStopwatchPref(false);
+                    setSets(1);
+                    setDisplayMode('bars');
                     setVolume(1.0);
                     setSubdivVol(0.7);
                     setSubdivVol2(0.7);
@@ -774,21 +896,22 @@ export function App() {
                 <li>Choose your mode, then set BPM, time signature, exercise length, and rounds per exercise.</li>
                 <li>Set your exercise range (swipe up/down to nudge) or switch to Pick to choose specific exercises.</li>
                 <li>Tap Count in to set the count-in length — optionally enable it before every exercise.</li>
+                <li>Tap Vol to set volume. The vol button also controls subdivisions — tap a note icon to add subdivision clicks.</li>
               </ul>
             </div>
             <div className="help-section">
               <h3>Modes</h3>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li>Shuffle — plays every exercise in random order, then stops. Tap again for ∞ mode — loops continuously.</li>
-                <li>Sequence — plays exercises in order, then stops. Tap again for ∞ mode.</li>
-                <li>Metronome — runs until stopped. Tap again for stopwatch mode.</li>
+                <li>Shuffle — plays every exercise in random order, then stops. Tap Shuffle again to cycle through sets: ×2, ×3, ∞ (loop).</li>
+                <li>Sequence — plays exercises in order, then stops. Tap Sequence again to cycle sets the same way.</li>
+                <li>Metronome — runs until stopped. Tap Metronome again to toggle between bar counter [#] and timer [⏱︎].</li>
               </ul>
             </div>
             <div className="help-section">
               <h3>BPM automation</h3>
-              <p>Tap <strong>⚙&#xFE0E;</strong> next to BPM to open automation settings (available in Metronome and ∞ modes).</p>
+              <p>Tap the ⚙ gear button next to BPM (visible in Metronome and multi-set modes) to open Auto BPM settings.</p>
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
-                <li><strong>Shuffle/Sequence ∞</strong> — steps BPM up or down after each full set.</li>
+                <li><strong>Shuffle/Sequence ×2/×3/∞</strong> — steps BPM up or down after each full set.</li>
                 <li><strong>Metronome</strong> — steps every N bars or every N seconds.</li>
                 <li><strong>Random</strong> (∞ only) — randomises BPM within a range instead of stepping.</li>
               </ul>
@@ -822,9 +945,9 @@ export function App() {
         </>
       )}
 
-      <div className={`display${mode === MODE_CLICKONLY ? " display--metro" : ""}`}>
-        <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && mode !== MODE_CLICKONLY ? " exercise-label--set" : ""}`}>
-          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : mode === MODE_CLICKONLY ? (stopwatch ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
+      <div className={`display${isMetronome ? " display--metro" : ""}`}>
+        <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
+          {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (phase === "countin" ? "count in" : displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
 
         {phase === "countin" ? (
@@ -837,7 +960,7 @@ export function App() {
           </div>
         ) : (
           <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
-            {mode === MODE_CLICKONLY && stopwatch && phase !== "idle"
+            {isMetronome && displayMode === 'timer' && phase !== "idle"
               ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
               : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
           </div>
@@ -846,7 +969,7 @@ export function App() {
         {phase === "idle" ? (
           setComplete ? (
             <div className="idle-summary">&nbsp;</div>
-          ) : mode === MODE_CLICKONLY ? null : (
+          ) : isMetronome ? null : (
             <div className="idle-summary">
               {exMode === 'pick'
                 ? `${pickedNums.length === 0 ? 'no bars' : pickedNums.length > 4 ? `${pickedNums.length} exercises` : pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(', ')} · ${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""} · ${modeSummary}`
@@ -870,27 +993,27 @@ export function App() {
         )}
 
         {!setComplete && (
-          <div className={`beat-dots${mode === MODE_CLICKONLY ? " tappable" : ""}`}>
+          <div className={`beat-dots${isMetronome ? " tappable" : ""}`}>
             {Array.from({ length: timeSig.beats }).map((_, i) => {
-              const bState = mode === MODE_CLICKONLY ? (beatStates[i] ?? 'normal') : null;
+              const bState = isMetronome ? (beatStates[i] ?? 'normal') : null;
               const isActive = phase === "playing" && !paused && currentBeat === i;
               return (
                 <div
                   key={i}
                   className={[
                     'beat-dot',
-                    phase === "idle" && mode !== MODE_CLICKONLY ? 'inactive' : '',
+                    phase === "idle" && !isMetronome ? 'inactive' : '',
                     i === 0 ? 'beat1' : '',
                     isActive ? 'active' : '',
                     bState ? bState : '',
                   ].filter(Boolean).join(' ')}
-                  onClick={mode === MODE_CLICKONLY ? () => cycleBeatState(i) : undefined}
+                  onClick={isMetronome ? () => cycleBeatState(i) : undefined}
                 />
               );
             })}
           </div>
         )}
-        {mode === MODE_CLICKONLY && subdivision > 1 && (
+        {isMetronome && subdivision > 1 && (
           <div className="subdiv-dots">
             {Array.from({ length: timeSig.beats * subdivision }).map((_, i) => {
               const beatIndex = Math.floor(i / subdivision);
@@ -904,7 +1027,7 @@ export function App() {
           </div>
         )}
 
-        {!setComplete && mode !== MODE_CLICKONLY && (
+        {!setComplete && !isMetronome && (
           <BarProgress
             barsPerExercise={barsPerExercise}
             currentRound={currentRound}
@@ -931,6 +1054,7 @@ export function App() {
 
         <div className="section-grid controls-grid">
 
+          {/* ── Mode ── */}
           <div className={`control-group full-width${running ? " dimmed" : ""}`}>
             <label>Mode</label>
             <div className="selector-row">
@@ -942,30 +1066,32 @@ export function App() {
                 <button key={m.value}
                   className={`sel-btn${mode === m.value ? " active" : ""}`}
                   onClick={() => {
-                    if (m.value === mode && m.value === MODE_CLICKONLY) {
-                      setStopwatch(v => { setStopwatchPref(!v); return !v; });
-                    } else if (m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)) {
-                      setInfinite(v => { setInfiniteByMode(prev => ({ ...prev, [mode]: !v })); return !v; });
+                    if (m.value === mode) {
+                      if (m.value === MODE_CLICKONLY) {
+                        setDisplayMode(d => d === 'bars' ? 'timer' : 'bars');
+                      } else {
+                        setSets(s => s === 1 ? 2 : s === 2 ? 3 : s === 3 ? '∞' : 1);
+                      }
                     } else {
-                      if (mode === MODE_FULLSET || mode === MODE_SEQUENTIAL) {
-                        setInfiniteByMode(prev => ({ ...prev, [mode]: infinite }));
-                      }
-                      if (mode === MODE_CLICKONLY) {
-                        setStopwatchPref(stopwatch);
-                      }
                       setMode(m.value);
-                      setInfinite(m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL ? infiniteByMode[m.value] : false);
-                      setStopwatch(m.value === MODE_CLICKONLY ? stopwatchPref : false);
+                      setSets(1);
                     }
-                  }} disabled={running}
-                  >
-                  {m.label}{(m.value === mode ? infinite : infiniteByMode[m.value]) && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL) ? " ∞" : ""}{(m.value === mode ? stopwatch : (m.value === MODE_CLICKONLY ? stopwatchPref : false)) && m.value === MODE_CLICKONLY ? " \u23F1\uFE0E" : ""}
+                  }}
+                  disabled={running}>
+                  {m.label}
+                  {m.value === mode && (m.value === MODE_FULLSET || m.value === MODE_SEQUENTIAL)
+                    ? (sets === '∞' ? ' [∞]' : ` [×${sets}]`)
+                    : ''}
+                  {m.value === mode && m.value === MODE_CLICKONLY
+                    ? (displayMode === 'timer' ? ' [⏱\uFE0E]' : ' [#]')
+                    : ''}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className={`bpm-timesig-row${(mode === MODE_CLICKONLY || infinite) ? " gear-visible" : ""}`}>
+          {/* ── BPM + Time Signature ── */}
+          <div className={`bpm-timesig-row${showAutoBpm ? " gear-visible" : ""}`}>
             <div className="control-group bpm-group">
               <label>BPM</label>
               <div className="bpm-widget-row">
@@ -982,13 +1108,12 @@ export function App() {
                   </div>
                   <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
                 </div>
-                {(mode === MODE_CLICKONLY || infinite) && (
+                {showAutoBpm && (
                   <button
                     ref={bpmGearBtnRef}
                     className={`bpm-gear-btn${bpmAuto ? " active" : ""}`}
                     onClick={() => setBpmAutoOpen(v => !v)}
-                    title="BPM automation"
-                  >⚙&#xFE0E;</button>
+                    title="BPM automation">⚙&#xFE0E;</button>
                 )}
               </div>
             </div>
@@ -1008,6 +1133,7 @@ export function App() {
             </div>
           </div>
 
+          {/* ── Count In ── */}
           <div className={`control-group${running ? " dimmed" : ""}`}>
             <label>Count in</label>
             <CompactSelector
@@ -1019,73 +1145,20 @@ export function App() {
               openSelector={openSelector}
               setOpenSelector={setOpenSelector}
               getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && mode !== MODE_CLICKONLY ? " ✓" : ""}`}
-              footer={
-                <div className={`check-row${mode === MODE_CLICKONLY ? " disabled" : ""}`} style={{ width: '100%', padding: '0.1rem 0' }}>
+              buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && !isMetronome ? " ✓" : ""}`}
+              footer={!isMetronome && (
+                <div className="check-row" style={{ width: '100%', padding: '0.1rem 0' }}>
                   <input type="checkbox" checked={countInEvery}
-                    onChange={e => setCountInEvery(e.target.checked)} disabled={mode === MODE_CLICKONLY}
+                    onChange={e => setCountInEvery(e.target.checked)}
                     style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
                   <span>Count in every exercise</span>
                 </div>
-              }
+              )}
             />
           </div>
 
-          {mode === MODE_CLICKONLY && (
-            <div className="control-group subdiv-group">
-              <label>Subdivision</label>
-              <div className="selector-row">
-                {/* Quarter note — no subdivision */}
-                <button className={`sel-btn subdiv-btn${subdivision === 1 ? " active" : ""}`} onClick={() => setSubdivision(1)}>
-                  <svg viewBox="0 0 16 36" className="subdiv-svg">
-                    <ellipse cx="8" cy="30" rx="5" ry="3.2" transform="rotate(-18,8,30)" fill="currentColor"/>
-                    <line x1="12.5" y1="28" x2="12.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                  </svg>
-                </button>
-                {/* Two beamed 8th notes */}
-                <button className={`sel-btn subdiv-btn${subdivision === 2 ? " active" : ""}`} onClick={() => setSubdivision(2)}>
-                  <svg viewBox="0 0 30 36" className="subdiv-svg">
-                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                    <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
-                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="10.5" y1="4"    x2="25.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                  </svg>
-                </button>
-                {/* Three beamed triplet 8th notes with bracket+3 */}
-                <button className={`sel-btn subdiv-btn${subdivision === 3 ? " active" : ""}`} onClick={() => setSubdivision(3)}>
-                  <svg viewBox="0 -10 46 46" className="subdiv-svg">
-                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                    <ellipse cx="21" cy="30" rx="5" ry="3.2" transform="rotate(-18,21,30)" fill="currentColor"/>
-                    <ellipse cx="36" cy="30" rx="5" ry="3.2" transform="rotate(-18,36,30)" fill="currentColor"/>
-                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="25.5" y1="27.5" x2="25.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="40.5" y1="27.5" x2="40.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="10.5" y1="4"    x2="40.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                    <path d="M10.5,-2 L10.5,-5 L40.5,-5 L40.5,-2" fill="none" stroke="currentColor" strokeWidth="1.2"/>
-                    <text x="25.5" y="-5" textAnchor="middle" fontSize="7" fill="currentColor" dominantBaseline="auto">3</text>
-                  </svg>
-                </button>
-                {/* Four beamed 16th notes (two beams) */}
-                <button className={`sel-btn subdiv-btn${subdivision === 4 ? " active" : ""}`} onClick={() => setSubdivision(4)}>
-                  <svg viewBox="0 0 46 36" className="subdiv-svg">
-                    <ellipse cx="6"  cy="30" rx="5" ry="3.2" transform="rotate(-18,6,30)"  fill="currentColor"/>
-                    <ellipse cx="18" cy="30" rx="5" ry="3.2" transform="rotate(-18,18,30)" fill="currentColor"/>
-                    <ellipse cx="30" cy="30" rx="5" ry="3.2" transform="rotate(-18,30,30)" fill="currentColor"/>
-                    <ellipse cx="42" cy="30" rx="5" ry="3.2" transform="rotate(-18,42,30)" fill="currentColor"/>
-                    <line x1="10.5" y1="27.5" x2="10.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="22.5" y1="27.5" x2="22.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="34.5" y1="27.5" x2="34.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="46.5" y1="27.5" x2="46.5" y2="4" stroke="currentColor" strokeWidth="1.5"/>
-                    <line x1="10.5" y1="4"    x2="46.5" y2="4" stroke="currentColor" strokeWidth="2.5"/>
-                    <line x1="10.5" y1="9"    x2="46.5" y2="9" stroke="currentColor" strokeWidth="2.5"/>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          )}
-
-          {mode !== MODE_CLICKONLY && (
+          {/* ── Exercise Length (Shuffle/Sequence only) ── */}
+          {!isMetronome && (
             <div className={`control-group${running || exMode === 'pick' ? " dimmed" : ""}`}>
               <label>Exercise length</label>
               <CompactSelector
@@ -1101,8 +1174,9 @@ export function App() {
             </div>
           )}
 
-          {mode !== MODE_CLICKONLY && (
-            <div className={`control-group${running ? " dimmed" : ""}`}>
+          {/* ── Exercises (Shuffle/Sequence only) ── */}
+          {!isMetronome && (
+            <div className={`control-group exercises-group${running ? " dimmed" : ""}`}>
               <label>Exercises</label>
               <div className="ex-control-row">
                 {exMode === 'range' ? (
@@ -1137,7 +1211,8 @@ export function App() {
             </div>
           )}
 
-          {mode !== MODE_CLICKONLY && (
+          {/* ── Rounds Per Exercise (Shuffle/Sequence only) ── */}
+          {!isMetronome && (
             <div className={`control-group${running ? " dimmed" : ""}`}>
               <label>Rounds Per Exercise</label>
               <div className="stepper">
@@ -1152,6 +1227,22 @@ export function App() {
 
       </div>
 
+      {/* ── BPM Auto popup ── */}
+      {bpmAutoOpen && (
+        <BpmAutoPopup
+          mode={mode} bpm={bpm} bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
+          bpmAutoStep={bpmAutoStep} setBpmAutoStep={setBpmAutoStep}
+          bpmAutoDir={bpmAutoDir} setBpmAutoDir={setBpmAutoDir}
+          bpmAutoTrigger={bpmAutoTrigger} setBpmAutoTrigger={setBpmAutoTrigger}
+          bpmAutoBarInterval={bpmAutoBarInterval} setBpmAutoBarInterval={setBpmAutoBarInterval}
+          bpmAutoSecInterval={bpmAutoSecInterval} setBpmAutoSecInterval={setBpmAutoSecInterval}
+          bpmAutoRandom={bpmAutoRandom} setBpmAutoRandom={setBpmAutoRandom}
+          bpmAutoMin={bpmAutoMin} setBpmAutoMin={setBpmAutoMin}
+          bpmAutoMax={bpmAutoMax} setBpmAutoMax={setBpmAutoMax}
+          anchorRef={bpmGearBtnRef} onClose={() => setBpmAutoOpen(false)}
+        />
+      )}
+
       <div className="btn-row">
         {!running ? (
           <>
@@ -1160,13 +1251,13 @@ export function App() {
             </button>
             <div className="vol-wrap">
               <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                {volIcon}&nbsp;vol
+                {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
               </button>
             </div>
           </>
         ) : (
           <>
-            {mode === MODE_CLICKONLY ? (
+            {isMetronome ? (
               <button className="action-btn stop" onClick={handleStop}>
                 Stop
               </button>
@@ -1189,7 +1280,7 @@ export function App() {
             )}
             <div className="vol-wrap">
               <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                {volIcon}&nbsp;vol
+                {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
               </button>
             </div>
           </>
@@ -1204,13 +1295,15 @@ export function App() {
             volume={volume} setVolume={setVolume}
             subdivVol={subdivVol} setSubdivVol={setSubdivVol}
             subdivVol2={subdivVol2} setSubdivVol2={setSubdivVol2}
-            subdivision={mode === MODE_CLICKONLY ? subdivision : 0}
+            subdivVol3={subdivVol3} setSubdivVol3={setSubdivVol3}
+            subdivision={subdivision}
+            setSubdivision={setSubdivision}
           />
         </>,
         document.body
       )}
 
-      <div className="version-footer">v1.9.14 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.0 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
@@ -1237,24 +1330,6 @@ export function App() {
           onClose={() => setPickerOpen(false)}
           letterMode={letterMode}
         />
-      )}
-
-      {bpmAutoOpen && (mode === MODE_CLICKONLY || infinite) && ReactDOM.createPortal(
-        <BpmAutoPopup
-          mode={mode} bpm={bpm}
-          bpmAuto={bpmAuto} setBpmAuto={setBpmAuto}
-          bpmAutoStep={bpmAutoStep} setBpmAutoStep={setBpmAutoStep}
-          bpmAutoDir={bpmAutoDir} setBpmAutoDir={setBpmAutoDir}
-          bpmAutoTrigger={bpmAutoTrigger} setBpmAutoTrigger={setBpmAutoTrigger}
-          bpmAutoBarInterval={bpmAutoBarInterval} setBpmAutoBarInterval={setBpmAutoBarInterval}
-          bpmAutoSecInterval={bpmAutoSecInterval} setBpmAutoSecInterval={setBpmAutoSecInterval}
-          bpmAutoRandom={bpmAutoRandom} setBpmAutoRandom={setBpmAutoRandom}
-          bpmAutoMin={bpmAutoMin} setBpmAutoMin={setBpmAutoMin}
-          bpmAutoMax={bpmAutoMax} setBpmAutoMax={setBpmAutoMax}
-          anchorRef={bpmGearBtnRef}
-          onClose={() => setBpmAutoOpen(false)}
-        />,
-        document.body
       )}
 
       {showLetterModePopup && ReactDOM.createPortal(

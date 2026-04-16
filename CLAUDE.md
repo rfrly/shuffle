@@ -6,7 +6,7 @@ Shuffle is a web app for musicians that randomises practice exercises and provid
 
 ## Tech stack
 
-Vite + React app with ES modules. Web Audio API for the metronome engine. React 18, Vite 5. Deployed on GitHub Pages at shuffleclick.com via GitHub Actions (push to `main` triggers build and deploy). Repo is rfrly/shuffle on GitHub. Icons and static assets live in `public/`. Source files in `src/` — entry point is `src/main.jsx`, main component is `src/components/App.jsx`. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
+Vite + React app with ES modules. Web Audio API for the metronome engine. React 18, Vite 5. Deployed on GitHub Pages at shuffleclick.com via GitHub Actions (push to `main` triggers build and deploy). Repo is rfrly/shuffle on GitHub. Icons and static assets live in `public/`. `public/sound-test.html` is a dev tool for designing the clave metronome sound — intentionally committed but not linked from anywhere in the app (accessible at shuffleclick.com/sound-test.html). Source files in `src/` — entry point is `src/main.jsx`, main component is `src/components/App.jsx`. The watch app (watch/index.html) additionally uses Firebase Realtime Database via CDN — see Watch feature section.
 
 Source file structure:
 - `src/main.jsx` — entry point
@@ -74,7 +74,8 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 ## Key technical decisions
 
 - Lookahead scheduler (25ms interval, 0.2s lookahead) for accurate timing
-- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally
+- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally. Metronome click sound (`metSound`) is user-selectable: `digital1` (Blip, sine, default), `digital2` (Ping, triangle), `tick` (Tick, noise). This preference is persisted to localStorage but intentionally excluded from "Reset to defaults" and "Share settings" — it's a device-level preference, not a session setting.
+- Tick click and woodblock count-in are both pre-rendered via `OfflineAudioContext` once per AudioContext and cached on the context object (`ctx._tickBufs`, `ctx._woodblockBufs`). Noise is generated with a seeded PRNG (mulberry32, fixed seeds per variant) so rendered buffers are identical across page loads and devices — eliminates wild volume variance from synthesising fresh bandpass-filtered noise on every hit. The gain envelope is baked into the offline render; playback applies only the master `vol` scalar.
 - Audio context is never suspended on pause — scheduler interval is cleared instead, avoids rogue clicks on resume
 - schedulerFn ref stores the scheduler function so resume can restart it without re-picking exercises
 - Settings persisted to localStorage under key shuffle_settings_v7; URL params (`?bpm=`, `?sig=`, `?min=`, `?max=`, `?mode=`, `?rounds=`, `?exlen=`, `?cib=`, `?cie=`, `?exmode=`, `?picks=`, `?lm=`, `?inf=`, `?sw=`) override localStorage on load and are stripped from the URL immediately via `history.replaceState`
@@ -84,22 +85,12 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 
 ---
 
-## Fonts and colours
-
-- Share Tech Mono (monospace) and Barlow (body)
-- Amber #f5c842 — current exercise, title, Start button
-- Orange #ff4500 — count-in beats, active beat dot
-- White — beat 1 dot
-- Background #0f0f0f, display zone #1a1a1a
-
----
-
 ## Modes
 
 - Shuffle — plays every exercise once in random order, then stops
 - Sequence — plays exercises in order, then stops
-- Metronome — bar counter, runs until stopped; tap Metronome again to toggle stopwatch mode (shows "t" suffix on button), which shows elapsed time in M:SS instead of bars. Beat dots are 44px tappable circles — tap to cycle accent → normal → silent per beat. Accent dots are amber, silent dots are dim with a dashed outline. Subdivision row (8ths/Triplets/16ths/None) appears below the beat dots when subdivision > 1 — pills fill the row width up to a per-pill max, shrinking on narrow screens. In Metronome mode the controls grid shows only BPM, Time sig, Count in, and Subdivision (Exercise length, Exercises, Rounds Per Exercise are hidden). No idle summary is shown. BarProgress is hidden.
-- ∞ modifier — tap the active Shuffle or Sequence button again to toggle infinite mode; loops continuously instead of stopping. Each mode remembers its sub-state (∞ for Shuffle/Sequence, stopwatch for Metronome) — switching modes restores the last setting for that mode. The button label shows the sub-state indicator even when the mode is inactive. Set boundaries are signalled two ways: (1) the exercise label briefly shows "SET 2", "SET 3" etc. in amber from the inter-exercise count-in through the first bar of the new set (`isFirstExOfSet` state, set by `handleSetLoop`, cleared by a `useEffect`: for multi-bar exercises (`bpe > 1`) when `phase === "playing" && currentBar > 0`; for single-bar exercises (`bpe === 1`) when the next exercise's count-in begins (tracked via `hasPlayedFirstBar` ref)); (2) the final exercise of each set shows "last exercise" in the next-exercise area (`onNext(-1)` fired from `useDrumTimer` when `playingBars % totalBarsPerSet === totalBarsPerSet - bpe`, guarded by `totalInSet > 1`).
+- Metronome — bar counter, runs until stopped; tap the active Metronome button again to toggle display mode. `displayMode === 'bars'` shows a bar counter (badge `[#]`); `displayMode === 'timer'` shows elapsed time in M:SS (badge `[⏱︎]`, forced text rendering via `\uFE0E`). Beat dots are 44px tappable circles — tap to cycle accent → normal → silent per beat. Accent dots are amber, silent dots are dim with a dashed outline. In Metronome mode the controls grid shows only BPM, Time sig, Count in (no "count in every exercise" checkbox — hidden not disabled). Exercise length, Exercises, Rounds Per Exercise are hidden. No idle summary is shown. BarProgress is hidden.
+- Sets / tap-to-cycle — tapping the active Shuffle or Sequence button cycles through sets: ×1 → ×2 → ×3 → ∞ → ×1. The active button shows a badge (`[×2]`, `[×3]`, `[∞]`). ×1 plays one set and stops; ×2/×3 play that many sets and stop; ∞ loops continuously. Switching modes always resets sets to ×1 — modes do not remember their last sets value. Set boundaries are signalled two ways: (1) the exercise label briefly shows "SET 2", "SET 3" etc. in amber from the inter-exercise count-in through the first bar of the new set (`isFirstExOfSet` state, set by `handleSetLoop`, cleared by a `useEffect`: for multi-bar exercises (`bpe > 1`) when `phase === "playing" && currentBar > 0`; for single-bar exercises (`bpe === 1`) when the next exercise's count-in begins (tracked via `hasPlayedFirstBar` ref)); (2) the final exercise of each set shows "last exercise" in the next-exercise area (`onNext(-1)` fired from `useDrumTimer` when `playingBars % totalBarsPerSet === totalBarsPerSet - bpe`, guarded by `totalInSet > 1`). The idle summary includes the sets suffix when sets ≠ 1 (e.g. "shuffle ×2", "shuffle ∞").
 
 **BPM automation** — a ⚙ gear button appears next to the BPM widget when in Metronome mode or Shuffle/Sequence ∞ mode. Tapping it opens a portal-rendered popup (`BpmAutoPopup` component in `App.jsx`) with:
 - A master **Auto BPM** toggle (full-width button; amber fill = on, dim = off — same pattern as mode buttons)
@@ -113,24 +104,27 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 
 ## UI and behaviour
 
+**Fonts and colours:** Share Tech Mono (monospace) and Barlow (body). Amber #f5c842 — current exercise, title, Start button. Orange #ff4500 — count-in beats, active beat dot. White — beat 1 dot. Background #0f0f0f, display zone #1a1a1a.
+
 - Single unified controls grid — no section divider; 3-col on tablet/desktop, 2-col on mobile
-- Control order (left to right, top to bottom): Mode (full-width), BPM, Time sig, Count in, Exercise length, Exercises, Rounds Per Exercise. In Metronome mode: Mode, BPM, Time sig, Count in, Subdivision (Exercise length/Exercises/Rounds Per Exercise hidden).
+- Control order (left to right, top to bottom): Mode (full-width), BPM + Time sig (share a row on mobile via `bpm-timesig-row`; split to separate cells on desktop via `display: contents`), Count in, Exercise length, Exercises, Rounds Per Exercise. In Metronome mode: Mode, BPM + Time sig, Count in (Exercise length/Exercises/Rounds Per Exercise hidden).
+- Subdivision is not a grid control — it lives inside the Vol popup. Tap a subdivision icon row to activate it (sets `subdivision` state); tap again to deactivate (sets `subdivision` back to 1).
 - Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
-- Count in popup includes "count in every exercise" checkbox; button shows ✓ when active
+- Count in popup includes "count in every exercise" checkbox (hidden entirely in Metronome mode, not just disabled); button shows ✓ when active
 - No dimming of fixed controls — all controls same visual weight
 - Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop. In Metronome mode, Pause and Loop are hidden — Stop fills the full transport bar width
-- Vol button opens a portal-rendered popup (above the button, `position: fixed` via `getBoundingClientRect`) with a dim backdrop (`compact-popup-backdrop`). Shows Master slider always; 8th slider when subdivision > 1; 16th slider when subdivision = 4 (Metronome mode only). Each slider has −/+ nudge buttons with hold-to-repeat. `subdivVol` multiplies subdivision click gain; `subdivVol2` multiplies pure 16th positions (s=1,3) when subdivision=4. Defaults: Master 1.0, subdivisions 0.7.
+- Vol button always shows a subdivision note icon badge (♩ when subdivision=1, ♪♪/♬/⋮ when active). Opens a portal-rendered popup with: Master slider always visible; ♪♪/♬/⋮ rows always visible — tap icon to activate/deactivate subdivision, slider controls that subdivision's volume. Inactive rows are heavily dimmed (opacity 0.18). When subdivision=4 (16ths), both ♪♪ and ♬ rows are at full brightness: ♪♪ slider controls `subdivVol` (8th positions within the 16th pattern), ♬ slider controls `subdivVol2` (pure 16th positions). Triplets (⋮) use `subdivVol3` independently. Row order: ♪♪ → ♬ → ⋮. Each slider has −/+ nudge buttons with hold-to-repeat. Defaults: Master 1.0, subdivisions 0.7.
 - Start button amber filled, only visible when idle
 - Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
-- Idle state shows a one-line summary of current settings
+- Idle state shows a one-line summary of current settings including sets suffix when sets ≠ 1 (e.g. "shuffle ×2", "sequence ∞")
 - Terminology: "Rounds Per Exercise" not "repetitions" or "rounds", "Exercises" not "Range", "Stop" not "Reset", "Metronome" not "Click Only"
-- Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (disabled in Metronome mode)
+- Count-in is always on — no off option; lengths are 1, 2, or 4 bars; optional "count in every exercise" checkbox (hidden in Metronome mode)
 - All controls 44px minimum height
 - Responsive layout for iPhone, iPad portrait, iPad landscape, Mac — iPad uses (hover: none) and (pointer: coarse) and (min-width: 768px) media queries. **Caveat:** newer iPads may not match `(pointer: coarse)` — use `(min-width: 768px) and (max-width: 1024px) and (orientation: portrait/landscape)` for iPad-specific layout rules rather than relying on pointer/hover conditions
 - Version number in footer, incremented with each meaningful update
 - Exercises control has two modes: Range (min–max with swipe-to-adjust and tap-to-numpad) and Pick (select specific exercise numbers via BarPickerPopup); toggled via Range/Pick buttons
 - EX_MAX is 200; exercise numbers are formatted as two digits with leading zero (fmt())
-- A `☰` menu button sits in the header (right side, balanced by an invisible spacer on the left); opens a dropdown with four items: **How to use** (opens the help overlay), **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults. Hidden when student is sharing in Watch mode.
+- A `☰` menu button sits in the header (right side, balanced by an invisible spacer on the left); opens a dropdown with four items: **How to use** (opens the help overlay), **Turn letter mode on/off**, **Share settings** (copies a URL encoding all current settings to the clipboard), and **Reset to defaults**. Reset stops the player and restores all settings to defaults — but does NOT reset `metSound` (click sound), which is a device-level preference. **Share settings** also does not include `metSound`. Hidden when student is sharing in Watch mode.
 - Letter mode displays exercises as A–Z instead of numbers; toggled via the `☰` menu; limited to 26 exercises (EX_MAX_LETTERS); persisted to localStorage
 - Idle summary shows picked exercises as a comma list up to 4, then switches to "N exercises" beyond that; range mode uses "X-bar ex" (not "exercise") to save space
 - useSwipeInput must call e.preventDefault() in onTouchStart — without it, iOS PWA mode focuses the input and shifts the viewport, causing a persistent touch coordinate offset across the whole app

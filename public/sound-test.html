@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clave sound test</title>
+<style>
+  body { background: #0f0f0f; color: #ccc; font-family: monospace; padding: 2rem; max-width: 480px; margin: 0 auto; }
+  h2 { color: #f5c842; margin-bottom: 1.5rem; font-size: 1rem; letter-spacing: 0.1em; text-transform: uppercase; }
+  .row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+  label { width: 120px; flex-shrink: 0; font-size: 0.75rem; color: #aaa; }
+  input[type=range] { flex: 1; accent-color: #f5c842; }
+  .val { width: 50px; text-align: right; font-size: 0.8rem; color: #f5c842; }
+  .btn-row { display: flex; gap: 0.75rem; margin-top: 1rem; }
+  .btn-row button { margin-top: 0; flex: 1; }
+  button { margin-top: 1rem; padding: 0.8rem 1rem; background: #f5c842; color: #000; border: none; font-family: monospace; font-size: 0.82rem; font-weight: bold; cursor: pointer; border-radius: 4px; width: 100%; }
+  button:active { opacity: 0.8; }
+  #loopBtn.playing { background: #c8a030; }
+  .btn-secondary { background: #333 !important; color: #ccc !important; }
+  .section { margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #222; }
+  .section h3 { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: #666; margin-bottom: 0.75rem; }
+  .hint { font-size: 0.68rem; color: #555; margin-top: 1.5rem; line-height: 1.6; }
+  #copyBtn { background: #1a1a1a; color: #f5c842; border: 1px solid #333; }
+  #copyFeedback { font-size: 0.68rem; color: #f5c842; margin-top: 0.5rem; min-height: 1em; text-align: center; word-break: break-all; }
+  .pill-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .pill-btn { margin-top: 0; padding: 0.4rem 0.7rem; font-size: 0.7rem; background: #222; color: #aaa; border: 1px solid #333; border-radius: 3px; width: auto; flex: none; }
+  .pill-btn.active { background: #f5c842; color: #000; border-color: #f5c842; }
+  .subhead { font-size: 0.68rem; color: #666; margin-bottom: 0.4rem; letter-spacing: 0.05em; text-transform: uppercase; }
+  #status { font-size: 0.68rem; color: #f5c842; margin-top: 0.5rem; min-height: 1em; text-align: center; }
+</style>
+</head>
+<body>
+<h2>Clave sound test</h2>
+
+<div class="subhead">Filter</div>
+<div class="pill-btns" id="filterBtns">
+  <button class="pill-btn active" data-val="bandpass">bandpass</button>
+  <button class="pill-btn" data-val="lowpass">lowpass</button>
+  <button class="pill-btn" data-val="highpass">highpass</button>
+  <button class="pill-btn" data-val="none">none</button>
+</div>
+<div class="row">
+  <label>Freq (Hz)</label>
+  <input type="range" id="freq" min="100" max="3000" step="50" value="500">
+  <span class="val" id="freqVal">500</span>
+</div>
+<div class="row">
+  <label>Q</label>
+  <input type="range" id="q" min="0.5" max="15" step="0.5" value="2">
+  <span class="val" id="qVal">2</span>
+</div>
+<div class="row">
+  <label>Exponent</label>
+  <input type="range" id="exp" min="1" max="30" step="1" value="18">
+  <span class="val" id="expVal">18</span>
+</div>
+<div class="row">
+  <label>Decay (ms)</label>
+  <input type="range" id="decay" min="10" max="200" step="5" value="30">
+  <span class="val" id="decayVal">30</span>
+</div>
+<div class="row">
+  <label>Gain</label>
+  <input type="range" id="gain" min="0.5" max="20" step="0.5" value="6">
+  <span class="val" id="gainVal">6</span>
+</div>
+
+<div class="section">
+  <h3>Oscillator blend <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(pitched tone under the noise)</span></h3>
+  <div class="subhead">Waveform</div>
+  <div class="pill-btns" id="waveBtns">
+    <button class="pill-btn active" data-val="none">none</button>
+    <button class="pill-btn" data-val="sine">sine</button>
+    <button class="pill-btn" data-val="triangle">triangle</button>
+    <button class="pill-btn" data-val="square">square</button>
+  </div>
+  <div class="row">
+    <label>Osc Freq (Hz)</label>
+    <input type="range" id="oscFreq" min="50" max="2000" step="10" value="300">
+    <span class="val" id="oscFreqVal">300</span>
+  </div>
+  <div class="row">
+    <label>Osc Mix</label>
+    <input type="range" id="oscMix" min="0.05" max="1" step="0.05" value="0.4">
+    <span class="val" id="oscMixVal">0.4</span>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Space</h3>
+  <div class="row">
+    <label>Reverb</label>
+    <input type="range" id="reverb" min="0" max="1" step="0.05" value="0">
+    <span class="val" id="reverbVal">0</span>
+  </div>
+</div>
+
+<div class="section">
+  <div class="btn-row">
+    <button id="singleBtn">▶ Once</button>
+    <button id="loopBtn">▶ 110 BPM</button>
+  </div>
+  <button id="copyBtn">⎘ Copy settings</button>
+  <div id="copyFeedback"></div>
+  <div id="status"></div>
+</div>
+
+<div class="section">
+  <h3>Compare sounds <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(exact production params from audio.js)</span></h3>
+  <div class="subhead" style="margin-bottom:0.5rem">Blip (digital1 · sine)</div>
+  <div class="btn-row">
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="accent">Blip accent</button>
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="normal">Blip normal</button>
+    <button class="btn-secondary compare-btn" data-sound="blip" data-beat="subdiv">Blip subdiv</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Ping (digital2 · triangle)</div>
+  <div class="btn-row">
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="accent">Ping accent</button>
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="normal">Ping normal</button>
+    <button class="btn-secondary compare-btn" data-sound="ping" data-beat="subdiv">Ping subdiv</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Tick (noise · bandpass)</div>
+  <div class="btn-row">
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="accent">Tick accent</button>
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="normal">Tick normal</button>
+    <button class="btn-secondary compare-btn" data-sound="tick" data-beat="subdiv">Tick subdiv</button>
+  </div>
+  <div style="margin-top:1rem">
+    <canvas id="waveCanvas" width="440" height="80" style="width:100%;background:#111;border-radius:4px;display:block"></canvas>
+    <div style="font-size:0.62rem;color:#555;margin-top:0.3rem;display:flex;gap:1.2rem">
+      <span><span style="color:#f5c842">— —</span> peak hold</span>
+      <span><span style="color:#ff4500">— —</span> RMS (stable across repeated taps)</span>
+    </div>
+    <div id="peakReadout" style="font-size:0.68rem;color:#aaa;margin-top:0.3rem;text-align:center;min-height:1em"></div>
+    <button id="copyCompareBtn" class="btn-secondary" style="margin-top:0.75rem;background:#1a1a1a;color:#f5c842;border:1px solid #333">⎘ Copy readout</button>
+    <div id="copyCompareFeedback" style="font-size:0.68rem;color:#f5c842;margin-top:0.3rem;min-height:1em;text-align:center"></div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Explore new sounds <span style="color:#555;font-size:0.65rem;text-transform:none;letter-spacing:0">(tap to hear · loads params into sliders above)</span></h3>
+  <div class="subhead" style="margin-bottom:0.5rem">Rimshot / sidestick</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="rimshot-accent">Rimshot accent</button>
+    <button class="btn-secondary preset-btn" data-preset="rimshot-normal">Rimshot normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Woodblock / clave</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-accent">A accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-normal">A normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A — 2000Hz, Q6, dry (original)</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a2-accent">A2 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a2-normal">A2 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A2 — 2500Hz, Q5</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a3-accent">A3 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a3-normal">A3 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A3 — 3000Hz, Q4</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a4-accent">A4 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a4-normal">A4 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A4 — 3500Hz, Q4</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a5-accent">A5 accent</button>
+    <button class="btn-secondary preset-btn" data-preset="woodblock-a5-normal">A5 normal</button>
+  </div>
+  <div style="font-size:0.62rem;color:#555;margin-bottom:0.5rem">A5 — 4000Hz, Q3</div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Hi-hat / shaker</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="hat-accent">Hat accent</button>
+    <button class="btn-secondary preset-btn" data-preset="hat-normal">Hat normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Finger snap</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="snap-accent">Snap accent</button>
+    <button class="btn-secondary preset-btn" data-preset="snap-normal">Snap normal</button>
+  </div>
+  <div class="subhead" style="margin-top:1rem;margin-bottom:0.5rem">Conga / bongo tap</div>
+  <div class="btn-row">
+    <button class="btn-secondary preset-btn" data-preset="conga-accent">Conga accent</button>
+    <button class="btn-secondary preset-btn" data-preset="conga-normal">Conga normal</button>
+  </div>
+  <div id="presetLabel" style="font-size:0.68rem;color:#f5c842;margin-top:0.75rem;text-align:center;min-height:1em"></div>
+</div>
+
+<p class="hint">
+  Freq = filter centre. Q = resonance (bandpass; higher = narrower). Exponent = noise shape (higher = sharper attack). Decay = length. Gain = volume. Osc = pitched tone blended under the noise for warmth. Osc Mix = how loud the oscillator is relative to the noise.
+</p>
+
+<script>
+let ctx = null;
+
+function getCtx() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+  return ctx.resume().then(() => ctx);
+}
+
+function getCompressor(c) {
+  if (c._comp) return c._comp;
+  const comp = c.createDynamicsCompressor();
+  comp.threshold.value = -12; comp.knee.value = 6; comp.ratio.value = 4;
+  comp.attack.value = 0.003; comp.release.value = 0.15;
+  comp.connect(c.destination);
+  c._comp = comp;
+  return comp;
+}
+
+function getReverb(c) {
+  if (c._reverb) return c._reverb;
+  const sr = c.sampleRate;
+  const len = Math.floor(sr * 0.08);
+  const buf = c.createBuffer(2, len, sr);
+  for (let ch = 0; ch < 2; ch++) {
+    const d = buf.getChannelData(ch);
+    for (let i = 0; i < len; i++)
+      d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3);
+  }
+  const conv = c.createConvolver();
+  conv.buffer = buf;
+  conv.connect(getCompressor(c));
+  c._reverb = conv;
+  return conv;
+}
+
+function playSound(c, t, p) {
+  const decay = p.decay;
+  const gain  = p.gain;
+
+  // Noise buffer
+  const bufSize = Math.floor(c.sampleRate * decay);
+  const buf = c.createBuffer(1, bufSize, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++)
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, p.exp);
+
+  const src = c.createBufferSource();
+  src.buffer = buf;
+
+  // Filter
+  let filtered = src;
+  if (p.filter !== 'none') {
+    const flt = c.createBiquadFilter();
+    flt.type = p.filter;
+    flt.frequency.value = p.freq;
+    flt.Q.value = p.q;
+    src.connect(flt);
+    filtered = flt;
+  }
+
+  // Noise gain node
+  const noiseG = c.createGain();
+  noiseG.gain.setValueAtTime(gain, t);
+  noiseG.gain.exponentialRampToValueAtTime(0.001, t + decay);
+  filtered.connect(noiseG);
+  noiseG.connect(getCompressor(c));
+  if (p.reverb > 0) { noiseG.connect(getReverb(c)); }
+
+  src.start(t);
+  src.stop(t + decay + 0.05);
+
+  // Oscillator blend
+  if (p.oscWave !== 'none') {
+    const osc = c.createOscillator();
+    osc.type = p.oscWave;
+    osc.frequency.value = p.oscFreq;
+    const oscG = c.createGain();
+    oscG.gain.setValueAtTime(gain * p.oscMix, t);
+    oscG.gain.exponentialRampToValueAtTime(0.001, t + decay);
+    osc.connect(oscG);
+    oscG.connect(getCompressor(c));
+    if (p.reverb > 0) { oscG.connect(getReverb(c)); }
+    osc.start(t);
+    osc.stop(t + decay + 0.05);
+  }
+}
+
+function playNoiseFixed(c, t, freq, q, exp, decay, gain) {
+  const bufSize = Math.floor(c.sampleRate * decay);
+  const buf = c.createBuffer(1, bufSize, c.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++)
+    data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, exp);
+  const src = c.createBufferSource();
+  src.buffer = buf;
+  const flt = c.createBiquadFilter();
+  flt.type = 'bandpass'; flt.frequency.value = freq; flt.Q.value = q;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + decay);
+  src.connect(flt); flt.connect(g); g.connect(getCompressor(c));
+  src.start(t); src.stop(t + decay + 0.05);
+}
+
+function playTriangleFixed(c, t, freq, gain) {
+  const osc = c.createOscillator();
+  osc.type = 'triangle'; osc.frequency.value = freq;
+  const g = c.createGain();
+  g.gain.setValueAtTime(gain, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+  osc.connect(g); g.connect(getCompressor(c));
+  osc.start(t); osc.stop(t + 0.09);
+}
+
+// Button state
+let filterVal = 'bandpass';
+let waveVal   = 'none';
+
+function initPillBtns(groupId, onChange) {
+  document.querySelectorAll(`#${groupId} .pill-btn`).forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll(`#${groupId} .pill-btn`).forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      onChange(btn.dataset.val);
+    });
+  });
+}
+initPillBtns('filterBtns', v => { filterVal = v; });
+initPillBtns('waveBtns',   v => { waveVal   = v; });
+
+function vals() {
+  return {
+    freq:    parseFloat(document.getElementById('freq').value),
+    q:       parseFloat(document.getElementById('q').value),
+    exp:     parseFloat(document.getElementById('exp').value),
+    decay:   parseFloat(document.getElementById('decay').value) / 1000,
+    gain:    parseFloat(document.getElementById('gain').value),
+    filter:  filterVal,
+    oscWave: waveVal,
+    oscFreq: parseFloat(document.getElementById('oscFreq').value),
+    oscMix:  parseFloat(document.getElementById('oscMix').value),
+    reverb:  parseFloat(document.getElementById('reverb').value),
+  };
+}
+
+['freq','q','exp','decay','gain','oscFreq','oscMix','reverb'].forEach(id => {
+  const el = document.getElementById(id);
+  document.getElementById(id + 'Val').textContent = el.value;
+  el.addEventListener('input', () => { document.getElementById(id + 'Val').textContent = el.value; });
+});
+
+function setStatus(msg) {
+  document.getElementById('status').textContent = msg;
+}
+
+document.getElementById('singleBtn').addEventListener('click', () => {
+  getCtx().then(c => {
+    const t = c.currentTime + 0.02;
+    playSound(c, t, vals());
+    setStatus('ctx: ' + c.state + ' | t=' + c.currentTime.toFixed(3));
+  }).catch(e => setStatus('ERROR: ' + e.message));
+});
+
+// Loop at 110 BPM
+const INTERVAL  = 25;
+const LOOKAHEAD = 0.15;
+const BEAT_SEC  = 60 / 110;
+let loopRunning = false, schedulerTimer = null, nextBeat = 0;
+
+function tick() {
+  if (!ctx) return;
+  const v = vals();
+  while (nextBeat < ctx.currentTime + LOOKAHEAD) {
+    playSound(ctx, nextBeat, v);
+    nextBeat += BEAT_SEC;
+  }
+}
+
+function startLoop() {
+  getCtx().then(c => {
+    nextBeat = c.currentTime + 0.05;
+    loopRunning = true;
+    schedulerTimer = setInterval(tick, INTERVAL);
+    document.getElementById('loopBtn').textContent = '■ Stop';
+    document.getElementById('loopBtn').classList.add('playing');
+    setStatus('running at 110 BPM');
+  });
+}
+
+function stopLoop() {
+  clearInterval(schedulerTimer);
+  loopRunning = false;
+  document.getElementById('loopBtn').textContent = '▶ 110 BPM';
+  document.getElementById('loopBtn').classList.remove('playing');
+  setStatus('');
+}
+
+document.getElementById('loopBtn').addEventListener('click', () => {
+  if (loopRunning) stopLoop(); else startLoop();
+});
+
+// ── Analyser / waveform visualiser ──────────────────────────────────────────
+let analyser = null, analyserRaf = null;
+
+function getAnalyser(c) {
+  if (analyser) return analyser;
+  analyser = c.createAnalyser();
+  analyser.fftSize = 2048;
+  analyser.smoothingTimeConstant = 0;
+  analyser.connect(c.destination);
+  return analyser;
+}
+
+function drawWave(label) {
+  const canvas = document.getElementById('waveCanvas');
+  const ctx2d  = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const buf = new Float32Array(analyser.fftSize);
+  let peak = 0, framesSincePeak = 0;
+  // RMS: accumulate across all frames while signal is active, then hold
+  let rmsSumSq = 0, rmsSampleCount = 0, lastRms = 0;
+  const HOLD_FRAMES = 60; // ~1s at 60fps
+
+  cancelAnimationFrame(analyserRaf);
+
+  function frame() {
+    analyser.getFloatTimeDomainData(buf);
+    const framePeak = buf.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+    if (framePeak >= peak) { peak = framePeak; framesSincePeak = 0; }
+    else if (framesSincePeak++ > HOLD_FRAMES) peak = framePeak;
+
+    // Accumulate RMS while any signal is present
+    if (framePeak > 0.001) {
+      for (let i = 0; i < buf.length; i++) rmsSumSq += buf[i] * buf[i];
+      rmsSampleCount += buf.length;
+      lastRms = Math.sqrt(rmsSumSq / rmsSampleCount);
+    }
+
+    ctx2d.fillStyle = '#111';
+    ctx2d.fillRect(0, 0, W, H);
+
+    // Centre line
+    ctx2d.strokeStyle = '#222';
+    ctx2d.lineWidth = 1;
+    ctx2d.beginPath(); ctx2d.moveTo(0, H/2); ctx2d.lineTo(W, H/2); ctx2d.stroke();
+
+    // Peak hold bars (amber, dashed)
+    const peakY = H/2 - peak * (H/2 - 4);
+    ctx2d.strokeStyle = peak > 0.8 ? '#ff4500' : '#f5c842';
+    ctx2d.lineWidth = 1;
+    ctx2d.setLineDash([2, 3]);
+    ctx2d.beginPath(); ctx2d.moveTo(0, peakY); ctx2d.lineTo(W, peakY); ctx2d.stroke();
+    ctx2d.beginPath(); ctx2d.moveTo(0, H - peakY); ctx2d.lineTo(W, H - peakY); ctx2d.stroke();
+    ctx2d.setLineDash([]);
+
+    // RMS hold bars (orange, dashed — stable across repeated taps)
+    if (lastRms > 0) {
+      const rmsY = H/2 - lastRms * (H/2 - 4);
+      ctx2d.strokeStyle = '#ff4500';
+      ctx2d.lineWidth = 1;
+      ctx2d.setLineDash([4, 4]);
+      ctx2d.beginPath(); ctx2d.moveTo(0, rmsY); ctx2d.lineTo(W, rmsY); ctx2d.stroke();
+      ctx2d.beginPath(); ctx2d.moveTo(0, H - rmsY); ctx2d.lineTo(W, H - rmsY); ctx2d.stroke();
+      ctx2d.setLineDash([]);
+    }
+
+    // Waveform
+    ctx2d.strokeStyle = '#f5c842';
+    ctx2d.lineWidth = 1.5;
+    ctx2d.beginPath();
+    for (let i = 0; i < buf.length; i++) {
+      const x = (i / buf.length) * W;
+      const y = H/2 - buf[i] * (H/2 - 4);
+      i === 0 ? ctx2d.moveTo(x, y) : ctx2d.lineTo(x, y);
+    }
+    ctx2d.stroke();
+
+    const peakDb = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '—';
+    const rmsDb  = lastRms > 0 ? (20 * Math.log10(lastRms)).toFixed(1) : '—';
+    document.getElementById('peakReadout').textContent =
+      label + '  |  peak ' + peakDb + ' dBFS  ·  RMS ' + rmsDb + ' dBFS';
+
+    analyserRaf = requestAnimationFrame(frame);
+  }
+  analyserRaf = requestAnimationFrame(frame);
+}
+
+// ── Production sound functions (exact params from audio.js) ─────────────────
+function playCompareSound(c, sound, beat) {
+  const an = getAnalyser(c);
+  const t  = c.currentTime + 0.02;
+  const isSub = beat === 'subdiv';
+
+  function noiseClick(freq, q, gainVal, decay, exp) {
+    const bufSize = Math.floor(c.sampleRate * decay);
+    const buf = c.createBuffer(1, bufSize, c.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < bufSize; i++)
+      data[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / bufSize, exp);
+    const src = c.createBufferSource();
+    src.buffer = buf;
+    const flt = c.createBiquadFilter();
+    flt.type = 'bandpass'; flt.frequency.value = freq; flt.Q.value = q;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + decay);
+    src.connect(flt); flt.connect(g); g.connect(an);
+    src.start(t); src.stop(t + decay + 0.005);
+  }
+
+  function oscClick(type, freq, gainVal) {
+    const osc = c.createOscillator();
+    osc.type = type; osc.frequency.value = freq;
+    const g = c.createGain();
+    g.gain.setValueAtTime(gainVal, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.07);
+    osc.connect(g); g.connect(an);
+    osc.start(t); osc.stop(t + 0.08);
+  }
+
+  if (sound === 'blip') {
+    // digital1: sine
+    if (isSub) oscClick('sine', 500, 0.22);
+    else oscClick('sine', beat === 'accent' ? 1000 : 700, beat === 'accent' ? 0.9 : 0.5);
+  } else if (sound === 'ping') {
+    // digital2: triangle
+    if (isSub) oscClick('triangle', 440, 0.35);
+    else oscClick('triangle', beat === 'accent' ? 1760 : 880, beat === 'accent' ? 0.9 : 0.55);
+  } else if (sound === 'tick') {
+    // tick: pre-rendered and cached on the context (same pattern as audio.js).
+    // Rendered once, reused on every tap — deterministic, no per-click variance.
+    const tickKey = '_compareTick';
+    function seededRand(seed) {
+      return function() {
+        seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+        let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+        t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+      };
+    }
+    function renderVariant(freq, q, gainVal, seed) {
+      const rand = seededRand(seed);
+      const decay = 0.05, sr = c.sampleRate;
+      const bufSize = Math.floor(sr * decay);
+      const offline = new OfflineAudioContext(1, bufSize, sr);
+      const noiseBuf = offline.createBuffer(1, bufSize, sr);
+      const nd = noiseBuf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++)
+        nd[i] = (rand() * 2 - 1) * Math.pow(1 - i / bufSize, 14);
+      const os = offline.createBufferSource(); os.buffer = noiseBuf;
+      const of2 = offline.createBiquadFilter();
+      of2.type = 'bandpass'; of2.frequency.value = freq; of2.Q.value = q;
+      const og = offline.createGain();
+      og.gain.setValueAtTime(gainVal, 0);
+      og.gain.exponentialRampToValueAtTime(0.001, decay);
+      os.connect(of2); of2.connect(og); og.connect(offline.destination);
+      os.start(0);
+      return offline.startRendering();
+    }
+    if (!c[tickKey]) {
+      c[tickKey] = Promise.all([
+        renderVariant(2000, 5, 14.0, 0x1a2b3c4d),  // accent — same seeds as audio.js
+        renderVariant(1200, 5, 10.0, 0x5e6f7a8b),  // normal
+        renderVariant(900,  4,  6.0, 0x9cad0ebe),  // subdiv
+      ]);
+    }
+    c[tickKey].then(([accentBuf, normalBuf, subdivBuf]) => {
+      const rendered = isSub ? subdivBuf : beat === 'accent' ? accentBuf : normalBuf;
+      const pb = c.createBufferSource(); pb.buffer = rendered;
+      pb.connect(an); pb.start(t);
+      // Compute RMS directly from the buffer samples — immune to analyser timing
+      const data = rendered.getChannelData(0);
+      let sumSq = 0;
+      for (let i = 0; i < data.length; i++) sumSq += data[i] * data[i];
+      const rms = Math.sqrt(sumSq / data.length);
+      const peak = data.reduce((m, v) => Math.max(m, Math.abs(v)), 0);
+      const rmsDb  = rms  > 0 ? (20 * Math.log10(rms)).toFixed(1)  : '—';
+      const peakDb = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '—';
+      document.getElementById('peakReadout').textContent =
+        `Tick ${beat}  |  peak ${peakDb} dBFS  ·  RMS ${rmsDb} dBFS  (buffer)`;
+    });
+    return;
+  }
+}
+
+document.querySelectorAll('.compare-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const sound = btn.dataset.sound;
+    const beat  = btn.dataset.beat;
+    const label = btn.textContent;
+    getCtx().then(c => {
+      playCompareSound(c, sound, beat);
+      drawWave(label);
+    }).catch(e => setStatus('ERROR: ' + e.message));
+  });
+});
+
+document.getElementById('copyCompareBtn').addEventListener('click', () => {
+  const text = document.getElementById('peakReadout').textContent;
+  const fb = document.getElementById('copyCompareFeedback');
+  if (!text) { fb.textContent = 'Nothing to copy yet'; setTimeout(() => { fb.textContent = ''; }, 2000); return; }
+  navigator.clipboard.writeText(text).then(() => {
+    fb.textContent = 'Copied';
+    setTimeout(() => { fb.textContent = ''; }, 2000);
+  }).catch(() => { fb.textContent = text; });
+});
+
+// ── New sound presets ────────────────────────────────────────────────────────
+// Each preset: { filter, freq, q, exp, decay(ms), gain, oscWave, oscFreq, oscMix, reverb }
+// Loaded into the main sliders so the user can tweak from there.
+const PRESETS = {
+  // Rimshot: sharp noise burst at 4kHz + low sine thud for body
+  'rimshot-accent': { filter:'bandpass', freq:4000, q:3,   exp:18, decay:30,  gain:8,   oscWave:'sine', oscFreq:200, oscMix:0.4,  reverb:0,    label:'Rimshot accent' },
+  'rimshot-normal': { filter:'bandpass', freq:3500, q:3,   exp:18, decay:25,  gain:6,   oscWave:'sine', oscFreq:180, oscMix:0.3,  reverb:0,    label:'Rimshot normal' },
+  // Woodblock A: original — tight mid-range, dry
+  'woodblock-accent':    { filter:'bandpass', freq:2200, q:6, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A accent (2000Hz)' },
+  'woodblock-normal':    { filter:'bandpass', freq:1800, q:6, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A normal (1800Hz)' },
+  // Woodblock A2: 2500Hz
+  'woodblock-a2-accent': { filter:'bandpass', freq:2500, q:5, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A2 accent (2500Hz)' },
+  'woodblock-a2-normal': { filter:'bandpass', freq:2500, q:5, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A2 normal (2500Hz)' },
+  // Woodblock A3: 3000Hz
+  'woodblock-a3-accent': { filter:'bandpass', freq:3000, q:4, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A3 accent (3000Hz)' },
+  'woodblock-a3-normal': { filter:'bandpass', freq:3000, q:4, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A3 normal (3000Hz)' },
+  // Woodblock A4: 3500Hz
+  'woodblock-a4-accent': { filter:'bandpass', freq:3500, q:4, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A4 accent (3500Hz)' },
+  'woodblock-a4-normal': { filter:'bandpass', freq:3500, q:4, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A4 normal (3500Hz)' },
+  // Woodblock A5: 4000Hz
+  'woodblock-a5-accent': { filter:'bandpass', freq:4000, q:3, exp:14, decay:35, gain:10, oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A5 accent (4000Hz)' },
+  'woodblock-a5-normal': { filter:'bandpass', freq:4000, q:3, exp:14, decay:30, gain:7,  oscWave:'none', oscFreq:300, oscMix:0.3, reverb:0, label:'Woodblock A5 normal (4000Hz)' },
+  // Hi-hat: very high bandpass, very short — airy, metallic
+  'hat-accent':   { filter:'highpass',  freq:7000, q:1,   exp:20, decay:20,  gain:4,   oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0.05, label:'Hat accent' },
+  'hat-normal':   { filter:'highpass',  freq:7000, q:1,   exp:20, decay:15,  gain:2.5, oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0.05, label:'Hat normal' },
+  // Snap: softer mid-range, rounder attack — less click, more snap
+  'snap-accent':  { filter:'bandpass',  freq:1400, q:2.5, exp:8,  decay:65,  gain:5,   oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0,    label:'Snap accent' },
+  'snap-normal':  { filter:'bandpass',  freq:1200, q:2.5, exp:8,  decay:55,  gain:3.5, oscWave:'none', oscFreq:300, oscMix:0.3,  reverb:0,    label:'Snap normal' },
+  // Conga: low-mid noise + descending sine pitch
+  'conga-accent': { filter:'bandpass',  freq:600,  q:2,   exp:10, decay:80,  gain:6,   oscWave:'sine', oscFreq:300, oscMix:0.6,  reverb:0,    label:'Conga accent' },
+  'conga-normal': { filter:'bandpass',  freq:500,  q:2,   exp:10, decay:70,  gain:4,   oscWave:'sine', oscFreq:220, oscMix:0.5,  reverb:0,    label:'Conga normal' },
+};
+
+function applyPreset(p) {
+  // Load into main sliders
+  const setSlider = (id, val) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.value = val;
+    document.getElementById(id + 'Val').textContent = val;
+  };
+  setSlider('freq',    p.freq);
+  setSlider('q',       p.q);
+  setSlider('exp',     p.exp);
+  setSlider('decay',   p.decay);
+  setSlider('gain',    p.gain);
+  setSlider('oscFreq', p.oscFreq);
+  setSlider('oscMix',  p.oscMix);
+  setSlider('reverb',  p.reverb);
+  // Filter pill
+  filterVal = p.filter;
+  document.querySelectorAll('#filterBtns .pill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === p.filter);
+  });
+  // Osc wave pill
+  waveVal = p.oscWave;
+  document.querySelectorAll('#waveBtns .pill-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.val === p.oscWave);
+  });
+}
+
+document.querySelectorAll('.preset-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const p = PRESETS[btn.dataset.preset];
+    if (!p) return;
+    applyPreset(p);
+    getCtx().then(c => {
+      const t = c.currentTime + 0.02;
+      playSound(c, t, {
+        filter: p.filter, freq: p.freq, q: p.q, exp: p.exp,
+        decay: p.decay / 1000, gain: p.gain,
+        oscWave: p.oscWave, oscFreq: p.oscFreq, oscMix: p.oscMix,
+        reverb: p.reverb,
+      });
+      document.getElementById('presetLabel').textContent = p.label + ' — params loaded into sliders';
+      setTimeout(() => { document.getElementById('presetLabel').textContent = ''; }, 3000);
+    }).catch(e => setStatus('ERROR: ' + e.message));
+  });
+});
+
+document.getElementById('copyBtn').addEventListener('click', () => {
+  const v = vals();
+  const osc = v.oscWave !== 'none' ? `, osc: ${v.oscWave} ${v.oscFreq}Hz mix${v.oscMix}` : '';
+  const text = `filter: ${v.filter}, freq: ${v.freq}, q: ${v.q}, exp: ${v.exp}, decay: ${Math.round(v.decay*1000)}ms, gain: ${v.gain}${osc}, reverb: ${v.reverb}`;
+  const fb = document.getElementById('copyFeedback');
+  navigator.clipboard.writeText(text).then(() => {
+    fb.textContent = 'Copied: ' + text;
+    setTimeout(() => { fb.textContent = ''; }, 4000);
+  }).catch(() => { fb.textContent = text; });
+});
+</script>
+</body>
+</html>

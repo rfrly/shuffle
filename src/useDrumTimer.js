@@ -43,7 +43,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                         running, paused, resuming,
                         countInBars, countInEveryRound,
                         mode, volume, looping, infinite, setComplete,
-                        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 }) {
+                        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+                        metSound }) {
 
   const audioCtx          = useRef(null);
   const silentLoop        = useRef(null);
@@ -135,7 +136,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
     stateRef.current = { bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                          onNewExercise, onNextExercise, onSetComplete, onSetLoop,
                          countInBars, countInEveryRound,
-                         mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2 };
+                         mode, volume, exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+                         metSound };
   });
 
   const resumingRef = useRef(false);
@@ -275,7 +277,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               onNewExercise: onChange, onNextExercise: onNext,
               onSetComplete: onDone, onSetLoop: onLoop,
               countInBars: cib2, countInEveryRound: cier,
-              mode: currentMode, volume: vol } = stateRef.current;
+              mode: currentMode, volume: vol, metSound: mSound } = stateRef.current;
 
       const beatLen           = 60 / b;
       const countInBeats      = bpb2 * cib2;
@@ -293,7 +295,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
         // ── Phase 1: initial count-in (beatCount 0 → countInBeats-1) ──
         if (bc < countInBeats) {
           const beatInCI = bc % bpb2;
-          scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol);
+          scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol, mSound);
           const t = nextBeatTime.current;
           // stoppedRef guard: the user may hit Stop between scheduling this beat
           // and the setTimeout firing. Without the guard, stale state updates would
@@ -323,7 +325,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
           // playing phase resumes from playBeatCount = 0 (the new exercise's beat 1).
           if (inInterCountIn) {
             const interPos = countInBeatPos.current;
-            scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol);
+            scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol, mSound);
             const t = nextBeatTime.current;
             setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
               Math.max(0, (t - ctx.currentTime) * 1000));
@@ -344,17 +346,17 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
             const isDownbeat    = beatInBar === 0;
 
             if (!(isNewExercise && setEndPending.current && !loopingRef.current)) {
-              const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1, subdivVol2: sVol2 = 1 } = stateRef.current;
+              const { subdivision: subdiv, beatStates: bStates, mode: clickMode, subdivVol: sVol = 1, subdivVol2: sVol2 = 1, subdivVol3: sVol3 = 1 } = stateRef.current;
               const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
-              scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false);
-              if (clickMode === MODE_CLICKONLY && subdiv > 1) {
+              scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
+              if (subdiv > 1) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
-                  // When subdiv=4 (16ths): s=2 is the 8th-note position (sVol), s=1,3 are pure 16ths (sVol2)
-                  const subMul = (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
-                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true);
+                  // subdiv=3 (triplets): use sVol3. subdiv=4 (16ths): s=2 is 8th position (sVol), s=1,3 are pure 16ths (sVol2). subdiv=2 (8ths): sVol.
+                  const subMul = subdiv === 3 ? sVol3 : (subdiv === 4 && s % 2 !== 0) ? sVol2 : sVol;
+                  scheduleMetronomeClick(ctx, nextBeatTime.current + subdivLen * s, 'normal', vol * subMul, true, mSound);
                   const tSub = nextBeatTime.current + subdivLen * s;
                   setTimeout(() => {
                     if (stoppedRef.current) return;
@@ -434,7 +436,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                     countInProgress.current = true;
                     countInBeatPos.current = 1;
                     playBeatCount.current = 0;
-                    scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                    scheduleWoodblock(ctx, nextBeatTime.current, true, vol, mSound);
                     if (countInBeatPos.current >= interCountInBeats) {
                       countInProgress.current = false; countInBeatPos.current = 0;
                       setTimeout(() => { if (stoppedRef.current) return; setPhase("playing"); },
@@ -463,7 +465,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
                     countInProgress.current = true;
                     countInBeatPos.current = 1;
                     playBeatCount.current = 0;
-                    scheduleWoodblock(ctx, nextBeatTime.current, true, vol);
+                    scheduleWoodblock(ctx, nextBeatTime.current, true, vol, mSound);
                     if (countInBeatPos.current >= interCountInBeats) {
                       countInProgress.current = false; countInBeatPos.current = 0;
                       setTimeout(() => { if (stoppedRef.current) return; onNext(upcoming); setPhase("playing"); },
