@@ -391,7 +391,7 @@
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
     }
-    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 
     .bpm-widget-row { display: flex; align-items: center; gap: 0.4rem; width: 100%; }
     .bpm-widget-row .bpm-widget { flex: 1; }
@@ -419,7 +419,7 @@
     .bpm-gear-btn:active { background: #2a2a2a; }
     .bpm-gear-btn.active { border-color: #f5c842; color: #f5c842; }
 
-    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.4); }
+    .bpm-auto-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
     .bpm-auto-popup {
       position: fixed; z-index: 50;
       background: #1c1c1c; border: 1px solid #383838;
@@ -1017,7 +1017,7 @@
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
     }
-    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.7); }
+    .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 
     .bpm-auto-row { display: flex; align-items: center; gap: 0.4rem; flex-wrap: nowrap; }
     .bpm-auto-label { font-size: 0.65rem; color: #888; white-space: nowrap; min-width: 28px; }
@@ -1050,7 +1050,7 @@
 
 
     /* ── Numpad popup ─────────────────────────────────────────────────────────── */
-    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; background: rgba(0,0,0,0.5); }
+    .numpad-backdrop { position: fixed; inset: 0; z-index: 59; background: rgba(0,0,0,0.6); }
     .numpad-popup {
       position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
       z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
@@ -4501,7 +4501,7 @@
                   onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
                 {settingsMenuOpen && (
                   <>
-                    <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
+                    <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.6)" }}
                          onClick={() => { setSettingsMenuOpen(false); setSoundMenuOpen(false); }} />
                     <div className="settings-menu-panel">
                       <button className="settings-menu-item settings-menu-item--help" onClick={() => {
@@ -5077,7 +5077,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.1 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
