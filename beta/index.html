@@ -3148,9 +3148,30 @@
                         if (sets !== 1 && mode !== MODE_CLICKONLY) p.set("sets", String(sets));
                         if (displayMode === 'timer' && mode === MODE_CLICKONLY) p.set("dm", "timer");
                         if (letterMode) p.set("lm", "1");
+                        const summaryParts = [];
+                        if (mode !== MODE_CLICKONLY) {
+                          if (exMode === "pick" && pickedNums.length > 0) {
+                            if (pickedNums.length > 4) summaryParts.push(`${pickedNums.length} exercises`);
+                            else summaryParts.push(pickedNums.map(n => letterMode ? numToLetter(n) : String(n)).join(", "));
+                          } else {
+                            const lo = letterMode ? numToLetter(minEx) : String(minEx);
+                            const hi = letterMode ? numToLetter(maxEx) : String(maxEx);
+                            summaryParts.push(`${lo}–${hi}`);
+                          }
+                        }
+                        summaryParts.push(`${bpm} BPM`);
+                        if (timeSig.label !== "4/4") summaryParts.push(timeSig.label);
+                        if (mode !== MODE_CLICKONLY) {
+                          summaryParts.push(`${barsPerExercise} round${barsPerExercise !== 1 ? "s" : ""}`);
+                          if (countInEvery) summaryParts.push("count in every exercise");
+                        }
+                        const modeWord = mode === MODE_FULLSET ? "Shuffle mode" : mode === MODE_SEQUENTIAL ? "Sequence mode" : "Metronome mode";
+                        const setsSuf = !isMetronome ? (sets === "∞" ? " ∞" : sets !== 1 ? ` ×${sets}` : "") : "";
+                        summaryParts.push(`${modeWord}${setsSuf}`);
+                        const summary = summaryParts.join(", ");
                         const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
-                        navigator.clipboard.writeText(url)
-                          .then(() => showAppToast("Link copied!"))
+                        navigator.clipboard.writeText(`${summary}\n${url}`)
+                          .then(() => showAppToast("Copied to clipboard!"))
                           .catch(() => showAppToast("Copy failed"));
                       }}>Share settings</button>
                       <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
@@ -3612,7 +3633,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.9.15.beta.16 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.9.15.beta.17 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
