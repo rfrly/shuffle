@@ -869,12 +869,6 @@ firebase_and_observer = r"""
                 <div className="obs-menu-panel">
                   <button className="obs-menu-item" onClick={() => {
                     setMenuOpen(false);
-                    navigator.clipboard.writeText(buildSettingsSummary())
-                      .then(() => showToast("Copied!"))
-                      .catch(() => showToast("Copy failed"));
-                  }}>Copy summary</button>
-                  <button className="obs-menu-item" onClick={() => {
-                    setMenuOpen(false);
                     const next = !effectiveLm;
                     setLetterModeOverride(next);
                     onSendCmd({ letterMode: next });
@@ -882,10 +876,31 @@ firebase_and_observer = r"""
                   }}>{effectiveLm ? "Turn letter mode off" : "Turn letter mode on"}</button>
                   <button className="obs-menu-item" onClick={() => {
                     setMenuOpen(false);
-                    navigator.clipboard.writeText(buildShareUrl())
-                      .then(() => showToast("Link copied!"))
+                    const summaryParts = [];
+                    if (obsMode !== "clickonly") {
+                      if (exMode === "pick" && pickedNums.length > 0) {
+                        if (pickedNums.length > 4) summaryParts.push(`${pickedNums.length} exercises`);
+                        else summaryParts.push(pickedNums.map(n => effectiveLm ? numToLetter(n) : String(n)).join(", "));
+                      } else {
+                        const lo = effectiveLm ? numToLetter(obsMinEx || 1) : String(obsMinEx || 1);
+                        const hi = effectiveLm ? numToLetter(obsMaxEx || 1) : String(obsMaxEx || 1);
+                        summaryParts.push(`${lo}\u2013${hi}`);
+                      }
+                    }
+                    summaryParts.push(`${obsBpm || 80} BPM`);
+                    if (obsTimeSigLabel && obsTimeSigLabel !== "4/4") summaryParts.push(obsTimeSigLabel);
+                    if (obsMode !== "clickonly") {
+                      summaryParts.push(`${obsBpe || 4} round${(obsBpe || 4) !== 1 ? "s" : ""}`);
+                      if (obsCountInEvery) summaryParts.push("count in every exercise");
+                    }
+                    const modeWord = obsMode === "fullset" ? "Shuffle mode" : obsMode === "sequential" ? "Sequence mode" : "Metronome mode";
+                    const setsSuf = obsMode !== "clickonly" ? (obsSets === "\u221e" ? " \u221e" : obsSets !== 1 ? ` \u00d7${obsSets}` : "") : "";
+                    summaryParts.push(`${modeWord}${setsSuf}`);
+                    const url = buildShareUrl();
+                    navigator.clipboard.writeText(`${summaryParts.join(", ")}\n${url}`)
+                      .then(() => showToast("Copied to clipboard!"))
                       .catch(() => showToast("Copy failed"));
-                  }}>Share link</button>
+                  }}>Share settings</button>
                   <button className="obs-menu-item obs-menu-item--destructive" onClick={() => {
                     setMenuOpen(false);
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
@@ -1669,7 +1684,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.9.15 · watch 1.64</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.65</div>
           </div>
         )}
         {watchScreen === "share" && (
