@@ -352,6 +352,7 @@ watch_css = r"""
     .obs-menu-item:active { background: #222; }
     .obs-menu-item.active { color: #f5c842; }
     .obs-menu-item--destructive { color: #a04040; }
+    .obs-menu-item--expandable { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
     .observer-info-strip {
       display: flex; gap: 1.5rem; align-items: center; justify-content: center;
       width: 100%; max-width: 440px;
@@ -619,7 +620,7 @@ firebase_and_observer = r"""
     }
 
     // ── Observer vol popup (portal-rendered, positioned above vol button) ────────
-    function ObsVolPopup({ btnRef, obsVolume, obsSubdivision, obsSubdivVol, obsSubdivVol2, onSendCmd }) {
+    function ObsVolPopup({ btnRef, obsVolume, obsSubdivision, obsSubdivVol, obsSubdivVol2, obsSubdivVol3, onSendCmd }) {
       const [style, setStyle] = React.useState({});
       React.useEffect(() => {
         if (btnRef.current) {
@@ -627,30 +628,38 @@ firebase_and_observer = r"""
           setStyle({ position: 'fixed', right: window.innerWidth - rect.right, bottom: window.innerHeight - rect.top + 6, zIndex: 51 });
         }
       }, []);
+      const clamp = (v) => Math.min(1, Math.max(0, Math.round(v * 100) / 100));
+      const nudge = (field, cur, delta) => onSendCmd({ [field]: clamp((cur ?? 0.7) + delta) });
+      // Subdivision rows: value=2 (8ths/♪♪), value=4 (16ths/♬), value=3 (triplets/⋮)
+      const subRows = [
+        { value: 2, field: "subdivVol",  vol: obsSubdivVol  ?? 0.7 },
+        { value: 4, field: "subdivVol2", vol: obsSubdivVol2 ?? 0.7 },
+        { value: 3, field: "subdivVol3", vol: obsSubdivVol3 ?? 0.7 },
+      ];
       return (
         <div className="vol-slider-row" style={style}>
           <div className="vol-slider-item">
             <span>Master</span>
-            <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.max(0, Math.round(((obsVolume ?? 1) - 0.05) * 100) / 100) })}>−</button>
+            <button className="vol-nudge-btn" onClick={() => nudge("volume", obsVolume, -0.05)}>−</button>
             <input type="range" min={0} max={1} step={0.05} value={obsVolume ?? 1} onChange={e => onSendCmd({ volume: Number(e.target.value) })} />
-            <button className="vol-nudge-btn" onClick={() => onSendCmd({ volume: Math.min(1, Math.round(((obsVolume ?? 1) + 0.05) * 100) / 100) })}>+</button>
+            <button className="vol-nudge-btn" onClick={() => nudge("volume", obsVolume, 0.05)}>+</button>
           </div>
-          {obsSubdivision > 1 && (
-            <div className="vol-slider-item">
-              <span>{obsSubdivision === 4 ? "8th" : obsSubdivision === 3 ? "Triplet" : "8th"}</span>
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.max(0, Math.round(((obsSubdivVol ?? 1) - 0.05) * 100) / 100) })}>−</button>
-              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol ?? 1} onChange={e => onSendCmd({ subdivVol: Number(e.target.value) })} />
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol: Math.min(1, Math.round(((obsSubdivVol ?? 1) + 0.05) * 100) / 100) })}>+</button>
-            </div>
-          )}
-          {obsSubdivision === 4 && (
-            <div className="vol-slider-item">
-              <span>16th</span>
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.max(0, Math.round(((obsSubdivVol2 ?? 1) - 0.05) * 100) / 100) })}>−</button>
-              <input type="range" min={0} max={1} step={0.05} value={obsSubdivVol2 ?? 1} onChange={e => onSendCmd({ subdivVol2: Number(e.target.value) })} />
-              <button className="vol-nudge-btn" onClick={() => onSendCmd({ subdivVol2: Math.min(1, Math.round(((obsSubdivVol2 ?? 1) + 0.05) * 100) / 100) })}>+</button>
-            </div>
-          )}
+          {subRows.map(row => {
+            const active = obsSubdivision === row.value || (row.value === 2 && obsSubdivision === 4);
+            const isSelector = !(row.value === 2 && obsSubdivision === 4);
+            return (
+              <div key={row.value} className={`vol-slider-item${active ? "" : " vol-subdiv-inactive"}`}>
+                <button className="vol-subdiv-icon-btn"
+                  onClick={() => { if (isSelector) onSendCmd({ subdivision: obsSubdivision === row.value ? 1 : row.value }); }}
+                  style={!isSelector ? { cursor: "default" } : {}}>
+                  <SubdivSVG value={row.value} />
+                </button>
+                <button className="vol-nudge-btn" onClick={() => nudge(row.field, row.vol, -0.05)}>−</button>
+                <input type="range" min={0} max={1} step={0.05} value={row.vol} onChange={e => onSendCmd({ [row.field]: Number(e.target.value) })} />
+                <button className="vol-nudge-btn" onClick={() => nudge(row.field, row.vol, 0.05)}>+</button>
+              </div>
+            );
+          })}
         </div>
       );
     }
@@ -667,7 +676,7 @@ firebase_and_observer = r"""
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
         subdivision: obsSubdivision, beatStates: obsBeatStates, subdivVol: obsSubdivVol, subdivVol2: obsSubdivVol2, subdivVol3: obsSubdivVol3,
-        volume: obsVolume,
+        volume: obsVolume, metSound: obsMetSound,
         bpmAuto: obsBpmAuto, bpmAutoStep: obsBpmAutoStep, bpmAutoDir: obsBpmAutoDir,
         bpmAutoTrigger: obsBpmAutoTrigger, bpmAutoBarInterval: obsBpmAutoBarInterval,
         bpmAutoSecInterval: obsBpmAutoSecInterval, bpmAutoRandom: obsBpmAutoRandom,
@@ -686,6 +695,7 @@ firebase_and_observer = r"""
       const [toastKey, setToastKey] = React.useState(0);
       const toastTimer = React.useRef(null);
       const [menuOpen, setMenuOpen] = React.useState(false);
+      const [soundMenuOpen, setSoundMenuOpen] = React.useState(false);
       const [showObsVolume, setShowObsVolume] = React.useState(false);
       const obsVolBtnRef = React.useRef(null);
       const showToast = (msg) => {
@@ -868,12 +878,32 @@ firebase_and_observer = r"""
                      onClick={() => setMenuOpen(false)} />
                 <div className="obs-menu-panel">
                   <button className="obs-menu-item" onClick={() => {
-                    setMenuOpen(false);
+                    setMenuOpen(false); setSoundMenuOpen(false);
                     const next = !effectiveLm;
                     setLetterModeOverride(next);
                     onSendCmd({ letterMode: next });
                     showToast(next ? "Letter mode on" : "Letter mode off");
                   }}>{effectiveLm ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                  <div className="obs-menu-item obs-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
+                    <span>Click sound</span>
+                    <span className={`settings-menu-arrow${soundMenuOpen ? " settings-menu-arrow--open" : ""}`}>\u203a</span>
+                  </div>
+                  {soundMenuOpen && (
+                    <div className="settings-menu-submenu">
+                      {[
+                        { id: "digital1", label: "Blip" },
+                        { id: "digital2", label: "Ping" },
+                        { id: "tick",     label: "Tick" },
+                      ].map(({ id, label }) => (
+                        <button key={id}
+                          className={`settings-menu-submenu-item${(obsMetSound ?? "digital1") === id ? " settings-menu-submenu-item--active" : ""}`}
+                          onClick={() => { onSendCmd({ metSound: id }); setMenuOpen(false); setSoundMenuOpen(false); }}>
+                          <span className="settings-menu-submenu-dot">{(obsMetSound ?? "digital1") === id ? "\u25cf" : ""}</span>
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <button className="obs-menu-item" onClick={() => {
                     setMenuOpen(false);
                     const summaryParts = [];
@@ -1032,9 +1062,28 @@ firebase_and_observer = r"""
                   ].map(m => (
                     <button key={m.value}
                       className={`sel-btn${obsMode === m.value ? " active" : ""}`}
-                      onClick={() => { if (m.value !== obsMode) onSendCmd({ mode: m.value }); }}
+                      onClick={() => {
+                        if (m.value === obsMode) {
+                          if (m.value === "clickonly") {
+                            const newDm = obsDisplayMode === "timer" ? "bars" : "timer";
+                            onSendCmd({ displayMode: newDm });
+                          } else {
+                            const cur = obsSets;
+                            const next = cur === 1 ? 2 : cur === 2 ? 3 : cur === 3 ? "\u221e" : 1;
+                            onSendCmd({ sets: next });
+                          }
+                        } else {
+                          onSendCmd({ mode: m.value });
+                        }
+                      }}
                       disabled={disabled || obsRunning}>
                       {m.label}
+                      {m.value === obsMode && (m.value === "fullset" || m.value === "sequential")
+                        ? (obsSets === "\u221e" ? " [\u221e]" : obsSets != null && obsSets !== 1 ? ` [\u00d7${obsSets}]` : " [\u00d71]")
+                        : ""}
+                      {m.value === obsMode && m.value === "clickonly"
+                        ? (obsDisplayMode === "timer" ? " [\u23F1\uFE0E]" : " [#]")
+                        : ""}
                     </button>
                   ))}
                 </div>
@@ -1259,7 +1308,7 @@ firebase_and_observer = r"""
             {showObsVolume && ReactDOM.createPortal(
               <>
                 <div className="compact-popup-backdrop" onClick={() => setShowObsVolume(false)} />
-                <ObsVolPopup btnRef={obsVolBtnRef} obsVolume={obsVolume} obsSubdivision={obsSubdivision} obsSubdivVol={obsSubdivVol} obsSubdivVol2={obsSubdivVol2} onSendCmd={onSendCmd} />
+                <ObsVolPopup btnRef={obsVolBtnRef} obsVolume={obsVolume} obsSubdivision={obsSubdivision} obsSubdivVol={obsSubdivVol} obsSubdivVol2={obsSubdivVol2} obsSubdivVol3={obsSubdivVol3} onSendCmd={onSendCmd} />
               </>,
               document.body
             )}
@@ -1382,7 +1431,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           mode, sets, displayMode, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
           minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
-          volume,
+          volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           ts: Date.now(),
@@ -1392,7 +1441,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           exercise, nextEx, countInBeat, mode, sets, displayMode, elapsedSeconds, bpm, timeSig, barsPerExercise,
           exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
-          volume,
+          volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
           isFirstExOfSet, setCount,
           watchScreen]);
@@ -1576,6 +1625,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.bpmAutoBarInterval != null) setBpmAutoBarInterval(cmd.bpmAutoBarInterval);
           if (cmd.bpmAutoSecInterval != null) setBpmAutoSecInterval(cmd.bpmAutoSecInterval);
           if (cmd.bpmAutoRandom != null) setBpmAutoRandom(!!cmd.bpmAutoRandom);
+          if (cmd.metSound != null && ["digital1", "digital2", "tick"].includes(cmd.metSound)) setMetSound(cmd.metSound);
         });
         return () => { cmdsRef.off(); cmdDbRef.current = null; };
       }, [watchScreen, shareCode]);
@@ -1685,7 +1735,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.66</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.0 · watch 1.3</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1749,8 +1799,14 @@ with open(DEST, "w") as f:
 print(f"Built {BETA_DEST} ({len(src):,} bytes)")
 print(f"Built {DEST} ({len(src):,} bytes)")
 
-# Sanity checks
-checks = [
+# ── Sanity checks ────────────────────────────────────────────────────────────
+# Failures here mean a patch silently missed its target or a required feature
+# was not included in the teacher view. Fix the root cause — do not skip checks.
+
+_errors = []
+
+# Core watch infrastructure
+infra_checks = [
     "shuffle-watch-d578b-default-rtdb",
     "generateWatchCode",
     "ObserverDisplay",
@@ -1768,9 +1824,76 @@ checks = [
     "keepCtxAlive",
     "getCtx",
 ]
-for token in checks:
+
+# Teacher view parity checks — every controllable setting must appear in the
+# teacher UI. If any of these are missing, the teacher is out of sync with the
+# main app. Add a new entry here whenever a new setting is added to the main app
+# and mirrored in the teacher view.
+#
+# Format: (token_in_watch_html, human_readable_description)
+teacher_parity_checks = [
+    # Transport
+    ("tcmd: \"start\"",         "teacher Start button"),
+    ("tcmd: \"stop\"",          "teacher Stop button"),
+    ("\"resume\" : \"pause\"",   "teacher Pause/Resume button"),
+    ("tcmd: \"loop\"",          "teacher Loop button"),
+    # Mode + sets cycling + displayMode toggle
+    ("obsMode === m.value",     "teacher Mode buttons"),
+    ("obsSets",                 "teacher sets cycling (×1/×2/×3/∞)"),
+    ("obsDisplayMode",          "teacher displayMode toggle (bars/timer)"),
+    # BPM
+    ("obsBpm",                  "teacher BPM control"),
+    ("bpmGearBtnRef",           "teacher BPM automation gear"),
+    ("BpmAutoPopup",            "teacher BpmAutoPopup"),
+    # Time signature
+    ("obs-timeSig",             "teacher Time signature"),
+    # Count in
+    ("obs-countIn",             "teacher Count in"),
+    ("obsCountInEvery",         "teacher Count in every exercise"),
+    # Click sound (in teacher ☰ menu)
+    ("obsMetSound",             "teacher Click sound (☰ menu)"),
+    ("soundMenuOpen",           "teacher Click sound submenu state"),
+    # Exercise length
+    ("obs-exLength",            "teacher Exercise length"),
+    # Exercises (range + pick)
+    ("obsMinEx",                "teacher Exercises min"),
+    ("obsMaxEx",                "teacher Exercises max"),
+    ("exMode",                  "teacher Range/Pick toggle"),
+    # Rounds per exercise
+    ("obsBpe",                  "teacher Rounds Per Exercise"),
+    # Subdivision (Metronome mode)
+    ("subdiv-group",            "teacher Subdivision control group"),
+    ("subdivision: obsSubdivision", "teacher subdivision send cmd"),
+    # Volume popup (all rows)
+    ("ObsVolPopup",             "teacher Vol popup"),
+    ("obsSubdivVol3",           "teacher subdivVol3 (triplet) in Vol popup"),
+    ("vol-subdiv-inactive",     "teacher Vol popup inactive row dimming"),
+    # Student broadcast — all settings must be in the payload
+    ("metSound,\n          bpmAuto", "metSound in student broadcast payload"),
+    ("subdivVol3,\n          volume, metSound", "subdivVol3 + metSound in broadcast"),
+    # Student command listener — all settings must be handled
+    ("cmd.metSound",            "student cmd listener handles metSound"),
+    ("cmd.sets",                "student cmd listener handles sets"),
+    ("cmd.displayMode",         "student cmd listener handles displayMode"),
+    ("cmd.subdivVol3",          "student cmd listener handles subdivVol3"),
+]
+
+for token in infra_checks:
     if token not in src:
-        print(f"  WARNING: '{token}' not found in output")
+        _errors.append(f"Core watch token missing: '{token}'")
+
+for token, description in teacher_parity_checks:
+    if token not in src:
+        _errors.append(f"Teacher parity check failed — {description}: '{token}' not found")
+
 for label in _patch_warnings:
-    print(f"  WARNING: patch target not found — '{label}'")
+    _errors.append(f"Patch target not found: '{label}'")
+
+if _errors:
+    print()
+    for e in _errors:
+        print(f"  ERROR: {e}")
+    print(f"\n{len(_errors)} error(s) — build.py produced output but watch/index.html may be broken.")
+    sys.exit(1)
+
 print("Done.")
