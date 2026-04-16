@@ -74,7 +74,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 ## Key technical decisions
 
 - Lookahead scheduler (25ms interval, 0.2s lookahead) for accurate timing
-- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally. Metronome click sound (`metSound`) is user-selectable: `digital1` (Blip, sine, default), `digital2` (Ping, triangle), `tick` (Tick, noise). This preference is persisted to localStorage but intentionally excluded from "Reset to defaults" and "Share settings" — it's a device-level preference, not a session setting.
+- Woodblock sound for count-in, oscillator click for metronome — kept distinct intentionally. Metronome click sound (`metSound`) is user-selectable: `digital1` (Blip, sine, default), `digital2` (Ping, triangle), `tick` (Tick, noise). This preference is persisted to localStorage but intentionally excluded from "Reset to defaults" and "Share settings" — it's a device-level preference, not a session setting. It IS however controllable by the teacher in Watch mode (teacher can change the student's click sound mid-session).
 - Tick click and woodblock count-in are both pre-rendered via `OfflineAudioContext` once per AudioContext and cached on the context object (`ctx._tickBufs`, `ctx._woodblockBufs`). Noise is generated with a seeded PRNG (mulberry32, fixed seeds per variant) so rendered buffers are identical across page loads and devices — eliminates wild volume variance from synthesising fresh bandpass-filtered noise on every hit. The gain envelope is baked into the offline render; playback applies only the master `vol` scalar.
 - Audio context is never suspended on pause — scheduler interval is cleared instead, avoids rogue clicks on resume
 - schedulerFn ref stores the scheduler function so resume can restart it without re-picking exercises
@@ -222,6 +222,19 @@ python3 build.py
 Or equivalently: `npm run generate`. The script always regenerates both files — on `dev`, only commit `src/` changes and `beta/index.html`. Never commit `watch/index.html` from `dev` — it is only committed as part of a watch hotfix on a branch off `main`.
 
 For watch-only changes (e.g. teacher UI, Firebase logic), edit `build.py` and run `python3 build.py`. Commit only `build.py`, `beta/index.html`, and `watch/index.html`.
+
+### Teacher view parity
+
+The teacher (`ObserverDisplay` in `build.py`) must mirror every controllable setting in the main app. `python3 build.py` enforces this with hard parity checks — if any are missing the build exits with an error listing exactly what's broken.
+
+**When adding a new setting to the main app**, you must also:
+1. Add it to the student state broadcast payload (and deps array) in build.py section 6
+2. Add a `cmd.newSetting` handler in the student command listener (section 8)
+3. Add a control for it in `ObserverDisplay` — matching the main app's UI pattern (inline control, or ☰ menu item if it's a device-level preference like click sound)
+4. Add a parity check token to the `teacher_parity_checks` list at the bottom of `build.py`
+5. Run `python3 build.py` — it must exit cleanly with "Done." before committing
+
+The `teacher_parity_checks` list in `build.py` is the authoritative record of what the teacher view covers. Do not maintain a duplicate list here — it will drift.
 
 ### Firebase
 - Project: `shuffle-watch-d578b` (Firebase console)
