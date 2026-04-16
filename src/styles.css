@@ -840,6 +840,7 @@
     .settings-menu-item--expandable:active { background: #222; }
     .settings-menu-arrow {
       display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
+      font-family: var(--font-body);
     }
     .settings-menu-arrow--open { transform: rotate(90deg); }
     .settings-menu-submenu { background: #111; border-bottom: 1px solid #222; }
