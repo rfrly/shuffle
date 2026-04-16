@@ -1332,6 +1332,7 @@ watch_state = """
       const watchSilentLoop = useRef(null);
       const [audioRestoreNeeded, setAudioRestoreNeeded] = useState(false);
       const modeRef         = useRef(mode);
+      const setsByMode      = useRef({ [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 });
 
 """
 src = patch(src, 
