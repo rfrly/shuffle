@@ -747,7 +747,7 @@ export function App() {
               onClick={() => setSettingsMenuOpen(v => !v)}>☰</button>
             {settingsMenuOpen && (
               <>
-                <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.4)" }}
+                <div style={{ position: "fixed", inset: 0, zIndex: 49, background: "rgba(0,0,0,0.6)" }}
                      onClick={() => { setSettingsMenuOpen(false); setSoundMenuOpen(false); }} />
                 <div className="settings-menu-panel">
                   <button className="settings-menu-item settings-menu-item--help" onClick={() => {
@@ -1303,7 +1303,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.2.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.2.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
