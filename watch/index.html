@@ -1774,6 +1774,46 @@
 
       React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
 
+      // ── Watch 1.14: sync teacher scheduler with student-initiated transport ─
+      // Each effect is a no-op on teacher-initiated roundtrips because the teacher
+      // handler sets teacher-local state synchronously alongside sending the cmd,
+      // so by the time obs* echoes back, the guards already hold.
+      React.useEffect(() => {
+        if (!teacherAudio) return;
+        if (obsRunning && !teacherRunning) {
+          try { getTeacherCtx().resume().catch(() => {}); } catch {}
+          setTeacherPaused(false);
+          setTeacherResuming(false);
+          setTeacherLooping(false);
+          setTeacherRunning(true);
+          _db.ref("sessions/" + code + "/cmds").set({ audioMuted: true, tseq: Date.now() });
+        } else if (!obsRunning && teacherRunning) {
+          setTeacherRunning(false);
+          setTeacherPaused(false);
+          setTeacherResuming(false);
+          setTeacherLooping(false);
+          _db.ref("sessions/" + code + "/cmds").set({ audioMuted: false, tseq: Date.now() });
+        }
+      }, [obsRunning, teacherAudio]);
+
+      React.useEffect(() => {
+        if (!teacherAudio || !teacherRunning) return;
+        if (!!obsPaused === !!teacherPaused) return;
+        if (obsPaused) {
+          setTeacherPaused(true);
+          setTeacherResuming(false);
+        } else {
+          setTeacherPaused(false);
+          setTeacherResuming(true);
+        }
+      }, [obsPaused, teacherAudio, teacherRunning]);
+
+      React.useEffect(() => {
+        if (!teacherAudio || !teacherRunning) return;
+        if (!!obsLooping === !!teacherLooping) return;
+        setTeacherLooping(!!obsLooping);
+      }, [obsLooping, teacherAudio, teacherRunning]);
+
       const beatsPerBar = parseInt(obsTimeSigLabel) || 4;
       const exLen = obsExLen || 1;
       const bpe = obsBpe || 4;
@@ -4527,7 +4567,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.13</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.14</div>
           </div>
         )}
         {watchScreen === "share" && (
