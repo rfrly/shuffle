@@ -281,7 +281,11 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
 
       const beatLen           = 60 / b;
       const countInBeats      = bpb2 * cib2;
-      const interCountInBeats = cier ? bpb2 * cib2 : 0;
+      // interCountInBeats is always 0 in Metronome mode — countInEveryRound persists
+      // in state when switching modes, but inter-exercise count-ins don't exist in
+      // Metronome mode. Zeroing it here keeps all downstream logic correct without
+      // requiring per-use-site guards.
+      const interCountInBeats = (cier && currentMode !== MODE_CLICKONLY) ? bpb2 * cib2 : 0;
       const { exMode: em, pickedNums: pn } = stateRef.current;
       const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
@@ -354,8 +358,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
-              if (!(isNewExercise && interCountInBeats > 0 && currentMode !== MODE_CLICKONLY)) scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
-              if (subdiv > 1 && !(isNewExercise && interCountInBeats > 0 && currentMode !== MODE_CLICKONLY)) {
+              if (!(isNewExercise && interCountInBeats > 0)) scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
+              if (subdiv > 1 && !(isNewExercise && interCountInBeats > 0)) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
                   // subdiv=3 (triplets): use sVol3. subdiv=4 (16ths): s=2 is 8th position (sVol), s=1,3 are pure 16ths (sVol2). subdiv=2 (8ths): sVol.
