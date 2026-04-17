@@ -354,8 +354,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
               const beatState = (clickMode === MODE_CLICKONLY && bStates && bStates[beatInBar] != null)
                 ? bStates[beatInBar]
                 : (isDownbeat ? 'accent' : 'normal');
-              if (!(isNewExercise && interCountInBeats > 0)) scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
-              if (subdiv > 1 && !(isNewExercise && interCountInBeats > 0)) {
+              if (!(isNewExercise && interCountInBeats > 0 && currentMode !== MODE_CLICKONLY)) scheduleMetronomeClick(ctx, nextBeatTime.current, beatState, vol, false, mSound);
+              if (subdiv > 1 && !(isNewExercise && interCountInBeats > 0 && currentMode !== MODE_CLICKONLY)) {
                 const subdivLen = (60 / b) / subdiv;
                 for (let s = 1; s < subdiv; s++) {
                   // subdiv=3 (triplets): use sVol3. subdiv=4 (16ths): s=2 is 8th position (sVol), s=1,3 are pure 16ths (sVol2). subdiv=2 (8ths): sVol.
