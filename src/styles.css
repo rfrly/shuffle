@@ -455,11 +455,16 @@
     }
 
     /* ── Vol popup subdiv rows ── */
-    .vol-subdiv-inactive { opacity: 0.18; }
+    .vol-subdiv-inactive .vol-nudge-btn,
+    .vol-subdiv-inactive input[type="range"] { opacity: 0.18; }
     .vol-subdiv-icon-btn {
-      background: none; border: none; color: currentColor;
-      padding: 0; cursor: pointer; display: flex; align-items: center;
-      width: 32px; flex-shrink: 0;
+      background: #252525; border: 1px solid #444; border-radius: 6px;
+      color: #ccc; padding: 4px 6px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      width: 38px; flex-shrink: 0;
+    }
+    .vol-subdiv-icon-btn.active {
+      border-color: #f5c842; background: rgba(245,200,66,0.12); color: #f5c842;
     }
     .vol-subdiv-icon-btn .subdiv-svg { width: 24px; height: 18px; }
     .vol-subdiv-badge {

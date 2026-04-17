@@ -79,7 +79,7 @@ function VolPopup({ volBtnRef, volume, setVolume, subdivVol, setSubdivVol, subdi
         return (
           <div key={row.value} className={`vol-slider-item${active ? '' : ' vol-subdiv-inactive'}`}>
             <button
-              className="vol-subdiv-icon-btn"
+              className={`vol-subdiv-icon-btn${active ? ' active' : ''}`}
               onClick={() => {
                 if (isSelector) setSubdivision(subdivision === row.value ? 1 : row.value);
               }}
@@ -1303,7 +1303,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.5.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.5.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
