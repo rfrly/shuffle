@@ -1921,7 +1921,11 @@
 
           const beatLen           = 60 / b;
           const countInBeats      = bpb2 * cib2;
-          const interCountInBeats = cier ? bpb2 * cib2 : 0;
+          // interCountInBeats is always 0 in Metronome mode — countInEveryRound persists
+          // in state when switching modes, but inter-exercise count-ins don't exist in
+          // Metronome mode. Zeroing it here keeps all downstream logic correct without
+          // requiring per-use-site guards.
+          const interCountInBeats = (cier && currentMode !== MODE_CLICKONLY) ? bpb2 * cib2 : 0;
           const { exMode: em, pickedNums: pn } = stateRef.current;
           const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
@@ -2498,7 +2502,7 @@
             return (
               <div key={row.value} className={`vol-slider-item${active ? '' : ' vol-subdiv-inactive'}`}>
                 <button
-                  className="vol-subdiv-icon-btn"
+                  className={`vol-subdiv-icon-btn${active ? ' active' : ''}`}
                   onClick={() => {
                     if (isSelector) setSubdivision(subdivision === row.value ? 1 : row.value);
                   }}
@@ -3722,7 +3726,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.4.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.5.beta.4 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

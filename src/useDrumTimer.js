@@ -281,7 +281,11 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
 
       const beatLen           = 60 / b;
       const countInBeats      = bpb2 * cib2;
-      const interCountInBeats = cier ? bpb2 * cib2 : 0;
+      // interCountInBeats is always 0 in Metronome mode — countInEveryRound persists
+      // in state when switching modes, but inter-exercise count-ins don't exist in
+      // Metronome mode. Zeroing it here keeps all downstream logic correct without
+      // requiring per-use-site guards.
+      const interCountInBeats = (cier && currentMode !== MODE_CLICKONLY) ? bpb2 * cib2 : 0;
       const { exMode: em, pickedNums: pn } = stateRef.current;
       const totalInSet        = (em === 'pick' && pn && pn.length > 0) ? pn.length : max - min + 1;
 
