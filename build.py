@@ -808,6 +808,44 @@ firebase_and_observer = r"""
 
       React.useEffect(() => { obsAutoBarCountRef.current = 0; }, [localBpmAutoTrigger]);
 
+      // When student starts/stops/pauses/loops independently and teacherAudio is on, sync teacher scheduler.
+      const prevObsRunningRef = React.useRef(obsRunning);
+      React.useEffect(() => {
+        const prev = prevObsRunningRef.current;
+        prevObsRunningRef.current = obsRunning;
+        if (!teacherAudio) return;
+        if (obsRunning && !prev) {
+          // Student just started — mute student, start teacher scheduler
+          onSendCmd({ audioMuted: true });
+          setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+          setTeacherRunning(true);
+        } else if (!obsRunning && prev) {
+          // Student just stopped — unmute student, stop teacher scheduler
+          onSendCmd({ audioMuted: false });
+          setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+        }
+      }, [obsRunning, teacherAudio, onSendCmd]);
+
+      const prevObsPausedRef = React.useRef(obsPaused);
+      React.useEffect(() => {
+        const prev = prevObsPausedRef.current;
+        prevObsPausedRef.current = obsPaused;
+        if (!teacherAudio || !teacherRunning) return;
+        if (obsPaused && !prev) {
+          setTeacherPaused(true); setTeacherResuming(false);
+        } else if (!obsPaused && prev) {
+          setTeacherResuming(true); setTeacherPaused(false);
+        }
+      }, [obsPaused, teacherAudio, teacherRunning]);
+
+      const prevObsLoopingRef = React.useRef(obsLooping);
+      React.useEffect(() => {
+        const prev = prevObsLoopingRef.current;
+        prevObsLoopingRef.current = obsLooping;
+        if (!teacherAudio || !teacherRunning) return;
+        if (!!obsLooping !== !!prev) setTeacherLooping(!!obsLooping);
+      }, [obsLooping, teacherAudio, teacherRunning]);
+
       const beatsPerBar = parseInt(obsTimeSigLabel) || 4;
       const exLen = obsExLen || 1;
       const bpe = obsBpe || 4;
@@ -1854,7 +1892,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.10</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.11</div>
           </div>
         )}
         {watchScreen === "share" && (
