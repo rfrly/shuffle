@@ -649,7 +649,7 @@ firebase_and_observer = r"""
             const isSelector = !(row.value === 2 && obsSubdivision === 4);
             return (
               <div key={row.value} className={`vol-slider-item${active ? "" : " vol-subdiv-inactive"}`}>
-                <button className="vol-subdiv-icon-btn"
+                <button className={`vol-subdiv-icon-btn${active ? " active" : ""}`}
                   onClick={() => { if (isSelector) onSendCmd({ subdivision: obsSubdivision === row.value ? 1 : row.value }); }}
                   style={!isSelector ? { cursor: "default" } : {}}>
                   <SubdivSVG value={row.value} />
@@ -1737,7 +1737,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.3 · watch 1.6</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.8</div>
           </div>
         )}
         {watchScreen === "share" && (
