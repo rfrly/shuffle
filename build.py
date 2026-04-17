@@ -649,7 +649,7 @@ firebase_and_observer = r"""
             const isSelector = !(row.value === 2 && obsSubdivision === 4);
             return (
               <div key={row.value} className={`vol-slider-item${active ? "" : " vol-subdiv-inactive"}`}>
-                <button className="vol-subdiv-icon-btn"
+                <button className={`vol-subdiv-icon-btn${active ? " active" : ""}`}
                   onClick={() => { if (isSelector) onSendCmd({ subdivision: obsSubdivision === row.value ? 1 : row.value }); }}
                   style={!isSelector ? { cursor: "default" } : {}}>
                   <SubdivSVG value={row.value} />
