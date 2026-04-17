@@ -53,6 +53,8 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 
 **Key rule:** Beta updates never commit `watch/index.html`. The script always regenerates it locally, but on `dev` it must never be staged or committed — the watch app is live on `main` and must never receive beta features.
 
+**CSS changes that affect the watch teacher UI:** If a `src/styles.css` change adds, removes, or renames a CSS class that is used in `build.py`'s watch JSX (e.g. `ObsVolPopup`, `ObserverDisplay`, student view patches), the watch app will not pick it up from the `dev` → `main` PR alone — the CSS is inlined at build time and `watch/index.html` is never committed from `dev`. In this case, open a watch hotfix branch off `main` at the same time as the PR, apply the same `src/styles.css` changes there, regenerate, and merge the hotfix immediately after the PR lands.
+
 **Watch update workflow:**
 1. Branch off `main`: `git checkout main && git checkout -b hotfix/description`
 2. Edit `build.py` only — never edit `src/`
