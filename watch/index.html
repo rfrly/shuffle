@@ -1449,7 +1449,7 @@
       background: none; border: none; color: #888;
       font-family: var(--font-body); font-size: 1.1rem; letter-spacing: 0;
       padding: 0; cursor: pointer; flex-shrink: 0;
-      display: flex; align-items: center; margin-top: -2px;
+      display: flex; align-items: center; line-height: 1;
     }
     .obs-menu-btn:active { color: #aaa; }
     .obs-menu-panel {
@@ -1468,6 +1468,17 @@
     .obs-menu-item.active { color: #f5c842; }
     .obs-menu-item--destructive { color: #a04040; }
     .obs-menu-item--expandable { display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .obs-menu-item--toggle { display: flex; justify-content: space-between; align-items: center; }
+    .obs-menu-item--action { display: flex; align-items: center; }
+    .obs-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
+    .obs-menu-toggle-pill { width: 32px; height: 18px; border-radius: 9px; position: relative; background: #333; transition: background 0.15s; flex-shrink: 0; }
+    .obs-menu-toggle-pill.on { background: #f5c842; }
+    .obs-menu-toggle-pill::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #0f0f0f; transition: transform 0.15s; }
+    .obs-menu-toggle-pill.on::after { transform: translateX(14px); }
+    .obs-menu-audio-icon {
+      opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;
+    }
+    .obs-menu-audio-icon.on { opacity: 1; }
     .observer-info-strip {
       display: flex; gap: 1.5rem; align-items: center; justify-content: center;
       width: 100%; max-width: 440px;
@@ -1662,13 +1673,27 @@
       const toastTimer = React.useRef(null);
       const [menuOpen, setMenuOpen] = React.useState(false);
       const [soundMenuOpen, setSoundMenuOpen] = React.useState(false);
+      const [menuConfirm, setMenuConfirm] = React.useState(null);
+      const menuConfirmTimer = React.useRef(null);
+      const showMenuConfirm = (key) => {
+        setMenuConfirm(key);
+        if (menuConfirmTimer.current) clearTimeout(menuConfirmTimer.current);
+        menuConfirmTimer.current = setTimeout(() => setMenuConfirm(null), 1500);
+      };
       const [showObsVolume, setShowObsVolume] = React.useState(false);
       const obsVolBtnRef = React.useRef(null);
-      const showToast = (msg) => {
+      const [teacherAudio, setTeacherAudio] = React.useState(() => {
+        try { return localStorage.getItem("shuffle_watch_teacherAudio") === "1"; } catch { return false; }
+      });
+      const [teacherRunning, setTeacherRunning] = React.useState(false);
+      const [teacherPaused, setTeacherPaused] = React.useState(false);
+      const [teacherResuming, setTeacherResuming] = React.useState(false);
+      const [teacherLooping, setTeacherLooping] = React.useState(false);
+      const showToast = (msg, duration = 1800) => {
         setToastMsg(msg);
         setToastKey(k => k + 1);
         if (toastTimer.current) clearTimeout(toastTimer.current);
-        toastTimer.current = setTimeout(() => setToastMsg(null), 1800);
+        toastTimer.current = setTimeout(() => setToastMsg(null), duration);
       };
 
       const obsBpmRef = React.useRef(obsBpm);
@@ -1829,27 +1854,74 @@
         setTimeout(() => setTapped(false), 100);
       };
 
+      // Teacher's own audio scheduler — dormant (running=false) when teacherAudio is off.
+      // Called unconditionally to satisfy React hooks rules. Callbacks are no-ops because
+      // the teacher display reads from observedState, not from this scheduler's output.
+      const { getCtx: getTeacherCtx } = useDrumTimer({
+        bpm: obsBpm || 80,
+        beatsPerBar: parseInt((obsTimeSigLabel || "4/4").split("/")[0]) || 4,
+        barsPerExercise: (obsBpe || 4) * (obsExMode === 'pick' ? 1 : (obsExLen || 1)),
+        minEx: obsMinEx || 1, maxEx: obsMaxEx || 4,
+        onNewExercise: () => {}, onNextExercise: () => {},
+        onSetComplete: () => {}, onSetLoop: () => {},
+        running: teacherRunning, paused: teacherPaused, resuming: teacherResuming,
+        countInBars: obsCib || 1, countInEveryRound: !!obsCountInEvery,
+        mode: obsMode || "fullset",
+        volume: obsVolume ?? 1,
+        looping: teacherLooping,
+        infinite: obsSets === '\u221e' || (typeof obsSets === 'number' && obsSets > 1),
+        setComplete: false,
+        exMode: obsExMode || "range", pickedNums: obsPickedNums || [],
+        subdivision: obsSubdivision || 1, beatStates: Array.isArray(obsBeatStates) ? obsBeatStates : [],
+        subdivVol: obsSubdivVol ?? 0.7, subdivVol2: obsSubdivVol2 ?? 0.7, subdivVol3: obsSubdivVol3 ?? 0.7,
+        metSound: obsMetSound || "digital1",
+        keepCtxAlive: teacherAudio,
+      });
+
       return (
         <div className="observer-app">
           <div className="watching-banner">
             <div className="watching-banner-right">
               <span className="watching-code-text">watching <span>{code}</span></span>
-              <button className="watching-disconnect-btn" onClick={() => { onSendCmd({ tcmd: "end-session", tseq: Date.now() }); _db.ref("sessions/" + code).remove(); onDisconnect(); }}>End session</button>
+              <button className="watching-disconnect-btn" onClick={() => { setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false); setTeacherAudio(false); onSendCmd({ tcmd: "end-session", tseq: Date.now() }); _db.ref("sessions/" + code).remove(); onDisconnect(); }}>End session</button>
+              <span className={`obs-menu-audio-icon${teacherAudio ? " on" : ""}`}>
+                <svg width="10" height="10" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" style={{display:"block"}}>
+                  <polygon points="1,4 5,4 9,1 9,13 5,10 1,10" fill="#888"/>
+                  <path d="M10.5 4.5 C12 5.5 12 8.5 10.5 9.5" stroke="#888" strokeWidth="1.4" strokeLinecap="round" fill="none"/>
+                </svg>
+              </span>
             </div>
             <button className={`obs-menu-btn${menuOpen ? " open" : ""}`}
-              onClick={() => setMenuOpen(v => !v)}>☰</button>
+              onClick={() => setMenuOpen(v => !v)}><span style={{marginTop:"-2px"}}>☰</span></button>
             {menuOpen && (
               <>
                 <div style={{ position: "fixed", inset: 0, zIndex: 49 }}
                      onClick={() => setMenuOpen(false)} />
                 <div className="obs-menu-panel">
-                  <button className="obs-menu-item" onClick={() => {
-                    setMenuOpen(false); setSoundMenuOpen(false);
+                  <button className="obs-menu-item obs-menu-item--toggle" onClick={() => {
+                    const next = !teacherAudio;
+                    setTeacherAudio(next);
+                    try { localStorage.setItem("shuffle_watch_teacherAudio", next ? "1" : "0"); } catch {}
+                    if (!next) {
+                      onSendCmd({ audioMuted: false });
+                      setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+                    } else if (teacherRunning) {
+                      onSendCmd({ audioMuted: true });
+                    }
+                    showToast(next ? "Teacher audio on" : "Teacher audio off");
+                  }}>
+                    <span>Teacher Audio</span>
+                    <div className={`obs-menu-toggle-pill${teacherAudio ? " on" : ""}`} />
+                  </button>
+                  <button className="obs-menu-item obs-menu-item--toggle" onClick={() => {
                     const next = !effectiveLm;
                     setLetterModeOverride(next);
                     onSendCmd({ letterMode: next });
                     showToast(next ? "Letter mode on" : "Letter mode off");
-                  }}>{effectiveLm ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                  }}>
+                    <span>Letter Mode</span>
+                    <div className={`obs-menu-toggle-pill${effectiveLm ? " on" : ""}`} />
+                  </button>
                   <div className="obs-menu-item obs-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
                     <span>Click sound</span>
                     <span className={`settings-menu-arrow${soundMenuOpen ? " settings-menu-arrow--open" : ""}`}>›</span>
@@ -1863,15 +1935,26 @@
                       ].map(({ id, label }) => (
                         <button key={id}
                           className={`settings-menu-submenu-item${(obsMetSound ?? "digital1") === id ? " settings-menu-submenu-item--active" : ""}`}
-                          onClick={() => { onSendCmd({ metSound: id }); setMenuOpen(false); setSoundMenuOpen(false); }}>
+                          onClick={() => {
+                            onSendCmd({ metSound: id });
+                            try {
+                              if (teacherAudio) {
+                                const ctx = getTeacherCtx();
+                                if (ctx) scheduleMetronomeClick(ctx, ctx.currentTime + 0.02, 'accent', obsVolume ?? 1, false, id);
+                              } else {
+                                const previewCtx = new (window.AudioContext || window.webkitAudioContext)();
+                                scheduleMetronomeClick(previewCtx, previewCtx.currentTime + 0.02, 'accent', obsVolume ?? 1, false, id);
+                                setTimeout(() => { try { previewCtx.close(); } catch {} }, 300);
+                              }
+                            } catch {}
+                          }}>
                           <span className="settings-menu-submenu-dot">{(obsMetSound ?? "digital1") === id ? "\u25cf" : ""}</span>
                           {label}
                         </button>
                       ))}
                     </div>
                   )}
-                  <button className="obs-menu-item" onClick={() => {
-                    setMenuOpen(false);
+                  <button className="obs-menu-item obs-menu-item--action" onClick={() => {
                     const summaryParts = [];
                     if (obsMode !== "clickonly") {
                       if (exMode === "pick" && pickedNums.length > 0) {
@@ -1894,19 +1977,19 @@
                     summaryParts.push(`${modeWord}${setsSuf}`);
                     const url = buildShareUrl();
                     navigator.clipboard.writeText(`${summaryParts.join(", ")}\n${url}`)
-                      .then(() => showToast("Copied to clipboard!"))
-                      .catch(() => showToast("Copy failed"));
-                  }}>Share settings</button>
-                  <button className="obs-menu-item obs-menu-item--destructive" onClick={() => {
-                    setMenuOpen(false);
+                      .then(() => { showMenuConfirm("share"); showToast("Copied to clipboard!"); })
+                      .catch(() => { showMenuConfirm("share-fail"); showToast("Copy failed"); });
+                  }}><span>Share settings</span>{menuConfirm === "share" && <span className="obs-menu-confirm">✓</span>}{menuConfirm === "share-fail" && <span className="obs-menu-confirm" style={{color:"#a04040"}}>✗</span>}</button>
+                  <button className="obs-menu-item obs-menu-item--action obs-menu-item--destructive" onClick={() => {
+                    setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
                       minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
                       mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
-                      volume: 1.0, subdivision: 1, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7 });
+                      volume: 1.0, subdivision: 1, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7, audioMuted: false });
                     setLetterModeOverride(false);
-                    showToast("Settings reset");
-                  }}>Reset to defaults</button>
+                    showMenuConfirm("reset"); showToast("Settings reset");
+                  }}><span>Reset to defaults</span>{menuConfirm === "reset" && <span className="obs-menu-confirm" style={{color:"#a04040"}}>✓</span>}</button>
                 </div>
               </>
             )}
@@ -2247,23 +2330,55 @@
           <div className="btn-row" style={{ width: "100%" }}>
             {!obsRunning ? (
               <button className="action-btn" disabled={disabled || !validRange}
-                onClick={() => onSendCmd({ tcmd: "start", tseq: Date.now() })}>Start</button>
+                onClick={() => {
+                  const T = Date.now();
+                  if (teacherAudio) {
+                    setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+                    let started = false;
+                    const startTeacher = (warn) => { if (!started) { started = true; setTeacherRunning(true); if (warn) showToast("Connection issue \u2014 check student audio", 4000); } };
+                    _db.ref("sessions/" + code + "/cmds").set({ tcmd: "start", tseq: T, audioMuted: true })
+                      .then(() => startTeacher(false)).catch(() => startTeacher(true));
+                    setTimeout(() => startTeacher(true), 500);
+                  } else {
+                    onSendCmd({ tcmd: "start", tseq: T });
+                  }
+                }}>Start</button>
             ) : obsMode === "clickonly" ? (
               <button className="action-btn stop" disabled={disabled}
-                onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
+                onClick={() => {
+                  if (teacherAudio) {
+                    onSendCmd({ tcmd: "stop", tseq: Date.now(), audioMuted: false });
+                    setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+                  } else { onSendCmd({ tcmd: "stop", tseq: Date.now() }); }
+                }}>Stop</button>
             ) : (
               <>
                 <div className="btn-group">
                   <button className={`action-btn${obsPaused ? " pause-active" : " secondary"}`} disabled={disabled}
-                    onClick={() => onSendCmd({ tcmd: obsPaused ? "resume" : "pause", tseq: Date.now() })}>
+                    onClick={() => {
+                      const isResume = obsPaused;
+                      onSendCmd({ tcmd: isResume ? "resume" : "pause", tseq: Date.now() });
+                      if (teacherAudio) {
+                        if (isResume) { setTeacherResuming(true); setTeacherPaused(false); }
+                        else { setTeacherPaused(true); setTeacherResuming(false); }
+                      }
+                    }}>
                     {obsPaused ? "Resume" : "Pause"}
                   </button>
                   <button className={`action-btn${obsLooping ? " loop-active" : " secondary"}`} disabled={disabled}
-                    onClick={() => onSendCmd({ tcmd: "loop", tseq: Date.now() })}>Loop</button>
+                    onClick={() => {
+                      onSendCmd({ tcmd: "loop", tseq: Date.now() });
+                      if (teacherAudio) setTeacherLooping(l => !l);
+                    }}>Loop</button>
                 </div>
                 <div className="btn-group-stop">
                   <button className="action-btn stop" disabled={disabled}
-                    onClick={() => onSendCmd({ tcmd: "stop", tseq: Date.now() })}>Stop</button>
+                    onClick={() => {
+                      if (teacherAudio) {
+                        onSendCmd({ tcmd: "stop", tseq: Date.now(), audioMuted: false });
+                        setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
+                      } else { onSendCmd({ tcmd: "stop", tseq: Date.now() }); }
+                    }}>Stop</button>
                 </div>
               </>
             )}
@@ -3838,6 +3953,7 @@
       const [audioRestoreNeeded, setAudioRestoreNeeded] = useState(false);
       const modeRef         = useRef(mode);
       const setsByMode      = useRef({ [MODE_FULLSET]: 1, [MODE_SEQUENTIAL]: 1 });
+      const [studentAudioMuted, setStudentAudioMuted] = useState(false);
 
 
       useEffect(() => {
@@ -3951,7 +4067,7 @@
         running, paused, resuming,
         countInBars,
         countInEveryRound: countInEvery,
-        mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
+        mode, volume: studentAudioMuted ? 0 : volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
         exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
         metSound,
         keepCtxAlive: watchScreen === "app",
@@ -4188,6 +4304,7 @@
           if (cmd.bpmAutoSecInterval != null) setBpmAutoSecInterval(cmd.bpmAutoSecInterval);
           if (cmd.bpmAutoRandom != null) setBpmAutoRandom(!!cmd.bpmAutoRandom);
           if (cmd.metSound != null && ["digital1", "digital2", "tick"].includes(cmd.metSound)) setMetSound(cmd.metSound);
+          if (cmd.audioMuted != null) setStudentAudioMuted(!!cmd.audioMuted);
         });
         return () => { cmdsRef.off(); cmdDbRef.current = null; };
       }, [watchScreen, shareCode]);
@@ -4460,7 +4577,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.8</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.10</div>
           </div>
         )}
         {watchScreen === "share" && (
