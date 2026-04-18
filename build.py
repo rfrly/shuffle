@@ -254,9 +254,6 @@ watch_css = r"""
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
-    .watch-active .exercise-number { font-size: clamp(4rem, 16vw, 7rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(3rem, 12vw, 5.5rem); }
-    .watch-active .countdown-display { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -294,13 +291,8 @@ watch_css = r"""
     }
     @keyframes watch-restore-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     /* watch 1.12: enhanced student glanceable view */
-    .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
-    .watch-active .next-exercise { font-size: clamp(1.8rem, 7vw, 2.8rem); }
-    .watch-active .beat-dot { width: 14px; height: 14px; }
+    .watch-active .exercise-label { letter-spacing: 0.2em; }
     .watch-active .beat-dots { gap: 0.9rem; }
-    .watch-active .bar-block { height: 9px; border-radius: 3px; }
-    .watch-active .bar-progress-track { height: 9px; border-radius: 3px; }
-    .watch-active .bar-progress-fill { height: 9px; }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -523,8 +515,6 @@ src = patch(src,
     '                <div className="btn-group-stop">',
     '                <div className="btn-group-stop" style={watchScreen === "app" ? { display: "none" } : {}}>'
 )
-
-# Stopwatch display: stopwatch-time class is applied via exercise-number in source — no patch needed
 
 # Paused state: make "paused" text amber in watch student view (inline color overrides CSS class)
 src = patch(src,
@@ -1059,7 +1049,7 @@ firebase_and_observer = r"""
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
+          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" ? " display--timer" : ""}`}>
             <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
               {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsDisplayMode === "timer" ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
@@ -1071,7 +1061,7 @@ firebase_and_observer = r"""
             ) : sc ? (
               <div className="exercise-number done">done</div>
             ) : (
-              <div className={`exercise-number${isIdle ? " idle" : ""}`}>
+              <div className={`exercise-number${isIdle ? " idle" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle" ? " stopwatch-time" : ""}`}>
                 {obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle"
                   ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
                   : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}

@@ -948,7 +948,7 @@ export function App() {
         </>
       )}
 
-      <div className={`display${isMetronome ? " display--metro" : ""}`}>
+      <div className={`display${isMetronome ? " display--metro" : ""}${isMetronome && displayMode === 'timer' ? " display--timer" : ""}`}>
         <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
           {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (phase === "countin" ? "count in" : displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
         </div>
@@ -962,7 +962,7 @@ export function App() {
             done
           </div>
         ) : (
-          <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
+          <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}${isMetronome && displayMode === 'timer' && phase !== "idle" ? " stopwatch-time" : ""}`}>
             {isMetronome && displayMode === 'timer' && phase !== "idle"
               ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
               : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
@@ -1306,7 +1306,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.7.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.7.beta.3 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
