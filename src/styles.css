@@ -121,10 +121,11 @@
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
       position: relative;
+      container-type: inline-size;
     }
 
     .exercise-label {
-      font-size: 0.75rem;
+      font-size: clamp(0.7rem, 3.5cqw, 1.1rem);
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
@@ -142,7 +143,7 @@
 
     .exercise-number {
       font-family: var(--font-mono);
-      font-size: clamp(5rem, 18vw, 8rem);
+      font-size: clamp(4.5rem, 32cqw, 9rem);
       line-height: 1;
       color: #f5c842;
       font-weight: 700;
@@ -159,19 +160,21 @@
       transform: scale(1.06);
     }
 
+    .exercise-number.stopwatch-time { font-size: clamp(4.5rem, 32cqw, 9rem); letter-spacing: -0.05em; }
+
     .exercise-number.idle { color: #444; text-shadow: none; }
     .exercise-number.looping { color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
     .exercise-number.done {
       color: #4caf7d;
       text-shadow: 0 0 30px rgba(76,175,125,0.3);
-      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-size: clamp(1.5rem, 9cqw, 3rem);
       letter-spacing: 0.1em;
       text-transform: lowercase;
     }
 
     .next-exercise {
       font-family: var(--font-mono);
-      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-size: clamp(1.2rem, 8cqw, 2.4rem);
       color: #ccc;
       letter-spacing: 0.05em;
       min-height: 1.2em;
@@ -198,9 +201,11 @@
       color: #555;
     }
 
+    .display--timer .countdown-display { font-size: clamp(4.5rem, 32cqw, 9rem); }
+
     .countdown-display {
       font-family: var(--font-mono);
-      font-size: clamp(5rem, 18vw, 8rem);
+      font-size: clamp(4.5rem, 32cqw, 9rem);
       line-height: 1;
       color: #ff4500;
       text-shadow: 0 0 40px rgba(255,69,0,0.3);
@@ -210,7 +215,7 @@
 
     .idle-summary {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: clamp(0.65rem, 3cqw, 1rem);
       letter-spacing: 0.1em;
       color: #777;
       text-align: center;
@@ -233,7 +238,7 @@
     }
 
     .beat-dot {
-      width: 9px; height: 9px;
+      width: clamp(9px, 2.5cqw, 16px); height: clamp(9px, 2.5cqw, 16px);
       border-radius: 50%;
       background: #555;
       transition: background 0.05s;
@@ -249,7 +254,7 @@
     }
 
     .bar-block {
-      height: 5px;
+      height: clamp(5px, 1.5cqw, 10px);
       background: #555;
       border-radius: 2px;
       transition: background 0.1s;
@@ -268,8 +273,8 @@
     }
 
     .bar-progress-track {
-      width: 192px;
-      height: 5px;
+      width: clamp(160px, 45cqw, 280px);
+      height: clamp(5px, 1.5cqw, 10px);
       background: #555;
       border-radius: 2px;
       overflow: hidden;
@@ -277,7 +282,7 @@
     }
 
     .bar-progress-fill {
-      height: 100%;
+      height: clamp(5px, 1.5cqw, 10px);
       border-radius: 2px;
       background: #f5c842;
       transition: width 0.15s;
@@ -287,7 +292,7 @@
 
     .bar-progress-counter {
       font-family: var(--font-mono);
-      font-size: 0.6rem;
+      font-size: clamp(0.6rem, 2.6cqw, 0.9rem);
       letter-spacing: 0.08em;
       color: #555;
       white-space: nowrap;
@@ -909,7 +914,6 @@
       .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
       .control-group label { font-size: 0.7rem; }
-      .idle-summary { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
       .beat-dots { max-width: none; }
     }
@@ -919,7 +923,6 @@
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
-      .idle-summary { font-size: 0.85rem; }
       .bpm-btn { width: 40px; }
       .stepper-btn { width: 40px; }
     }
@@ -932,17 +935,8 @@
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
       .btn-row { margin-top: 1.2dvh; }
-      .exercise-label { font-size: 0.8rem; }
-      .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
-      .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
-      .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
-      .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
-      .idle-summary { font-size: 1rem; }
-      .beat-dot { width: 11px; height: 11px; }
-      .bar-block { height: 7px; border-radius: 3px; }
-      .bar-progress-track { height: 7px; border-radius: 3px; }
-      .bar-progress-fill { height: 7px; }
-      .bar-progress-counter { font-size: clamp(0.75rem, 1.4dvh, 1.1rem); }
+      .bar-block { border-radius: 3px; }
+      .bar-progress-track { border-radius: 3px; }
       .help-overlay { padding-top: max(3.5rem, env(safe-area-inset-top)); }
       .control-group label { font-size: 0.7rem; }
       .check-row span { font-size: 1rem; }
@@ -975,11 +969,8 @@
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
-      .idle-summary { font-size: 0.8rem; }
       .check-row span { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
-      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
-      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
 
       .bpm-btn:hover { background: #252525; color: #fff; }
       .bpm-tap:hover { background: #212121; }
@@ -998,10 +989,6 @@
       .display { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
-      .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
-      .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
-      .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
-      .idle-summary { font-size: 0.9rem; }
     }
 
 
