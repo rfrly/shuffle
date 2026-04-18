@@ -356,10 +356,7 @@ watch_css = r"""
     .obs-menu-item--toggle { display: flex; justify-content: space-between; align-items: center; }
     .obs-menu-item--action { display: flex; align-items: center; }
     .obs-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
-    .obs-menu-toggle-pill { width: 32px; height: 18px; border-radius: 9px; position: relative; background: #333; transition: background 0.15s; flex-shrink: 0; }
-    .obs-menu-toggle-pill.on { background: #f5c842; }
-    .obs-menu-toggle-pill::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #0f0f0f; transition: transform 0.15s; }
-    .obs-menu-toggle-pill.on::after { transform: translateX(14px); }
+    /* .menu-toggle-pill defined in src/styles.css (shared with main app settings menu) */
     .obs-menu-audio-icon {
       opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;
     }
@@ -560,16 +557,6 @@ src = patch(src,
     '          )}\n'
     '          <div className="btn-row">',
     1
-)
-
-# Letter mode popup: suppress entirely in watch build
-src = patch(src, 
-    "        if (!letterModeSeenRef.current) {\n"
-    "          letterModeSeenRef.current = true;\n"
-    "          localStorage.setItem('shuffle_lm_seen', '1');\n"
-    "          setShowLetterModePopup(true);\n"
-    "        }",
-    "        /* letter mode popup suppressed in watch build */"
 )
 
 # Mute hint: suppress when sharing
@@ -986,7 +973,7 @@ firebase_and_observer = r"""
                     showToast(next ? "Teacher audio on" : "Teacher audio off");
                   }}>
                     <span>Teacher Audio</span>
-                    <div className={`obs-menu-toggle-pill${teacherAudio ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${teacherAudio ? " on" : ""}`} />
                   </button>
                   <button className="obs-menu-item obs-menu-item--toggle" onClick={() => {
                     const next = !effectiveLm;
@@ -995,7 +982,7 @@ firebase_and_observer = r"""
                     showToast(next ? "Letter mode on" : "Letter mode off");
                   }}>
                     <span>Letter Mode</span>
-                    <div className={`obs-menu-toggle-pill${effectiveLm ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${effectiveLm ? " on" : ""}`} />
                   </button>
                   <div className="obs-menu-item obs-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
                     <span>Click sound</span>
@@ -1774,15 +1761,11 @@ src = patch(src,
     "      const [letterMode,          setLetterMode]          = useState(false);"
 )
 
-# ── 6b. Expose getCtx from useDrumTimer so App can use it for watchSilentLoop ──
-# getCtx is defined inside useDrumTimer but the "Open Shuffle" button needs it
-# in App scope to create the silent loop that keeps the AudioContext alive.
-# getCtx is already returned by useDrumTimer in the current source — no patch needed.
-# The return line now reads: { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx }
-src = patch(src,
-    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming } = useDrumTimer({",
-    "      const { currentBeat, currentBar, currentSubdiv, phase, flashOn, countInBeat, isResuming, getCtx } = useDrumTimer({"
-)
+# ── 6b. getCtx is already destructured from useDrumTimer in src/components/App.jsx ──
+# No patch needed. App.jsx uses getCtx directly for the click-sound preview and the
+# "Open Shuffle" handler. If the destructure line in App.jsx is ever reduced and
+# drops getCtx, the click sound preview and watch unlock flow will both silently
+# fail — reinstate the destructure or add a patch here.
 
 # ── 6c. Prevent AudioContext close when student is sharing ───────────────────
 # When the student is sharing (watchScreen === "app"), closing the AudioContext
@@ -1844,7 +1827,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.14</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.6 · watch 1.15</div>
           </div>
         )}
         {watchScreen === "share" && (

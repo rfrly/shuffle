@@ -1,6 +1,7 @@
     :root {
       --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
       --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      --toggle-on: #f5c842;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -843,6 +844,23 @@
       letter-spacing: 0.1em; text-transform: uppercase;
     }
     .settings-menu-item--expandable:active { background: #222; }
+    .settings-menu-item--toggle {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .settings-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
+    /* Shared menu toggle pill — used by main app settings menu and watch teacher menu */
+    .menu-toggle-pill {
+      width: 32px; height: 18px; border-radius: 9px;
+      position: relative; background: #333; transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .menu-toggle-pill.on { background: var(--toggle-on); }
+    .menu-toggle-pill::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #0f0f0f; transition: transform 0.15s;
+    }
+    .menu-toggle-pill.on::after { transform: translateX(14px); }
     .settings-menu-arrow {
       display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
       font-family: var(--font-body);
@@ -1082,26 +1100,6 @@
       60%  { opacity: 1; }
       100% { opacity: 0; }
     }
-
-    /* ── Letter mode popup ───────────────────────────────────────────────────── */
-    .letter-mode-popup {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
-      padding: 1.4rem 1.2rem 1rem; display: flex; flex-direction: column; gap: 0.7rem;
-      width: min(320px, calc(100vw - 2.5rem)); text-align: center;
-    }
-    .letter-mode-popup-title {
-      font-family: var(--font-mono); font-size: 1.1rem; color: #f5c842; letter-spacing: 0.03em;
-    }
-    .letter-mode-popup-body {
-      font-family: var(--font-body); font-size: 0.85rem; color: #aaa; line-height: 1.5;
-    }
-    .letter-mode-popup-ok {
-      height: 44px; background: #f5c842; border: none; color: #0f0f0f;
-      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
-      border-radius: 5px; cursor: pointer; margin-top: 0.2rem;
-    }
-    .letter-mode-popup-ok:active { background: #e0b530; }
 
     /* ── Bar Picker popup ─────────────────────────────────────────────────────── */
     .picker-popup {
