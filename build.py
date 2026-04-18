@@ -293,6 +293,12 @@ watch_css = r"""
     /* watch 1.12: enhanced student glanceable view */
     .watch-active .exercise-label { letter-spacing: 0.2em; }
     .watch-active .beat-dots { gap: 0.9rem; }
+    /* Student view has a taller display zone; boost focus text so it feels proportional */
+    .watch-active .exercise-number { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .display--timer .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .next-exercise { font-size: clamp(1.4rem, 9.5cqw, 2.8rem); }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -1817,7 +1823,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.7 · watch 1.16</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.7 · watch 1.17</div>
           </div>
         )}
         {watchScreen === "share" && (
