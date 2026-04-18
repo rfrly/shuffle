@@ -28,6 +28,7 @@
     :root {
       --font-mono: 'Share Tech Mono', ui-monospace, 'SF Mono', Menlo, monospace;
       --font-body: 'Barlow', system-ui, -apple-system, 'Helvetica Neue', sans-serif;
+      --toggle-on: #f5c842;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
@@ -870,6 +871,23 @@
       letter-spacing: 0.1em; text-transform: uppercase;
     }
     .settings-menu-item--expandable:active { background: #222; }
+    .settings-menu-item--toggle {
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .settings-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
+    /* Shared menu toggle pill — used by main app settings menu and watch teacher menu */
+    .menu-toggle-pill {
+      width: 32px; height: 18px; border-radius: 9px;
+      position: relative; background: #333; transition: background 0.15s;
+      flex-shrink: 0;
+    }
+    .menu-toggle-pill.on { background: var(--toggle-on); }
+    .menu-toggle-pill::after {
+      content: ""; position: absolute; top: 2px; left: 2px;
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #0f0f0f; transition: transform 0.15s;
+    }
+    .menu-toggle-pill.on::after { transform: translateX(14px); }
     .settings-menu-arrow {
       display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
       font-family: var(--font-body);
@@ -1109,26 +1127,6 @@
       60%  { opacity: 1; }
       100% { opacity: 0; }
     }
-
-    /* ── Letter mode popup ───────────────────────────────────────────────────── */
-    .letter-mode-popup {
-      position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      z-index: 60; background: #1c1c1c; border: 1px solid #383838; border-radius: 10px;
-      padding: 1.4rem 1.2rem 1rem; display: flex; flex-direction: column; gap: 0.7rem;
-      width: min(320px, calc(100vw - 2.5rem)); text-align: center;
-    }
-    .letter-mode-popup-title {
-      font-family: var(--font-mono); font-size: 1.1rem; color: #f5c842; letter-spacing: 0.03em;
-    }
-    .letter-mode-popup-body {
-      font-family: var(--font-body); font-size: 0.85rem; color: #aaa; line-height: 1.5;
-    }
-    .letter-mode-popup-ok {
-      height: 44px; background: #f5c842; border: none; color: #0f0f0f;
-      font-family: var(--font-body); font-size: 0.9rem; font-weight: 600;
-      border-radius: 5px; cursor: pointer; margin-top: 0.2rem;
-    }
-    .letter-mode-popup-ok:active { background: #e0b530; }
 
     /* ── Bar Picker popup ─────────────────────────────────────────────────────── */
     .picker-popup {
@@ -1471,10 +1469,7 @@
     .obs-menu-item--toggle { display: flex; justify-content: space-between; align-items: center; }
     .obs-menu-item--action { display: flex; align-items: center; }
     .obs-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
-    .obs-menu-toggle-pill { width: 32px; height: 18px; border-radius: 9px; position: relative; background: #333; transition: background 0.15s; flex-shrink: 0; }
-    .obs-menu-toggle-pill.on { background: #f5c842; }
-    .obs-menu-toggle-pill::after { content: ""; position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #0f0f0f; transition: transform 0.15s; }
-    .obs-menu-toggle-pill.on::after { transform: translateX(14px); }
+    /* .menu-toggle-pill defined in src/styles.css (shared with main app settings menu) */
     .obs-menu-audio-icon {
       opacity: 0; transition: opacity 0.2s; display: flex; align-items: center;
     }
@@ -1952,7 +1947,7 @@
                     showToast(next ? "Teacher audio on" : "Teacher audio off");
                   }}>
                     <span>Teacher Audio</span>
-                    <div className={`obs-menu-toggle-pill${teacherAudio ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${teacherAudio ? " on" : ""}`} />
                   </button>
                   <button className="obs-menu-item obs-menu-item--toggle" onClick={() => {
                     const next = !effectiveLm;
@@ -1961,7 +1956,7 @@
                     showToast(next ? "Letter mode on" : "Letter mode off");
                   }}>
                     <span>Letter Mode</span>
-                    <div className={`obs-menu-toggle-pill${effectiveLm ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${effectiveLm ? " on" : ""}`} />
                   </button>
                   <div className="obs-menu-item obs-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
                     <span>Click sound</span>
@@ -3890,8 +3885,6 @@
       const [subdivision,     setSubdivision]     = useState(() => saved?.subdivision ?? 1);
       const [beatStates,      setBeatStates]      = useState(() => Array.isArray(saved?.beatStates) ? saved.beatStates : defaultBeatStates(saved?.timeSig ?? '4/4'));
       const [letterMode,          setLetterMode]          = useState(false);
-      const [showLetterModePopup, setShowLetterModePopup] = useState(false);
-      const letterModeSeenRef = useRef(!!localStorage.getItem('shuffle_lm_seen'));
       const letterModeMountedRef = useRef(false);
       const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
       const [soundMenuOpen,    setSoundMenuOpen]    = useState(false);
@@ -3913,11 +3906,18 @@
       const appToastTimer = useRef(null);
       const [appToastMsg, setAppToastMsg] = useState(null);
       const [appToastKey, setAppToastKey] = useState(0);
-      const showAppToast = (msg) => {
+      const showAppToast = (msg, duration = 1800) => {
         setAppToastMsg(msg);
         setAppToastKey(k => k + 1);
         if (appToastTimer.current) clearTimeout(appToastTimer.current);
-        appToastTimer.current = setTimeout(() => setAppToastMsg(null), 1800);
+        appToastTimer.current = setTimeout(() => setAppToastMsg(null), duration);
+      };
+      const [menuConfirm, setMenuConfirm] = useState(null);
+      const menuConfirmTimer = useRef(null);
+      const showMenuConfirm = (key) => {
+        setMenuConfirm(key);
+        if (menuConfirmTimer.current) clearTimeout(menuConfirmTimer.current);
+        menuConfirmTimer.current = setTimeout(() => setMenuConfirm(null), 1500);
       };
       const tapTimes = useRef([]);
       const wakeLock = useRef(null);
@@ -3973,7 +3973,6 @@
         if (!letterModeMountedRef.current) { letterModeMountedRef.current = true; return; }
         setMinEx(1); setMaxEx(4);
         setPickedNums(prev => prev.filter(n => n <= EX_MAX_LETTERS));
-        /* letter mode popup suppressed in watch build */
       }, [letterMode]);
 
       useEffect(() => {
@@ -4567,7 +4566,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.5 · watch 1.14</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.6 · watch 1.15</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -4646,17 +4645,14 @@
                           try { localStorage.setItem('shuffle_seen_help', '1'); } catch {}
                         }
                       }}>How to use</button>
-                      <button className="settings-menu-item" onClick={() => {
-                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
+                      <button className="settings-menu-item settings-menu-item--toggle" onClick={() => {
                         const next = !letterMode;
                         setLetterMode(next);
-                        showAppToast(next ? "Letter mode" : "Number mode");
-                        if (next && !letterModeSeenRef.current) {
-                          letterModeSeenRef.current = true;
-                          try { localStorage.setItem('shuffle_lm_seen', '1'); } catch {}
-                          setShowLetterModePopup(true);
-                        }
-                      }}>{letterMode ? "Turn letter mode off" : "Turn letter mode on"}</button>
+                        showAppToast(next ? "Letter mode on" : "Letter mode off");
+                      }}>
+                        <span>Letter mode</span>
+                        <div className={`menu-toggle-pill${letterMode ? " on" : ""}`} />
+                      </button>
                       <div className="settings-menu-item settings-menu-item--expandable" onClick={() => setSoundMenuOpen(v => !v)}>
                         <span>Click sound</span>
                         <span className={`settings-menu-arrow${soundMenuOpen ? ' settings-menu-arrow--open' : ''}`}>›</span>
@@ -4672,9 +4668,9 @@
                               className={`settings-menu-submenu-item${metSound === id ? ' settings-menu-submenu-item--active' : ''}`}
                               onClick={() => {
                                 try {
-                                  const previewCtx = new (window.AudioContext || window.webkitAudioContext)();
-                                  scheduleMetronomeClick(previewCtx, previewCtx.currentTime + 0.02, 'accent', volume, false, id);
-                                  setTimeout(() => { try { previewCtx.close(); } catch {} }, 300);
+                                  const ctx = getCtx();
+                                  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+                                  scheduleMetronomeClick(ctx, ctx.currentTime + 0.02, 'accent', volume, false, id);
                                 } catch {}
                                 setMetSound(id);
                               }}>
@@ -4685,7 +4681,6 @@
                         </div>
                       )}
                       <button className="settings-menu-item" onClick={() => {
-                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         const p = new URLSearchParams();
                         p.set("bpm",    String(bpm));
                         p.set("sig",    timeSig.label);
@@ -4728,11 +4723,14 @@
                         const summary = summaryParts.join(", ");
                         const url = `${window.location.origin}${window.location.pathname}?${p.toString()}`;
                         navigator.clipboard.writeText(`${summary}\n${url}`)
-                          .then(() => showAppToast("Copied to clipboard!"))
-                          .catch(() => showAppToast("Copy failed"));
-                      }}>Share settings</button>
+                          .then(() => { showMenuConfirm("share"); showAppToast("Copied to clipboard!"); })
+                          .catch(() => { showMenuConfirm("share-fail"); showAppToast("Copy failed"); });
+                      }}>
+                        <span>Share settings</span>
+                        {menuConfirm === "share" && <span className="settings-menu-confirm">✓</span>}
+                        {menuConfirm === "share-fail" && <span className="settings-menu-confirm" style={{color:"#a04040"}}>✗</span>}
+                      </button>
                       <button className="settings-menu-item settings-menu-item--destructive" onClick={() => {
-                        setSettingsMenuOpen(false); setSoundMenuOpen(false);
                         handleStop();
                         setBpm(80);
                         setTimeSig(TIME_SIGS[2]);
@@ -4754,8 +4752,12 @@
                         setSubdivision(1);
                         setBeatStates(defaultBeatStates('4/4'));
                         setBpmAuto(false);
+                        showMenuConfirm("reset");
                         showAppToast("Settings reset");
-                      }}>Reset to defaults</button>
+                      }}>
+                        <span>Reset to defaults</span>
+                        {menuConfirm === "reset" && <span className="settings-menu-confirm" style={{color:"#a04040"}}>✓</span>}
+                      </button>
                     </div>
                   </>
                 )}
@@ -5210,7 +5212,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.5 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
@@ -5239,17 +5241,6 @@
             />
           )}
 
-          {showLetterModePopup && ReactDOM.createPortal(
-            <>
-              <div className="numpad-backdrop" onClick={() => setShowLetterModePopup(false)} />
-              <div className="letter-mode-popup">
-                <div className="letter-mode-popup-title">You've discovered letter mode!</div>
-                <div className="letter-mode-popup-body">Exercises will now show as letters A–Z. To switch back to number mode, press and hold the version number at the bottom of the screen.</div>
-                <button className="letter-mode-popup-ok" onPointerDown={(e) => e.preventDefault()} onClick={() => setShowLetterModePopup(false)}>Got it</button>
-              </div>
-            </>,
-            document.body
-          )}
 
         </div>
         </>
