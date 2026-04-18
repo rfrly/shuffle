@@ -1306,7 +1306,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.6 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.7.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
