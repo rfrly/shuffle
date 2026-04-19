@@ -587,8 +587,16 @@
 
     .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
     /* Subdivision compact selector popup — 2×2 grid of SVG options */
-    .compact-popup.timesig-popup { max-width: 180px; }
+    .compact-popup.timesig-popup { max-width: 220px; }
     .compact-popup.timesig-popup .sel-btn {
+      flex: 0 0 calc(33.333% - 0.27rem);
+    }
+    .compact-popup.countin-popup-4 { max-width: 200px; }
+    .compact-popup.countin-popup-4 .sel-btn {
+      flex: 0 0 calc(50% - 0.2rem);
+    }
+    .compact-popup.countin-popup-3 { max-width: 300px; }
+    .compact-popup.countin-popup-3 .sel-btn {
       flex: 0 0 calc(33.333% - 0.27rem);
     }
 
@@ -2406,7 +2414,8 @@
             left,
             bottom: window.innerHeight - rect.top + 6,
           };
-          if (!popupClassName || !popupClassName.includes('timesig-popup')) {
+          const skipMinWidth = popupClassName && (popupClassName.includes('timesig-popup') || popupClassName.includes('countin-popup-4') || popupClassName.includes('countin-popup-3'));
+          if (!skipMinWidth) {
             style.minWidth = rect.width;
           }
           setPopupStyle(style);
@@ -2418,7 +2427,7 @@
       const displayLabel = buttonLabel !== undefined ? buttonLabel : (getLabel ? getLabel(value) : String(value));
 
       const open = () => { if (!disabled) setOpenSelector(isOpen ? null : id); };
-      const select = (opt) => { onChange(opt); setOpenSelector(null); };
+      const select = (opt) => { onChange(opt); if (!footer) setOpenSelector(null); };
 
       return (
         <>
@@ -3648,6 +3657,7 @@
                       </button>
                     </>
                   )}
+                  popupClassName={isMetronome ? "countin-popup-4" : "countin-popup-3"}
                 />
               </div>
 
@@ -3797,7 +3807,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.8.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.8.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

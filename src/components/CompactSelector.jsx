@@ -18,7 +18,8 @@ export function CompactSelector({ id, value, options, onChange, disabled, openSe
         left,
         bottom: window.innerHeight - rect.top + 6,
       };
-      if (!popupClassName || !popupClassName.includes('timesig-popup')) {
+      const skipMinWidth = popupClassName && (popupClassName.includes('timesig-popup') || popupClassName.includes('countin-popup-4') || popupClassName.includes('countin-popup-3'));
+      if (!skipMinWidth) {
         style.minWidth = rect.width;
       }
       setPopupStyle(style);
@@ -30,7 +31,7 @@ export function CompactSelector({ id, value, options, onChange, disabled, openSe
   const displayLabel = buttonLabel !== undefined ? buttonLabel : (getLabel ? getLabel(value) : String(value));
 
   const open = () => { if (!disabled) setOpenSelector(isOpen ? null : id); };
-  const select = (opt) => { onChange(opt); setOpenSelector(null); };
+  const select = (opt) => { onChange(opt); if (!footer) setOpenSelector(null); };
 
   return (
     <>

@@ -1208,6 +1208,7 @@ export function App() {
                   </button>
                 </>
               )}
+              popupClassName={isMetronome ? "countin-popup-4" : "countin-popup-3"}
             />
           </div>
 
@@ -1357,7 +1358,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.8.beta.6 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.8.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
