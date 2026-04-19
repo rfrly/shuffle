@@ -369,6 +369,7 @@
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
+      max-width: 220px;
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 
@@ -561,6 +562,11 @@
 
     .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
     /* Subdivision compact selector popup — 2×2 grid of SVG options */
+    .compact-popup.timesig-popup { max-width: 180px; }
+    .compact-popup.timesig-popup .sel-btn {
+      flex: 0 0 calc(33.333% - 0.27rem);
+    }
+
     .compact-popup.subdiv-popup {
       display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;
     }
@@ -576,6 +582,20 @@
       font-family: var(--font-mono);
     }
     .check-row.disabled { opacity: 0.25; }
+
+    /* Footer toggle row inside a CompactSelector popup — label and pill sit
+       adjacent on the left so the tap target reads as a single control. */
+    .compact-popup-footer-toggle {
+      display: flex; align-items: center; gap: 0.6rem;
+      width: 100%; min-height: 44px; padding: 0.3rem 0.1rem;
+      background: none; border: none; cursor: pointer;
+      color: #ccc; font-family: var(--font-mono);
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      text-align: left;
+    }
+    .compact-popup-footer-toggle span { white-space: normal; line-height: 1.2; flex: 1; min-width: 0; }
+    .compact-popup-footer-toggle:active { background: #222; }
+
 
     .countin-row {
       display: flex; flex-direction: column; gap: 0.3rem;
@@ -999,6 +1019,7 @@
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
+      max-width: 220px;
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 

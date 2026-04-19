@@ -17,8 +17,9 @@ export function loadUrlParams() {
     if (p.has("exlen"))  { const v = parseInt(p.get("exlen"));   if ([1,2,4].includes(v)) r.exerciseLength = v; }
     if (p.has("min"))    { const v = parseInt(p.get("min"));     if (v >= 1 && v <= 200) r.minEx = v; }
     if (p.has("max"))    { const v = parseInt(p.get("max"));     if (v >= 1 && v <= 200) r.maxEx = v; }
-    if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
+    if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([0,1,2,4].includes(v)) r.countInBars = v; }
     if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
+    if (p.has("sdci"))   r.subdivCountIn = p.get("sdci") === "1";
     if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","clickonly"].includes(v)) r.mode = v; }
     if (p.has("sets"))   { const v = p.get("sets"); r.sets = v === "inf" ? '∞' : (parseInt(v) >= 1 ? parseInt(v) : 1); }
     if (p.has("dm"))     { const v = p.get("dm"); if (["bars","timer"].includes(v)) r.displayMode = v; }

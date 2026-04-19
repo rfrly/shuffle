@@ -3,18 +3,28 @@ import * as ReactDOM from 'react-dom';
 
 export function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, renderOption, buttonLabel, popupClassName, footer }) {
   const btnRef = useRef(null);
+  const popupRef = useRef(null);
   const isOpen = openSelector === id;
   const [popupStyle, setPopupStyle] = useState({});
 
   useEffect(() => {
-    if (isOpen && btnRef.current) {
+    if (!isOpen || !btnRef.current) return;
+    const position = () => {
       const rect = btnRef.current.getBoundingClientRect();
-      setPopupStyle({
-        left: rect.left,
+      const popupWidth = popupRef.current ? popupRef.current.offsetWidth : rect.width;
+      const centre = rect.left + rect.width / 2;
+      const left = Math.max(8, Math.min(window.innerWidth - 8 - popupWidth, centre - popupWidth / 2));
+      const style = {
+        left,
         bottom: window.innerHeight - rect.top + 6,
-        minWidth: rect.width,
-      });
-    }
+      };
+      if (!popupClassName || !popupClassName.includes('timesig-popup')) {
+        style.minWidth = rect.width;
+      }
+      setPopupStyle(style);
+    };
+    position();
+    requestAnimationFrame(position);
   }, [isOpen]);
 
   const displayLabel = buttonLabel !== undefined ? buttonLabel : (getLabel ? getLabel(value) : String(value));
@@ -30,7 +40,7 @@ export function CompactSelector({ id, value, options, onChange, disabled, openSe
       {isOpen && ReactDOM.createPortal(
         <>
           <div className="compact-popup-backdrop" onClick={() => setOpenSelector(null)} />
-          <div className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
+          <div ref={popupRef} className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
             {options.map((opt, i) => {
               const optLabel = getLabel ? getLabel(opt) : String(opt);
               const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
