@@ -148,10 +148,11 @@
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
       position: relative;
+      container-type: inline-size;
     }
 
     .exercise-label {
-      font-size: 0.75rem;
+      font-size: clamp(0.7rem, 3.5cqw, 1.1rem);
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
@@ -169,7 +170,7 @@
 
     .exercise-number {
       font-family: var(--font-mono);
-      font-size: clamp(5rem, 18vw, 8rem);
+      font-size: clamp(4.5rem, 32cqw, 9rem);
       line-height: 1;
       color: #f5c842;
       font-weight: 700;
@@ -186,19 +187,21 @@
       transform: scale(1.06);
     }
 
+    .exercise-number.stopwatch-time { font-size: clamp(4.5rem, 32cqw, 9rem); letter-spacing: -0.05em; }
+
     .exercise-number.idle { color: #444; text-shadow: none; }
     .exercise-number.looping { color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
     .exercise-number.done {
       color: #4caf7d;
       text-shadow: 0 0 30px rgba(76,175,125,0.3);
-      font-size: clamp(1.5rem, 5vw, 2.2rem);
+      font-size: clamp(1.5rem, 9cqw, 3rem);
       letter-spacing: 0.1em;
       text-transform: lowercase;
     }
 
     .next-exercise {
       font-family: var(--font-mono);
-      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-size: clamp(1.2rem, 8cqw, 2.4rem);
       color: #ccc;
       letter-spacing: 0.05em;
       min-height: 1.2em;
@@ -225,9 +228,11 @@
       color: #555;
     }
 
+    .display--timer .countdown-display { font-size: clamp(4.5rem, 32cqw, 9rem); }
+
     .countdown-display {
       font-family: var(--font-mono);
-      font-size: clamp(5rem, 18vw, 8rem);
+      font-size: clamp(4.5rem, 32cqw, 9rem);
       line-height: 1;
       color: #ff4500;
       text-shadow: 0 0 40px rgba(255,69,0,0.3);
@@ -237,7 +242,7 @@
 
     .idle-summary {
       font-family: var(--font-mono);
-      font-size: 0.7rem;
+      font-size: clamp(0.65rem, 3cqw, 1rem);
       letter-spacing: 0.1em;
       color: #777;
       text-align: center;
@@ -260,7 +265,7 @@
     }
 
     .beat-dot {
-      width: 9px; height: 9px;
+      width: clamp(9px, 2.5cqw, 16px); height: clamp(9px, 2.5cqw, 16px);
       border-radius: 50%;
       background: #555;
       transition: background 0.05s;
@@ -276,7 +281,7 @@
     }
 
     .bar-block {
-      height: 5px;
+      height: clamp(5px, 1.5cqw, 10px);
       background: #555;
       border-radius: 2px;
       transition: background 0.1s;
@@ -295,8 +300,8 @@
     }
 
     .bar-progress-track {
-      width: 192px;
-      height: 5px;
+      width: clamp(160px, 45cqw, 280px);
+      height: clamp(5px, 1.5cqw, 10px);
       background: #555;
       border-radius: 2px;
       overflow: hidden;
@@ -304,7 +309,7 @@
     }
 
     .bar-progress-fill {
-      height: 100%;
+      height: clamp(5px, 1.5cqw, 10px);
       border-radius: 2px;
       background: #f5c842;
       transition: width 0.15s;
@@ -314,7 +319,7 @@
 
     .bar-progress-counter {
       font-family: var(--font-mono);
-      font-size: 0.6rem;
+      font-size: clamp(0.6rem, 2.6cqw, 0.9rem);
       letter-spacing: 0.08em;
       color: #555;
       white-space: nowrap;
@@ -391,6 +396,7 @@
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
+      max-width: 220px;
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 
@@ -499,6 +505,10 @@
       display: inline-flex; align-items: center; margin-left: 3px; vertical-align: middle;
     }
     .vol-subdiv-badge .subdiv-svg { width: 16px; height: 12px; }
+    .ci-subdiv-badge {
+      display: inline-flex; align-items: center; margin-left: 2px; vertical-align: middle;
+    }
+    .ci-subdiv-badge .subdiv-svg { width: 16px; height: 12px; }
 
     .bpm-widget { display: flex; align-items: center; height: 44px; }
 
@@ -583,6 +593,19 @@
 
     .subdiv-svg { display: block; overflow: visible; color: inherit; width: auto; height: 22px; }
     /* Subdivision compact selector popup — 2×2 grid of SVG options */
+    .compact-popup.timesig-popup { max-width: 220px; }
+    .compact-popup.timesig-popup .sel-btn {
+      flex: 0 0 calc(33.333% - 0.27rem);
+    }
+    .compact-popup.countin-popup-4 { max-width: 200px; }
+    .compact-popup.countin-popup-4 .sel-btn {
+      flex: 0 0 calc(50% - 0.2rem);
+    }
+    .compact-popup.countin-popup-3 { max-width: 300px; }
+    .compact-popup.countin-popup-3 .sel-btn {
+      flex: 0 0 calc(33.333% - 0.27rem);
+    }
+
     .compact-popup.subdiv-popup {
       display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem;
     }
@@ -598,6 +621,22 @@
       font-family: var(--font-mono);
     }
     .check-row.disabled { opacity: 0.25; }
+
+    /* Footer toggle row inside a CompactSelector popup — label and pill sit
+       adjacent on the left so the tap target reads as a single control. */
+    .compact-popup-footer-toggle {
+      display: flex; align-items: center; gap: 0.6rem;
+      width: 100%; min-height: 44px; padding: 0.3rem 0.1rem;
+      background: none; border: none; cursor: pointer;
+      color: #ccc; font-family: var(--font-mono);
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      text-align: left;
+    }
+    .compact-popup-footer-toggle span { white-space: normal; line-height: 1.2; flex: 1; min-width: 0; }
+    .compact-popup-footer-toggle:active { background: #222; }
+    .compact-popup-footer-toggle:disabled { opacity: 0.35; cursor: default; }
+    .compact-popup-footer-toggle:disabled:active { background: none; }
+
 
     .countin-row {
       display: flex; flex-direction: column; gap: 0.3rem;
@@ -936,7 +975,6 @@
       .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
       .control-group label { font-size: 0.7rem; }
-      .idle-summary { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
       .beat-dots { max-width: none; }
     }
@@ -946,7 +984,6 @@
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
-      .idle-summary { font-size: 0.85rem; }
       .bpm-btn { width: 40px; }
       .stepper-btn { width: 40px; }
     }
@@ -959,17 +996,8 @@
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
       .btn-row { margin-top: 1.2dvh; }
-      .exercise-label { font-size: 0.8rem; }
-      .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
-      .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
-      .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
-      .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
-      .idle-summary { font-size: 1rem; }
-      .beat-dot { width: 11px; height: 11px; }
-      .bar-block { height: 7px; border-radius: 3px; }
-      .bar-progress-track { height: 7px; border-radius: 3px; }
-      .bar-progress-fill { height: 7px; }
-      .bar-progress-counter { font-size: clamp(0.75rem, 1.4dvh, 1.1rem); }
+      .bar-block { border-radius: 3px; }
+      .bar-progress-track { border-radius: 3px; }
       .help-overlay { padding-top: max(3.5rem, env(safe-area-inset-top)); }
       .control-group label { font-size: 0.7rem; }
       .check-row span { font-size: 1rem; }
@@ -1002,11 +1030,8 @@
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
-      .idle-summary { font-size: 0.8rem; }
       .check-row span { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
-      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
-      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
 
       .bpm-btn:hover { background: #252525; color: #fff; }
       .bpm-tap:hover { background: #212121; }
@@ -1025,10 +1050,6 @@
       .display { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
-      .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
-      .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
-      .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
-      .idle-summary { font-size: 0.9rem; }
     }
 
 
@@ -1039,6 +1060,7 @@
       box-shadow: 0 -4px 16px rgba(0,0,0,0.6);
       display: flex; flex-wrap: wrap; gap: 0.4rem;
       padding: 0.5rem; z-index: 50; border-radius: 4px;
+      max-width: 220px;
     }
     .compact-popup-backdrop { position: fixed; inset: 0; z-index: 49; background: rgba(0,0,0,0.6); }
 
@@ -1367,9 +1389,6 @@
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
-    .watch-active .exercise-number { font-size: clamp(4rem, 16vw, 7rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(3rem, 12vw, 5.5rem); }
-    .watch-active .countdown-display { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -1407,13 +1426,14 @@
     }
     @keyframes watch-restore-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     /* watch 1.12: enhanced student glanceable view */
-    .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
-    .watch-active .next-exercise { font-size: clamp(1.8rem, 7vw, 2.8rem); }
-    .watch-active .beat-dot { width: 14px; height: 14px; }
+    .watch-active .exercise-label { letter-spacing: 0.2em; }
     .watch-active .beat-dots { gap: 0.9rem; }
-    .watch-active .bar-block { height: 9px; border-radius: 3px; }
-    .watch-active .bar-progress-track { height: 9px; border-radius: 3px; }
-    .watch-active .bar-progress-fill { height: 9px; }
+    /* Student view has a taller display zone; boost focus text so it feels proportional */
+    .watch-active .exercise-number { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .display--timer .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
+    .watch-active .next-exercise { font-size: clamp(1.4rem, 9.5cqw, 2.8rem); }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -1643,7 +1663,7 @@
         currentBeat, currentBar, exercise, nextEx, countInBeat,
         mode: obsMode, sets: obsSets, displayMode: obsDisplayMode, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
-        countInBars: obsCib, countInEvery: obsCountInEvery,
+        countInBars: obsCib, countInEvery: obsCountInEvery, subdivCountIn: obsSubdivCountIn,
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
@@ -1850,8 +1870,9 @@
           const rds = obsBpe || 1;
           parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
         }
-        const cib = obsCib || 1;
-        parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
+        const cib = obsCib != null ? obsCib : 1;
+        if (cib === 0) parts.push("no count in");
+        else parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
         parts.push(modeLabel);
         return parts.join(", ");
       };
@@ -1863,8 +1884,9 @@
         if (obsExLen)         p.set("exlen",  String(obsExLen));
         if (obsMinEx != null) p.set("min",    String(obsMinEx));
         if (obsMaxEx != null) p.set("max",    String(obsMaxEx));
-        if (obsCib)           p.set("cib",    String(obsCib));
+        if (obsCib != null)   p.set("cib",    String(obsCib));
         if (obsCountInEvery)  p.set("cie",    "1");
+        if (obsSubdivCountIn === false) p.set("sdci", "0");
         if (obsMode)          p.set("mode",   obsMode);
         if (obsSets != null && obsSets !== 1 && obsMode !== "clickonly") p.set("sets", obsSets === "\u221e" ? "inf" : String(obsSets));
         if (obsDisplayMode === "timer" && obsMode === "clickonly") p.set("dm", "timer");
@@ -2020,7 +2042,7 @@
                     setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
-                      minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
+                      minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true, subdivCountIn: true,
                       mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
                       volume: 1.0, subdivision: 1, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7, audioMuted: false });
                     setLetterModeOverride(false);
@@ -2033,7 +2055,7 @@
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
+          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" ? " display--timer" : ""}`}>
             <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
               {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsDisplayMode === "timer" ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
@@ -2045,7 +2067,7 @@
             ) : sc ? (
               <div className="exercise-number done">done</div>
             ) : (
-              <div className={`exercise-number${isIdle ? " idle" : ""}`}>
+              <div className={`exercise-number${isIdle ? " idle" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle" ? " stopwatch-time" : ""}`}>
                 {obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle"
                   ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
                   : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
@@ -2185,7 +2207,7 @@
                       style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                         <span>{obsBpm || "--"}</span>
-                        {!disabled && !obsRunning && <span className="bpm-tap-label">tap to set</span>}
+                        {!disabled && !obsRunning && <span className="bpm-tap-label">tap</span>}
                       </div>
                     </div>
                     <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
@@ -2212,6 +2234,7 @@
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
                   getLabel={ts => ts.label}
+                  popupClassName="timesig-popup"
                 />
               </div>
 
@@ -2219,23 +2242,35 @@
                 <label>Count in</label>
                 <CompactSelector
                   id="obs-countIn"
-                  value={obsCib || 1}
-                  options={[1, 2, 4]}
+                  value={obsCib != null ? obsCib : (obsMode === "clickonly" ? 0 : 1)}
+                  options={obsMode === "clickonly" ? [0, 1, 2, 4] : [1, 2, 4]}
                   onChange={n => onSendCmd({ countInBars: n })}
                   disabled={disabled || obsRunning}
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
-                  buttonLabel={(obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars") + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
-                  footer={
-                    <div className={"check-row" + (obsMode === "clickonly" ? " disabled" : "")} style={{ width: "100%", padding: "0.1rem 0" }}>
-                      <input type="checkbox" checked={!!obsCountInEvery}
-                        onChange={() => onSendCmd({ countInEvery: !obsCountInEvery })}
-                        disabled={disabled || obsMode === "clickonly"}
-                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                      <span>Count in every exercise</span>
-                    </div>
-                  }
+                  getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : n + " bars")}
+                  buttonLabel={(obsCib === 0 ? "None" : (obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars")) + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
+                  footer={(
+                    <>
+                      {obsMode !== "clickonly" && (
+                        <button
+                          className="compact-popup-footer-toggle"
+                          onClick={() => onSendCmd({ countInEvery: !obsCountInEvery })}
+                          disabled={disabled || obsCib === 0}>
+                          <span>Count in every exercise</span>
+                          <div className={"menu-toggle-pill" + (obsCountInEvery ? " on" : "")} />
+                        </button>
+                      )}
+                      <button
+                        className="compact-popup-footer-toggle"
+                        onClick={() => onSendCmd({ subdivCountIn: !(obsSubdivCountIn !== false) })}
+                        disabled={disabled || obsCib === 0}>
+                        <span>Subdivide count-in</span>
+                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false && obsCib !== 0 ? " on" : "")} />
+                      </button>
+                    </>
+                  )}
+                  popupClassName={obsMode === "clickonly" ? "countin-popup-4" : "countin-popup-3"}
                 />
               </div>
 
@@ -2476,8 +2511,9 @@
         if (p.has("exlen"))  { const v = parseInt(p.get("exlen"));   if ([1,2,4].includes(v)) r.exerciseLength = v; }
         if (p.has("min"))    { const v = parseInt(p.get("min"));     if (v >= 1 && v <= 200) r.minEx = v; }
         if (p.has("max"))    { const v = parseInt(p.get("max"));     if (v >= 1 && v <= 200) r.maxEx = v; }
-        if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([1,2,4].includes(v)) r.countInBars = v; }
+        if (p.has("cib"))    { const v = parseInt(p.get("cib"));     if ([0,1,2,4].includes(v)) r.countInBars = v; }
         if (p.has("cie"))    r.countInEvery = p.get("cie") === "1";
+        if (p.has("sdci"))   r.subdivCountIn = p.get("sdci") === "1";
         if (p.has("mode"))   { const v = p.get("mode"); if (["fullset","sequential","clickonly"].includes(v)) r.mode = v; }
         if (p.has("sets"))   { const v = p.get("sets"); r.sets = v === "inf" ? '∞' : (parseInt(v) >= 1 ? parseInt(v) : 1); }
         if (p.has("dm"))     { const v = p.get("dm"); if (["bars","timer"].includes(v)) r.displayMode = v; }
@@ -3011,7 +3047,7 @@
 
         exercisesPlayed.current = 1;
         deckRef.current = []; seqIndex.current = 0;
-        setPhase("countin");
+        setPhase(cib > 0 ? "countin" : "playing");
 
         if (m === MODE_CLICKONLY) {
           lastExercise.current = 1;
@@ -3064,8 +3100,8 @@
             if (bc < countInBeats) {
               const beatInCI = bc % bpb2;
               scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol, mSound);
-              { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1 } = stateRef.current;
-                if (ciSd > 1) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
+              { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1, subdivCountIn: ciOn = true } = stateRef.current;
+                if (ciSd > 1 && ciOn) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
               const t = nextBeatTime.current;
               // stoppedRef guard: the user may hit Stop between scheduling this beat
               // and the setTimeout firing. Without the guard, stale state updates would
@@ -3096,8 +3132,8 @@
               if (inInterCountIn) {
                 const interPos = countInBeatPos.current;
                 scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol, mSound);
-                { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1 } = stateRef.current;
-                  if (ciSd > 1) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
+                { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1, subdivCountIn: ciOn = true } = stateRef.current;
+                  if (ciSd > 1 && ciOn) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
                 const t = nextBeatTime.current;
                 setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
                   Math.max(0, (t - ctx.currentTime) * 1000));
@@ -3508,24 +3544,35 @@
 
     function CompactSelector({ id, value, options, onChange, disabled, openSelector, setOpenSelector, getLabel, renderOption, buttonLabel, popupClassName, footer }) {
       const btnRef = useRef(null);
+      const popupRef = useRef(null);
       const isOpen = openSelector === id;
       const [popupStyle, setPopupStyle] = useState({});
 
       useEffect(() => {
-        if (isOpen && btnRef.current) {
+        if (!isOpen || !btnRef.current) return;
+        const position = () => {
           const rect = btnRef.current.getBoundingClientRect();
-          setPopupStyle({
-            left: rect.left,
+          const popupWidth = popupRef.current ? popupRef.current.offsetWidth : rect.width;
+          const centre = rect.left + rect.width / 2;
+          const left = Math.max(8, Math.min(window.innerWidth - 8 - popupWidth, centre - popupWidth / 2));
+          const style = {
+            left,
             bottom: window.innerHeight - rect.top + 6,
-            minWidth: rect.width,
-          });
-        }
+          };
+          const skipMinWidth = popupClassName && (popupClassName.includes('timesig-popup') || popupClassName.includes('countin-popup-4') || popupClassName.includes('countin-popup-3'));
+          if (!skipMinWidth) {
+            style.minWidth = rect.width;
+          }
+          setPopupStyle(style);
+        };
+        position();
+        requestAnimationFrame(position);
       }, [isOpen]);
 
       const displayLabel = buttonLabel !== undefined ? buttonLabel : (getLabel ? getLabel(value) : String(value));
 
       const open = () => { if (!disabled) setOpenSelector(isOpen ? null : id); };
-      const select = (opt) => { onChange(opt); setOpenSelector(null); };
+      const select = (opt) => { onChange(opt); if (!footer) setOpenSelector(null); };
 
       return (
         <>
@@ -3535,7 +3582,7 @@
           {isOpen && ReactDOM.createPortal(
             <>
               <div className="compact-popup-backdrop" onClick={() => setOpenSelector(null)} />
-              <div className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
+              <div ref={popupRef} className={`compact-popup${popupClassName ? ` ${popupClassName}` : ""}`} style={popupStyle}>
                 {options.map((opt, i) => {
                   const optLabel = getLabel ? getLabel(opt) : String(opt);
                   const isActive = getLabel ? getLabel(opt) === getLabel(value) : opt === value;
@@ -3667,20 +3714,25 @@
       bpmAutoRandom, setBpmAutoRandom, bpmAutoMin, setBpmAutoMin, bpmAutoMax, setBpmAutoMax,
       anchorRef, onClose,
     }) {
+      const popupRef = useRef(null);
       const [popupStyle, setPopupStyle] = useState({});
       const [localMode, setLocalMode] = useState(bpmAutoRandom ? 'random' : 'increment');
       const isMetronome = mode === MODE_CLICKONLY;
 
       useEffect(() => {
         if (anchorRef.current) {
-          const rect = anchorRef.current.getBoundingClientRect();
-          const popupWidth = 260;
-          const centreLeft = Math.round((window.innerWidth - popupWidth) / 2);
-          const anchorLeft = Math.min(rect.left, window.innerWidth - popupWidth - 8);
-          setPopupStyle({
-            left: Math.max(8, window.innerWidth < 500 ? centreLeft : anchorLeft),
-            bottom: window.innerHeight - rect.top + 6,
-          });
+          const position = () => {
+            const rect = anchorRef.current.getBoundingClientRect();
+            const popupWidth = popupRef.current ? popupRef.current.offsetWidth : 260;
+            const centre = rect.left + rect.width / 2;
+            const left = Math.max(8, Math.min(window.innerWidth - 8 - popupWidth, centre - popupWidth / 2));
+            setPopupStyle({
+              left,
+              bottom: window.innerHeight - rect.top + 6,
+            });
+          };
+          position();
+          requestAnimationFrame(position);
         }
         const halfSpan = Math.round(bpm * 0.035);
         setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
@@ -3713,7 +3765,7 @@
       return ReactDOM.createPortal(
         <>
           <div className="bpm-auto-backdrop" onClick={onClose} />
-          <div className="bpm-auto-popup" style={popupStyle}>
+          <div ref={popupRef} className="bpm-auto-popup" style={popupStyle}>
             <div className="bpm-auto-master-row" onClick={() => setBpmAuto(v => !v)}>
               <span className="bpm-auto-master-label">Auto BPM</span>
               <div className={`bpm-auto-toggle${bpmAuto ? " active" : ""}`}>
@@ -3847,8 +3899,12 @@
       const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
       const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
       const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
-      const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
+      const [countInBars,     setCountInBars]     = useState(() => {
+        if (saved?.mode === MODE_CLICKONLY) return saved?.countInBarsMetronome ?? 0;
+        return saved?.countInBarsOther ?? saved?.countInBars ?? 1;
+      });
       const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
+      const [subdivCountIn,   setSubdivCountIn]   = useState(() => saved?.subdivCountIn ?? true);
       const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
       const [sets,            setSets]            = useState(() => saved?.sets ?? 1);
       const [displayMode,     setDisplayMode]     = useState(() => saved?.displayMode ?? 'bars');
@@ -3944,15 +4000,25 @@
       const [studentAudioMuted, setStudentAudioMuted] = useState(false);
 
 
+      // Per-mode-group memory for count-in bars: Metronome remembers its own value
+      // (default 0 = None) independently of Shuffle/Sequence (default 1).
+      const countInByMode = useRef({
+        metronome: saved?.countInBarsMetronome ?? 0,
+        other:     saved?.countInBarsOther     ?? (saved?.mode !== MODE_CLICKONLY && saved?.countInBars != null ? saved.countInBars : 1),
+      });
+      const lastModeWasMetronome = useRef(saved?.mode === MODE_CLICKONLY);
+
       useEffect(() => {
         saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                       minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume,
+                       minEx, maxEx, countInBars, countInEvery, subdivCountIn, mode, sets, displayMode, volume,
+                       countInBarsMetronome: countInByMode.current.metronome,
+                       countInBarsOther:     countInByMode.current.other,
                        exMode, pickedNums, letterMode,
                        subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
                        bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                        bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
                        metSound });
-      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
+      }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, subdivCountIn, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
 
       useEffect(() => {
         if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -4014,6 +4080,23 @@
         }
       }, [mode, sets]);
 
+      // Swap count-in value per mode group (Metronome vs Shuffle/Sequence). Each
+      // group remembers its own last count-in — Metronome defaults to None (0),
+      // the others default to 1 bar. Fires only when the mode group actually
+      // changes so Shuffle↔Sequence switches don't touch count-in.
+      useEffect(() => {
+        const nowMetronome = mode === MODE_CLICKONLY;
+        if (nowMetronome === lastModeWasMetronome.current) return;
+        if (nowMetronome) {
+          countInByMode.current.other = countInBars;
+          setCountInBars(countInByMode.current.metronome);
+        } else {
+          countInByMode.current.metronome = countInBars;
+          setCountInBars(countInByMode.current.other);
+        }
+        lastModeWasMetronome.current = nowMetronome;
+      }, [mode]);
+
       const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
       const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
 
@@ -4056,6 +4139,7 @@
         countInEveryRound: countInEvery,
         mode, volume: studentAudioMuted ? 0 : volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
         exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+        subdivCountIn,
         metSound,
         keepCtxAlive: watchScreen === "app",
       });
@@ -4092,7 +4176,7 @@
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, sets, displayMode, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-          minEx, maxEx, countInBars, countInEvery, letterMode,
+          minEx, maxEx, countInBars, countInEvery, subdivCountIn, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
@@ -4102,7 +4186,7 @@
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, sets, displayMode, elapsedSeconds, bpm, timeSig, barsPerExercise,
-          exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
+          exerciseLength, minEx, maxEx, countInBars, countInEvery, subdivCountIn, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
@@ -4150,6 +4234,7 @@
         setMaxEx(4);
         setCountInBars(1);
         setCountInEvery(true);
+        setSubdivCountIn(true);
         setMode(MODE_FULLSET);
         setSets(1);
         setDisplayMode('bars');
@@ -4272,6 +4357,7 @@
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
+          if (cmd.subdivCountIn != null) setSubdivCountIn(!!cmd.subdivCountIn);
           if (cmd.exerciseLength != null) setExerciseLength(cmd.exerciseLength);
           if (cmd.minEx != null) { const v = Math.min(200, Math.max(1, cmd.minEx)); setMinEx(v); }
           if (cmd.maxEx != null) { const v = Math.min(200, Math.max(1, cmd.maxEx)); setMaxEx(v); }
@@ -4566,7 +4652,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.6 · watch 1.15</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.10 · watch 1.26</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -4696,6 +4782,7 @@
                         }
                         p.set("cib",  String(countInBars));
                         if (countInEvery) p.set("cie", "1");
+                        if (!subdivCountIn) p.set("sdci", "0");
                         p.set("mode", mode);
                         if (sets !== 1 && mode !== MODE_CLICKONLY) p.set("sets", String(sets));
                         if (displayMode === 'timer' && mode === MODE_CLICKONLY) p.set("dm", "timer");
@@ -4740,6 +4827,8 @@
                         setMaxEx(4);
                         setCountInBars(1);
                         setCountInEvery(true);
+                        setSubdivCountIn(true);
+                        countInByMode.current = { metronome: 0, other: 1 };
                         setMode(MODE_FULLSET);
                         setSets(1);
                         setDisplayMode('bars');
@@ -4784,8 +4873,8 @@
                   <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                     <li>Choose your mode, then set BPM, time signature, exercise length, and rounds per exercise.</li>
                     <li>Set your exercise range (swipe up/down to nudge) or switch to Pick to choose specific exercises.</li>
-                    <li>Tap Count in to set the count-in length — optionally enable it before every exercise.</li>
-                    <li>Tap Vol to set volume. The vol button also controls subdivisions — tap a note icon to add subdivision clicks.</li>
+                    <li>Tap Count in to set the length — optionally enable it before every exercise, or subdivide the count-in beats (requires an active subdivision from Vol).</li>
+                    <li>Tap Vol to set volume and control subdivisions — tap a note icon to activate subdivision clicks.</li>
                   </ul>
                 </div>
                 <div className="help-section">
@@ -4834,7 +4923,7 @@
             </>
           )}
 
-          <div className={`display${isMetronome ? " display--metro" : ""}`}>
+          <div className={`display${isMetronome ? " display--metro" : ""}${isMetronome && displayMode === 'timer' ? " display--timer" : ""}`}>
             <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
               {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (phase === "countin" ? "count in" : displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
             </div>
@@ -4848,7 +4937,7 @@
                 done
               </div>
             ) : (
-              <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
+              <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}${isMetronome && displayMode === 'timer' && phase !== "idle" ? " stopwatch-time" : ""}`}>
                 {isMetronome && displayMode === 'timer' && phase !== "idle"
                   ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
                   : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
@@ -4992,7 +5081,7 @@
                         style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>
                         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                           <span>{bpm}</span>
-                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}
+                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap</span>}
                         </div>
                       </div>
                       <button className="bpm-btn right" {...bpmIncHandlers}>+</button>
@@ -5018,6 +5107,7 @@
                     openSelector={openSelector}
                     setOpenSelector={setOpenSelector}
                     getLabel={ts => ts.label}
+                    popupClassName="timesig-popup"
                   />
                 </div>
               </div>
@@ -5028,21 +5118,40 @@
                 <CompactSelector
                   id="countIn"
                   value={countInBars}
-                  options={[1, 2, 4]}
+                  options={isMetronome ? [0, 1, 2, 4] : [1, 2, 4]}
                   onChange={setCountInBars}
                   disabled={running}
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-                  buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && !isMetronome ? " ✓" : ""}`}
-                  footer={!isMetronome && (
-                    <div className="check-row" style={{ width: '100%', padding: '0.1rem 0' }}>
-                      <input type="checkbox" checked={countInEvery}
-                        onChange={e => setCountInEvery(e.target.checked)}
-                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                      <span>Count in every exercise</span>
-                    </div>
+                  getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : `${n} bars`)}
+                  buttonLabel={(
+                    <>
+                      {countInBars === 0 ? "None" : countInBars === 1 ? "1 bar" : `${countInBars} bars`}
+                      {countInEvery && !isMetronome ? " ✓" : ""}
+                      {subdivCountIn && subdivision !== 1 ? <>&nbsp;<span className="ci-subdiv-badge"><SubdivSVG value={subdivision} /></span></> : null}
+                    </>
                   )}
+                  footer={(
+                    <>
+                      {!isMetronome && (
+                        <button
+                          className="compact-popup-footer-toggle"
+                          onClick={() => setCountInEvery(v => !v)}
+                          disabled={countInBars === 0}>
+                          <span>Count in every exercise</span>
+                          <div className={`menu-toggle-pill${countInEvery ? " on" : ""}`} />
+                        </button>
+                      )}
+                      <button
+                        className="compact-popup-footer-toggle"
+                        onClick={() => setSubdivCountIn(v => !v)}
+                        disabled={countInBars === 0 || subdivision === 1}>
+                        <span>Subdivide count-in</span>
+                        <div className={`menu-toggle-pill${subdivCountIn && countInBars > 0 && subdivision !== 1 ? " on" : ""}`} />
+                      </button>
+                    </>
+                  )}
+                  popupClassName={isMetronome ? "countin-popup-4" : "countin-popup-3"}
                 />
               </div>
 
@@ -5160,7 +5269,7 @@
                 </button>
                 <div className="vol-wrap">
                   <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                    {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
+                    vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
                   </button>
                 </div>
               </>
@@ -5189,7 +5298,7 @@
                 )}
                 <div className="vol-wrap">
                   <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                    {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
+                    vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
                   </button>
                 </div>
               </>
@@ -5212,7 +5321,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.6 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.10 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
