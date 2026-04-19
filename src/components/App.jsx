@@ -938,8 +938,8 @@ export function App() {
               <ul style={{ margin: 0, paddingLeft: '1.2rem', listStyleType: 'disc' }}>
                 <li>Choose your mode, then set BPM, time signature, exercise length, and rounds per exercise.</li>
                 <li>Set your exercise range (swipe up/down to nudge) or switch to Pick to choose specific exercises.</li>
-                <li>Tap Count in to set the count-in length — optionally enable it before every exercise.</li>
-                <li>Tap Vol to set volume. The vol button also controls subdivisions — tap a note icon to add subdivision clicks.</li>
+                <li>Tap Count in to set the length — optionally enable it before every exercise, or subdivide the count-in beats (requires an active subdivision from Vol).</li>
+                <li>Tap Vol to set volume and control subdivisions — tap a note icon to activate subdivision clicks.</li>
               </ul>
             </div>
             <div className="help-section">
@@ -1189,7 +1189,13 @@ export function App() {
               openSelector={openSelector}
               setOpenSelector={setOpenSelector}
               getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : `${n} bars`)}
-              buttonLabel={`${countInBars === 0 ? "None" : (countInBars === 1 ? "1 bar" : `${countInBars} bars`)}${countInEvery && !isMetronome ? " ✓" : ""}`}
+              buttonLabel={(
+                <>
+                  {countInBars === 0 ? "None" : countInBars === 1 ? "1 bar" : `${countInBars} bars`}
+                  {countInEvery && !isMetronome ? " ✓" : ""}
+                  {subdivCountIn && subdivision !== 1 ? <>&nbsp;<span className="ci-subdiv-badge"><SubdivSVG value={subdivision} /></span></> : null}
+                </>
+              )}
               footer={(
                 <>
                   {!isMetronome && (
@@ -1204,9 +1210,9 @@ export function App() {
                   <button
                     className="compact-popup-footer-toggle"
                     onClick={() => setSubdivCountIn(v => !v)}
-                    disabled={countInBars === 0}>
+                    disabled={countInBars === 0 || subdivision === 1}>
                     <span>Subdivide count-in</span>
-                    <div className={`menu-toggle-pill${subdivCountIn && countInBars > 0 ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${subdivCountIn && countInBars > 0 && subdivision !== 1 ? " on" : ""}`} />
                   </button>
                 </>
               )}
@@ -1308,7 +1314,7 @@ export function App() {
             </button>
             <div className="vol-wrap">
               <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
+                vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
               </button>
             </div>
           </>
@@ -1337,7 +1343,7 @@ export function App() {
             )}
             <div className="vol-wrap">
               <button ref={volBtnRef} className={`vol-label-btn${showVolume ? " active" : ""}`} onClick={() => setShowVolume(v => !v)}>
-                {volIcon}&nbsp;vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
+                vol <span className="vol-subdiv-badge"><SubdivSVG value={subdivision} /></span>
               </button>
             </div>
           </>
@@ -1360,7 +1366,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.8 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.9.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
