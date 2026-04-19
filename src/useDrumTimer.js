@@ -247,7 +247,7 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
 
     exercisesPlayed.current = 1;
     deckRef.current = []; seqIndex.current = 0;
-    setPhase("countin");
+    setPhase(cib > 0 ? "countin" : "playing");
 
     if (m === MODE_CLICKONLY) {
       lastExercise.current = 1;
@@ -300,8 +300,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
         if (bc < countInBeats) {
           const beatInCI = bc % bpb2;
           scheduleWoodblock(ctx, nextBeatTime.current, beatInCI === 0, vol, mSound);
-          { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1 } = stateRef.current;
-            if (ciSd > 1) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
+          { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1, subdivCountIn: ciOn = true } = stateRef.current;
+            if (ciSd > 1 && ciOn) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
           const t = nextBeatTime.current;
           // stoppedRef guard: the user may hit Stop between scheduling this beat
           // and the setTimeout firing. Without the guard, stale state updates would
@@ -332,8 +332,8 @@ export function useDrumTimer({ bpm, beatsPerBar, barsPerExercise, minEx, maxEx,
           if (inInterCountIn) {
             const interPos = countInBeatPos.current;
             scheduleWoodblock(ctx, nextBeatTime.current, interPos % bpb2 === 0, vol, mSound);
-            { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1 } = stateRef.current;
-              if (ciSd > 1) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
+            { const { subdivision: ciSd, subdivVol: ciSv = 1, subdivVol2: ciSv2 = 1, subdivVol3: ciSv3 = 1, subdivCountIn: ciOn = true } = stateRef.current;
+              if (ciSd > 1 && ciOn) { const ciSdLen = (60 / b) / ciSd; for (let s = 1; s < ciSd; s++) { const sm = ciSd === 3 ? ciSv3 : (ciSd === 4 && s % 2 !== 0) ? ciSv2 : ciSv; scheduleWoodblock(ctx, nextBeatTime.current + ciSdLen * s, false, vol * sm, mSound, true); } } }
             const t = nextBeatTime.current;
             setTimeout(() => { if (stoppedRef.current) return; setCountInBeat(interPos + 1); setPhase("countin"); },
               Math.max(0, (t - ctx.currentTime) * 1000));

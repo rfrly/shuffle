@@ -148,11 +148,10 @@
       border-radius: 4px;
       padding: 1rem 1rem 0.75rem;
       position: relative;
-      container-type: inline-size;
     }
 
     .exercise-label {
-      font-size: clamp(0.7rem, 3.5cqw, 1.1rem);
+      font-size: 0.75rem;
       letter-spacing: 0.25em;
       text-transform: uppercase;
       color: #aaa;
@@ -170,7 +169,7 @@
 
     .exercise-number {
       font-family: var(--font-mono);
-      font-size: clamp(4.5rem, 32cqw, 9rem);
+      font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #f5c842;
       font-weight: 700;
@@ -187,21 +186,19 @@
       transform: scale(1.06);
     }
 
-    .exercise-number.stopwatch-time { font-size: clamp(4.5rem, 32cqw, 9rem); letter-spacing: -0.05em; }
-
     .exercise-number.idle { color: #444; text-shadow: none; }
     .exercise-number.looping { color: #f5c842; text-shadow: 0 0 30px rgba(245,200,66,0.3); }
     .exercise-number.done {
       color: #4caf7d;
       text-shadow: 0 0 30px rgba(76,175,125,0.3);
-      font-size: clamp(1.5rem, 9cqw, 3rem);
+      font-size: clamp(1.5rem, 5vw, 2.2rem);
       letter-spacing: 0.1em;
       text-transform: lowercase;
     }
 
     .next-exercise {
       font-family: var(--font-mono);
-      font-size: clamp(1.2rem, 8cqw, 2.4rem);
+      font-size: clamp(1.4rem, 5vw, 2rem);
       color: #ccc;
       letter-spacing: 0.05em;
       min-height: 1.2em;
@@ -228,11 +225,9 @@
       color: #555;
     }
 
-    .display--timer .countdown-display { font-size: clamp(4.5rem, 32cqw, 9rem); }
-
     .countdown-display {
       font-family: var(--font-mono);
-      font-size: clamp(4.5rem, 32cqw, 9rem);
+      font-size: clamp(5rem, 18vw, 8rem);
       line-height: 1;
       color: #ff4500;
       text-shadow: 0 0 40px rgba(255,69,0,0.3);
@@ -242,7 +237,7 @@
 
     .idle-summary {
       font-family: var(--font-mono);
-      font-size: clamp(0.65rem, 3cqw, 1rem);
+      font-size: 0.7rem;
       letter-spacing: 0.1em;
       color: #777;
       text-align: center;
@@ -265,7 +260,7 @@
     }
 
     .beat-dot {
-      width: clamp(9px, 2.5cqw, 16px); height: clamp(9px, 2.5cqw, 16px);
+      width: 9px; height: 9px;
       border-radius: 50%;
       background: #555;
       transition: background 0.05s;
@@ -281,7 +276,7 @@
     }
 
     .bar-block {
-      height: clamp(5px, 1.5cqw, 10px);
+      height: 5px;
       background: #555;
       border-radius: 2px;
       transition: background 0.1s;
@@ -300,8 +295,8 @@
     }
 
     .bar-progress-track {
-      width: clamp(160px, 45cqw, 280px);
-      height: clamp(5px, 1.5cqw, 10px);
+      width: 192px;
+      height: 5px;
       background: #555;
       border-radius: 2px;
       overflow: hidden;
@@ -309,7 +304,7 @@
     }
 
     .bar-progress-fill {
-      height: clamp(5px, 1.5cqw, 10px);
+      height: 100%;
       border-radius: 2px;
       background: #f5c842;
       transition: width 0.15s;
@@ -319,7 +314,7 @@
 
     .bar-progress-counter {
       font-family: var(--font-mono);
-      font-size: clamp(0.6rem, 2.6cqw, 0.9rem);
+      font-size: 0.6rem;
       letter-spacing: 0.08em;
       color: #555;
       white-space: nowrap;
@@ -941,6 +936,7 @@
       .check-row span { font-size: 0.95rem; }
       .check-row input { width: 20px !important; height: 20px !important; }
       .control-group label { font-size: 0.7rem; }
+      .idle-summary { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
       .beat-dots { max-width: none; }
     }
@@ -950,6 +946,7 @@
       .display { min-height: 18dvh; }
       .controls { gap: 0.9rem; }
       .section-grid { gap: 0.7rem 1.5rem; }
+      .idle-summary { font-size: 0.85rem; }
       .bpm-btn { width: 40px; }
       .stepper-btn { width: 40px; }
     }
@@ -962,8 +959,17 @@
       .section-grid { gap: 0.9dvh 1.5rem; }
       .section-divider { margin: 0.5dvh 0; }
       .btn-row { margin-top: 1.2dvh; }
-      .bar-block { border-radius: 3px; }
-      .bar-progress-track { border-radius: 3px; }
+      .exercise-label { font-size: 0.8rem; }
+      .exercise-number { font-size: clamp(7rem, 12dvh, 12rem); }
+      .exercise-number.done { font-size: clamp(1.8rem, 3dvh, 3rem); }
+      .countdown-display { font-size: clamp(7rem, 12dvh, 12rem); }
+      .next-exercise { font-size: clamp(2rem, 2.8dvh, 3.2rem); }
+      .idle-summary { font-size: 1rem; }
+      .beat-dot { width: 11px; height: 11px; }
+      .bar-block { height: 7px; border-radius: 3px; }
+      .bar-progress-track { height: 7px; border-radius: 3px; }
+      .bar-progress-fill { height: 7px; }
+      .bar-progress-counter { font-size: clamp(0.75rem, 1.4dvh, 1.1rem); }
       .help-overlay { padding-top: max(3.5rem, env(safe-area-inset-top)); }
       .control-group label { font-size: 0.7rem; }
       .check-row span { font-size: 1rem; }
@@ -996,8 +1002,11 @@
       .controls { max-width: 560px; }
       .btn-row { max-width: 560px; }
       .control-group label { font-size: 0.72rem; }
+      .idle-summary { font-size: 0.8rem; }
       .check-row span { font-size: 0.85rem; }
       .version-footer { font-size: 0.6rem; }
+      .exercise-number { font-size: clamp(4rem, 10vw, 6rem); }
+      .countdown-display { font-size: clamp(4rem, 10vw, 6rem); }
 
       .bpm-btn:hover { background: #252525; color: #fff; }
       .bpm-tap:hover { background: #212121; }
@@ -1016,6 +1025,10 @@
       .display { max-width: 700px; }
       .controls { max-width: 700px; }
       .btn-row { max-width: 700px; }
+      .exercise-number { font-size: clamp(5rem, 8vw, 8rem); }
+      .countdown-display { font-size: clamp(5rem, 8vw, 8rem); }
+      .next-exercise { font-size: clamp(1.4rem, 2.5vw, 2.4rem); }
+      .idle-summary { font-size: 0.9rem; }
     }
 
 
@@ -1354,6 +1367,9 @@
     .watch-active .version-footer { display: none; }
     .watch-active .vol-wrap { display: none; }
     .watch-active .idle-summary { display: none; }
+    .watch-active .exercise-number { font-size: clamp(4rem, 16vw, 7rem); }
+    .watch-active .exercise-number.stopwatch-time { font-size: clamp(3rem, 12vw, 5.5rem); }
+    .watch-active .countdown-display { font-size: clamp(4rem, 16vw, 7rem); }
     .watch-active .display { width: 100%; }
     .watch-active { padding-bottom: max(2.5rem, env(safe-area-inset-bottom)) !important; }
     .watch-student-status {
@@ -1391,14 +1407,13 @@
     }
     @keyframes watch-restore-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
     /* watch 1.12: enhanced student glanceable view */
-    .watch-active .exercise-label { letter-spacing: 0.2em; }
+    .watch-active .exercise-label { font-size: 1rem; letter-spacing: 0.2em; }
+    .watch-active .next-exercise { font-size: clamp(1.8rem, 7vw, 2.8rem); }
+    .watch-active .beat-dot { width: 14px; height: 14px; }
     .watch-active .beat-dots { gap: 0.9rem; }
-    /* Student view has a taller display zone; boost focus text so it feels proportional */
-    .watch-active .exercise-number { font-size: clamp(5.5rem, 38cqw, 11rem); }
-    .watch-active .exercise-number.stopwatch-time { font-size: clamp(5.5rem, 38cqw, 11rem); }
-    .watch-active .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
-    .watch-active .display--timer .countdown-display { font-size: clamp(5.5rem, 38cqw, 11rem); }
-    .watch-active .next-exercise { font-size: clamp(1.4rem, 9.5cqw, 2.8rem); }
+    .watch-active .bar-block { height: 9px; border-radius: 3px; }
+    .watch-active .bar-progress-track { height: 9px; border-radius: 3px; }
+    .watch-active .bar-progress-fill { height: 9px; }
     /* Observer display */
     .observer-app { user-select: none; }
     .observer-app {
@@ -2018,7 +2033,7 @@
 
           {disconnected && <div className="observer-offline">Session ended</div>}
 
-          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" ? " display--timer" : ""}`}>
+          <div className={`display${obsMode === "clickonly" ? " display--metro" : ""}`}>
             <div key={`${phase}-${obsIsFirstExOfSet}-${obsSetCount}`} className={`exercise-label${obsIsFirstExOfSet && isPlaying && obsMode !== "clickonly" ? " exercise-label--set" : ""}`}>
               {isCountIn ? "count in" : sc ? "\u00A0" : isIdle ? "ready" : obsMode === "clickonly" ? (obsDisplayMode === "timer" ? "time" : "bar") : obsIsFirstExOfSet && isPlaying ? `set ${obsSetCount}` : "exercise"}
             </div>
@@ -2030,7 +2045,7 @@
             ) : sc ? (
               <div className="exercise-number done">done</div>
             ) : (
-              <div className={`exercise-number${isIdle ? " idle" : ""}${obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle" ? " stopwatch-time" : ""}`}>
+              <div className={`exercise-number${isIdle ? " idle" : ""}`}>
                 {obsMode === "clickonly" && obsDisplayMode === "timer" && phase !== "idle"
                   ? `${Math.floor((obsElapsed || 0) / 60)}:${String((obsElapsed || 0) % 60).padStart(2, "0")}`
                   : exercise != null ? (effectiveLm ? String.fromCharCode(64 + exercise) : (exercise < 10 ? "0" + exercise : "" + exercise)) : "--"}
@@ -4551,7 +4566,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.7 · watch 1.17</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.6 · watch 1.15</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -4819,7 +4834,7 @@
             </>
           )}
 
-          <div className={`display${isMetronome ? " display--metro" : ""}${isMetronome && displayMode === 'timer' ? " display--timer" : ""}`}>
+          <div className={`display${isMetronome ? " display--metro" : ""}`}>
             <div key={`${phase}-${isFirstExOfSet}-${setCount}`} className={`exercise-label${isFirstExOfSet && phase === "playing" && !isMetronome ? " exercise-label--set" : ""}`}>
               {phase === "idle" ? (setComplete ? "\u00A0" : "ready") : isMetronome ? (phase === "countin" ? "count in" : displayMode === 'timer' ? "time" : "bar") : isFirstExOfSet && phase === "playing" ? `set ${setCount}` : phase === "countin" ? "count in" : "exercise"}
             </div>
@@ -4833,7 +4848,7 @@
                 done
               </div>
             ) : (
-              <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}${isMetronome && displayMode === 'timer' && phase !== "idle" ? " stopwatch-time" : ""}`}>
+              <div className={`exercise-number${flashOn && !looping ? " flash" : ""}${phase === "idle" ? " idle" : ""}${looping && phase === "playing" ? " looping" : ""}`}>
                 {isMetronome && displayMode === 'timer' && phase !== "idle"
                   ? `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, "0")}`
                   : exercise !== null ? fmtEx(exercise, letterMode) : "--"}
@@ -5197,7 +5212,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.7 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.6 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup

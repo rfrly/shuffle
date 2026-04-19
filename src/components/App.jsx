@@ -120,20 +120,25 @@ function BpmAutoPopup({
   bpmAutoRandom, setBpmAutoRandom, bpmAutoMin, setBpmAutoMin, bpmAutoMax, setBpmAutoMax,
   anchorRef, onClose,
 }) {
+  const popupRef = useRef(null);
   const [popupStyle, setPopupStyle] = useState({});
   const [localMode, setLocalMode] = useState(bpmAutoRandom ? 'random' : 'increment');
   const isMetronome = mode === MODE_CLICKONLY;
 
   useEffect(() => {
     if (anchorRef.current) {
-      const rect = anchorRef.current.getBoundingClientRect();
-      const popupWidth = 260;
-      const centreLeft = Math.round((window.innerWidth - popupWidth) / 2);
-      const anchorLeft = Math.min(rect.left, window.innerWidth - popupWidth - 8);
-      setPopupStyle({
-        left: Math.max(8, window.innerWidth < 500 ? centreLeft : anchorLeft),
-        bottom: window.innerHeight - rect.top + 6,
-      });
+      const position = () => {
+        const rect = anchorRef.current.getBoundingClientRect();
+        const popupWidth = popupRef.current ? popupRef.current.offsetWidth : 260;
+        const centre = rect.left + rect.width / 2;
+        const left = Math.max(8, Math.min(window.innerWidth - 8 - popupWidth, centre - popupWidth / 2));
+        setPopupStyle({
+          left,
+          bottom: window.innerHeight - rect.top + 6,
+        });
+      };
+      position();
+      requestAnimationFrame(position);
     }
     const halfSpan = Math.round(bpm * 0.035);
     setBpmAutoMin(Math.max(BPM_MIN, bpm - halfSpan));
@@ -166,7 +171,7 @@ function BpmAutoPopup({
   return ReactDOM.createPortal(
     <>
       <div className="bpm-auto-backdrop" onClick={onClose} />
-      <div className="bpm-auto-popup" style={popupStyle}>
+      <div ref={popupRef} className="bpm-auto-popup" style={popupStyle}>
         <div className="bpm-auto-master-row" onClick={() => setBpmAuto(v => !v)}>
           <span className="bpm-auto-master-label">Auto BPM</span>
           <div className={`bpm-auto-toggle${bpmAuto ? " active" : ""}`}>
@@ -300,8 +305,12 @@ export function App() {
   const [exerciseLength,  setExerciseLength]  = useState(() => saved?.exerciseLength ?? 1);
   const [minEx,           setMinEx]           = useState(() => saved?.minEx ?? 1);
   const [maxEx,           setMaxEx]           = useState(() => saved?.maxEx ?? 4);
-  const [countInBars,     setCountInBars]     = useState(() => saved?.countInBars ?? 1);
+  const [countInBars,     setCountInBars]     = useState(() => {
+    if (saved?.mode === MODE_CLICKONLY) return saved?.countInBarsMetronome ?? 0;
+    return saved?.countInBarsOther ?? saved?.countInBars ?? 1;
+  });
   const [countInEvery,    setCountInEvery]    = useState(() => saved?.countInEvery ?? true);
+  const [subdivCountIn,   setSubdivCountIn]   = useState(() => saved?.subdivCountIn ?? true);
   const [mode,            setMode]            = useState(() => saved?.mode ?? MODE_FULLSET);
   const [sets,            setSets]            = useState(() => saved?.sets ?? 1);
   const [displayMode,     setDisplayMode]     = useState(() => saved?.displayMode ?? 'bars');
@@ -375,15 +384,25 @@ export function App() {
   const tapTimes = useRef([]);
   const wakeLock = useRef(null);
 
+  // Per-mode-group memory for count-in bars: Metronome remembers its own value
+  // (default 0 = None) independently of Shuffle/Sequence (default 1).
+  const countInByMode = useRef({
+    metronome: saved?.countInBarsMetronome ?? 0,
+    other:     saved?.countInBarsOther     ?? (saved?.mode !== MODE_CLICKONLY && saved?.countInBars != null ? saved.countInBars : 1),
+  });
+  const lastModeWasMetronome = useRef(saved?.mode === MODE_CLICKONLY);
+
   useEffect(() => {
     saveSettings({ bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-                   minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume,
+                   minEx, maxEx, countInBars, countInEvery, subdivCountIn, mode, sets, displayMode, volume,
+                   countInBarsMetronome: countInByMode.current.metronome,
+                   countInBarsOther:     countInByMode.current.other,
                    exMode, pickedNums, letterMode,
                    subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
                    bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger,
                    bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
                    metSound });
-  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
+  }, [bpm, timeSig, barsPerExercise, exerciseLength, minEx, maxEx, countInBars, countInEvery, subdivCountIn, mode, sets, displayMode, volume, exMode, pickedNums, letterMode, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3, bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom, metSound]);
 
   useEffect(() => {
     if (window.location.search) window.history.replaceState({}, "", window.location.pathname);
@@ -445,6 +464,23 @@ export function App() {
     }
   }, [mode, sets]);
 
+  // Swap count-in value per mode group (Metronome vs Shuffle/Sequence). Each
+  // group remembers its own last count-in — Metronome defaults to None (0),
+  // the others default to 1 bar. Fires only when the mode group actually
+  // changes so Shuffle↔Sequence switches don't touch count-in.
+  useEffect(() => {
+    const nowMetronome = mode === MODE_CLICKONLY;
+    if (nowMetronome === lastModeWasMetronome.current) return;
+    if (nowMetronome) {
+      countInByMode.current.other = countInBars;
+      setCountInBars(countInByMode.current.metronome);
+    } else {
+      countInByMode.current.metronome = countInBars;
+      setCountInBars(countInByMode.current.other);
+    }
+    lastModeWasMetronome.current = nowMetronome;
+  }, [mode]);
+
   const handleNewExercise  = useCallback((n) => { setExercise(n); }, []);
   const handleNextExercise = useCallback((n) => { setNextEx(n); }, []);
 
@@ -487,6 +523,7 @@ export function App() {
     countInEveryRound: countInEvery,
     mode, volume, looping, infinite: sets === '∞' || (typeof sets === 'number' && setCount < sets), setComplete,
     exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
+    subdivCountIn,
     metSound,
   });
 
@@ -810,6 +847,7 @@ export function App() {
                     }
                     p.set("cib",  String(countInBars));
                     if (countInEvery) p.set("cie", "1");
+                    if (!subdivCountIn) p.set("sdci", "0");
                     p.set("mode", mode);
                     if (sets !== 1 && mode !== MODE_CLICKONLY) p.set("sets", String(sets));
                     if (displayMode === 'timer' && mode === MODE_CLICKONLY) p.set("dm", "timer");
@@ -854,6 +892,8 @@ export function App() {
                     setMaxEx(4);
                     setCountInBars(1);
                     setCountInEvery(true);
+                    setSubdivCountIn(true);
+                    countInByMode.current = { metronome: 0, other: 1 };
                     setMode(MODE_FULLSET);
                     setSets(1);
                     setDisplayMode('bars');
@@ -1132,6 +1172,7 @@ export function App() {
                 openSelector={openSelector}
                 setOpenSelector={setOpenSelector}
                 getLabel={ts => ts.label}
+                popupClassName="timesig-popup"
               />
             </div>
           </div>
@@ -1142,21 +1183,34 @@ export function App() {
             <CompactSelector
               id="countIn"
               value={countInBars}
-              options={[1, 2, 4]}
+              options={isMetronome ? [0, 1, 2, 4] : [1, 2, 4]}
               onChange={setCountInBars}
               disabled={running}
               openSelector={openSelector}
               setOpenSelector={setOpenSelector}
-              getLabel={n => n === 1 ? "1 bar" : `${n} bars`}
-              buttonLabel={`${countInBars === 1 ? "1 bar" : `${countInBars} bars`}${countInEvery && !isMetronome ? " ✓" : ""}`}
-              footer={!isMetronome && (
-                <div className="check-row" style={{ width: '100%', padding: '0.1rem 0' }}>
-                  <input type="checkbox" checked={countInEvery}
-                    onChange={e => setCountInEvery(e.target.checked)}
-                    style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                  <span>Count in every exercise</span>
-                </div>
+              getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : `${n} bars`)}
+              buttonLabel={`${countInBars === 0 ? "None" : (countInBars === 1 ? "1 bar" : `${countInBars} bars`)}${countInEvery && !isMetronome ? " ✓" : ""}`}
+              footer={(
+                <>
+                  {!isMetronome && (
+                    <button
+                      className="compact-popup-footer-toggle"
+                      onClick={() => setCountInEvery(v => !v)}
+                      disabled={countInBars === 0}>
+                      <span>Count in every exercise</span>
+                      <div className={`menu-toggle-pill${countInEvery ? " on" : ""}`} />
+                    </button>
+                  )}
+                  <button
+                    className="compact-popup-footer-toggle"
+                    onClick={() => setSubdivCountIn(v => !v)}
+                    disabled={countInBars === 0}>
+                    <span>Subdivide count-in</span>
+                    <div className={`menu-toggle-pill${subdivCountIn && countInBars > 0 ? " on" : ""}`} />
+                  </button>
+                </>
               )}
+              popupClassName={isMetronome ? "countin-popup-4" : "countin-popup-3"}
             />
           </div>
 
@@ -1306,7 +1360,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.7 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.8 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup

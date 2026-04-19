@@ -665,7 +665,7 @@ firebase_and_observer = r"""
         currentBeat, currentBar, exercise, nextEx, countInBeat,
         mode: obsMode, sets: obsSets, displayMode: obsDisplayMode, elapsedSeconds: obsElapsed, bpm: obsBpm, timeSig: obsTimeSigLabel,
         barsPerExercise: obsBpe, exerciseLength: obsExLen,
-        countInBars: obsCib, countInEvery: obsCountInEvery,
+        countInBars: obsCib, countInEvery: obsCountInEvery, subdivCountIn: obsSubdivCountIn,
         looping: obsLooping, letterMode: obsLm,
         minEx: obsMinEx, maxEx: obsMaxEx,
         pickedNums: obsPickedNums, exMode: obsExMode,
@@ -872,8 +872,9 @@ firebase_and_observer = r"""
           const rds = obsBpe || 1;
           parts.push(`${rds} round${rds !== 1 ? "s" : ""}`);
         }
-        const cib = obsCib || 1;
-        parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
+        const cib = obsCib != null ? obsCib : 1;
+        if (cib === 0) parts.push("no count in");
+        else parts.push(`${cib}-bar count in${obsCountInEvery && obsMode !== "clickonly" ? " every exercise" : ""}`);
         parts.push(modeLabel);
         return parts.join(", ");
       };
@@ -885,8 +886,9 @@ firebase_and_observer = r"""
         if (obsExLen)         p.set("exlen",  String(obsExLen));
         if (obsMinEx != null) p.set("min",    String(obsMinEx));
         if (obsMaxEx != null) p.set("max",    String(obsMaxEx));
-        if (obsCib)           p.set("cib",    String(obsCib));
+        if (obsCib != null)   p.set("cib",    String(obsCib));
         if (obsCountInEvery)  p.set("cie",    "1");
+        if (obsSubdivCountIn === false) p.set("sdci", "0");
         if (obsMode)          p.set("mode",   obsMode);
         if (obsSets != null && obsSets !== 1 && obsMode !== "clickonly") p.set("sets", obsSets === "\u221e" ? "inf" : String(obsSets));
         if (obsDisplayMode === "timer" && obsMode === "clickonly") p.set("dm", "timer");
@@ -1042,7 +1044,7 @@ firebase_and_observer = r"""
                     setTeacherRunning(false); setTeacherPaused(false); setTeacherResuming(false); setTeacherLooping(false);
                     onSendCmd({ tcmd: "stop", tseq: Date.now(),
                       bpm: 80, timeSig: "4/4", barsPerExercise: 4, exerciseLength: 1,
-                      minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true,
+                      minEx: 1, maxEx: 4, countInBars: 1, countInEvery: true, subdivCountIn: true,
                       mode: "fullset", sets: 1, displayMode: "bars", resetAll: true, exMode: "range", pickedNums: [], letterMode: false,
                       volume: 1.0, subdivision: 1, subdivVol: 0.7, subdivVol2: 0.7, subdivVol3: 0.7, audioMuted: false });
                     setLetterModeOverride(false);
@@ -1234,6 +1236,7 @@ firebase_and_observer = r"""
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
                   getLabel={ts => ts.label}
+                  popupClassName="timesig-popup"
                 />
               </div>
 
@@ -1241,23 +1244,35 @@ firebase_and_observer = r"""
                 <label>Count in</label>
                 <CompactSelector
                   id="obs-countIn"
-                  value={obsCib || 1}
-                  options={[1, 2, 4]}
+                  value={obsCib != null ? obsCib : (obsMode === "clickonly" ? 0 : 1)}
+                  options={obsMode === "clickonly" ? [0, 1, 2, 4] : [1, 2, 4]}
                   onChange={n => onSendCmd({ countInBars: n })}
                   disabled={disabled || obsRunning}
                   openSelector={openSelector}
                   setOpenSelector={setOpenSelector}
-                  getLabel={n => n === 1 ? "1 bar" : n + " bars"}
-                  buttonLabel={(obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars") + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
-                  footer={
-                    <div className={"check-row" + (obsMode === "clickonly" ? " disabled" : "")} style={{ width: "100%", padding: "0.1rem 0" }}>
-                      <input type="checkbox" checked={!!obsCountInEvery}
-                        onChange={() => onSendCmd({ countInEvery: !obsCountInEvery })}
-                        disabled={disabled || obsMode === "clickonly"}
-                        style={{ accentColor: "#ff4500", width: 18, height: 18 }} />
-                      <span>Count in every exercise</span>
-                    </div>
-                  }
+                  getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : n + " bars")}
+                  buttonLabel={(obsCib === 0 ? "None" : (obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars")) + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
+                  footer={(
+                    <>
+                      {obsMode !== "clickonly" && (
+                        <button
+                          className="compact-popup-footer-toggle"
+                          onClick={() => onSendCmd({ countInEvery: !obsCountInEvery })}
+                          disabled={disabled || obsCib === 0}>
+                          <span>Count in every exercise</span>
+                          <div className={"menu-toggle-pill" + (obsCountInEvery ? " on" : "")} />
+                        </button>
+                      )}
+                      <button
+                        className="compact-popup-footer-toggle"
+                        onClick={() => onSendCmd({ subdivCountIn: !(obsSubdivCountIn !== false) })}
+                        disabled={disabled || obsCib === 0}>
+                        <span>Subdivide count-in</span>
+                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false && obsCib !== 0 ? " on" : "")} />
+                      </button>
+                    </>
+                  )}
+                  popupClassName={obsMode === "clickonly" ? "countin-popup-4" : "countin-popup-3"}
                 />
               </div>
 
@@ -1516,7 +1531,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           running, paused, resuming: isResuming, looping, phase, setComplete,
           currentBeat, currentBar, exercise, nextEx, countInBeat,
           mode, sets, displayMode, elapsedSeconds, bpm, timeSig: timeSig.label, barsPerExercise, exerciseLength,
-          minEx, maxEx, countInBars, countInEvery, letterMode,
+          minEx, maxEx, countInBars, countInEvery, subdivCountIn, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
@@ -1526,7 +1541,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         shareDbRef.current.set(payload);
       }, [running, paused, isResuming, looping, phase, setComplete, currentBeat, currentBar,
           exercise, nextEx, countInBeat, mode, sets, displayMode, elapsedSeconds, bpm, timeSig, barsPerExercise,
-          exerciseLength, minEx, maxEx, countInBars, countInEvery, letterMode,
+          exerciseLength, minEx, maxEx, countInBars, countInEvery, subdivCountIn, letterMode,
           exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,
           volume, metSound,
           bpmAuto, bpmAutoStep, bpmAutoDir, bpmAutoTrigger, bpmAutoBarInterval, bpmAutoSecInterval, bpmAutoRandom,
@@ -1574,6 +1589,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
         setMaxEx(4);
         setCountInBars(1);
         setCountInEvery(true);
+        setSubdivCountIn(true);
         setMode(MODE_FULLSET);
         setSets(1);
         setDisplayMode('bars');
@@ -1696,6 +1712,7 @@ watch_effects = """      // ── Watch: manage silent loop to keep AudioContex
           if (cmd.timeSig != null) { const ts = TIME_SIGS.find(t => t.label === cmd.timeSig); if (ts) setTimeSig(ts); }
           if (cmd.countInBars != null) setCountInBars(cmd.countInBars);
           if (cmd.countInEvery != null) setCountInEvery(!!cmd.countInEvery);
+          if (cmd.subdivCountIn != null) setSubdivCountIn(!!cmd.subdivCountIn);
           if (cmd.exerciseLength != null) setExerciseLength(cmd.exerciseLength);
           if (cmd.minEx != null) { const v = Math.min(200, Math.max(1, cmd.minEx)); setMinEx(v); }
           if (cmd.maxEx != null) { const v = Math.min(200, Math.max(1, cmd.maxEx)); setMaxEx(v); }
@@ -1802,8 +1819,8 @@ src = patch(src,
     "          }"
 )
 src = patch(src,
-    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        metSound,\n      });",
-    "        mode, volume: studentAudioMuted ? 0 : volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        metSound,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
+    "        mode, volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        subdivCountIn,\n        metSound,\n      });",
+    "        mode, volume: studentAudioMuted ? 0 : volume, looping, infinite: sets === '\u221e' || (typeof sets === 'number' && setCount < sets), setComplete,\n        exMode, pickedNums, subdivision, beatStates, subdivVol, subdivVol2, subdivVol3,\n        subdivCountIn,\n        metSound,\n        keepCtxAlive: watchScreen === \"app\",\n      });"
 )
 
 # ── 7. Wrap JSX return with watch overlays ───────────────────────────────────
@@ -1823,7 +1840,7 @@ watch_jsx = """      // If watching someone else, show observer view entirely
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.7 · watch 1.17</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.8 · watch 1.23</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -1938,6 +1955,8 @@ teacher_parity_checks = [
     # Count in
     ("obs-countIn",             "teacher Count in"),
     ("obsCountInEvery",         "teacher Count in every exercise"),
+    ("obsSubdivCountIn",        "teacher Subdivide count-in toggle in Vol popup"),
+    ("cmd.subdivCountIn",       "student cmd listener handles subdivCountIn"),
     # Click sound (in teacher ☰ menu)
     ("obsMetSound",             "teacher Click sound (☰ menu)"),
     ("soundMenuOpen",           "teacher Click sound submenu state"),
