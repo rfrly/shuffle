@@ -172,12 +172,12 @@ function BpmAutoPopup({
     <>
       <div className="bpm-auto-backdrop" onClick={onClose} />
       <div ref={popupRef} className="bpm-auto-popup" style={popupStyle}>
-        <div className="bpm-auto-master-row" onClick={() => setBpmAuto(v => !v)}>
-          <span className="bpm-auto-master-label">Auto BPM</span>
-          <div className={`bpm-auto-toggle${bpmAuto ? " active" : ""}`}>
-            <div className="bpm-auto-toggle-thumb" />
-          </div>
-        </div>
+        <button
+          className="compact-popup-footer-toggle bpm-auto-master-row"
+          onClick={() => setBpmAuto(v => !v)}>
+          <span>Auto BPM</span>
+          <div className={`menu-toggle-pill${bpmAuto ? " on" : ""}`} />
+        </button>
         <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
           {!isMetronome && (
             <div className="bpm-auto-unit-row">
@@ -1366,7 +1366,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.11.beta.1 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.11.beta.2 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
