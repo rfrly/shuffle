@@ -470,7 +470,7 @@ src = patch(src,
     '                        style={running ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
     '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
     '                          <span>{bpm}</span>\n'
-    '                          {!running && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                          {!running && <span className="bpm-tap-label">tap</span>}\n'
     '                        </div>\n'
     '                      </div>\n'
     '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>',
@@ -483,7 +483,7 @@ src = patch(src,
     '                        style={running || watchScreen === "app" ? { cursor: "default", pointerEvents: "none" } : {}}>\n'
     '                        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>\n'
     '                          <span>{bpm}</span>\n'
-    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap to set</span>}\n'
+    '                          {!running && watchScreen !== "app" && <span className="bpm-tap-label">tap</span>}\n'
     '                        </div>\n'
     '                      </div>\n'
     '                      <button className="bpm-btn right" {...bpmIncHandlers}>+</button>'
@@ -1209,7 +1209,7 @@ firebase_and_observer = r"""
                       style={(disabled || obsRunning) ? { cursor: "default", pointerEvents: "none" } : {}}>
                       <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "2px" }}>
                         <span>{obsBpm || "--"}</span>
-                        {!disabled && !obsRunning && <span className="bpm-tap-label">tap to set</span>}
+                        {!disabled && !obsRunning && <span className="bpm-tap-label">tap</span>}
                       </div>
                     </div>
                     <button className="bpm-btn right" disabled={disabled} {...bpmObsIncHandlers}>+</button>
