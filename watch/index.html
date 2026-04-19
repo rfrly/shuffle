@@ -459,28 +459,6 @@
     }
     .bpm-auto-unit-row { display: flex; gap: 0.3rem; }
     .bpm-auto-unit-row .sel-btn { height: 32px; font-size: 0.65rem; min-width: 40px; flex: 1; }
-    .bpm-auto-master-row {
-      display: flex; align-items: center; gap: 0.6rem;
-      padding: 0.2rem 0; cursor: pointer; user-select: none;
-    }
-    .bpm-auto-master-label {
-      font-family: var(--font-mono); font-size: 0.8rem; color: #bbb;
-    }
-    .bpm-auto-toggle {
-      width: 44px; height: 26px; border-radius: 13px;
-      background: #333; border: 1px solid #444;
-      position: relative; transition: background 0.2s, border-color 0.2s;
-      flex-shrink: 0;
-    }
-    .bpm-auto-toggle.active { background: #f5c842; border-color: #f5c842; }
-    .bpm-auto-toggle-thumb {
-      position: absolute; top: 3px; left: 3px;
-      width: 18px; height: 18px; border-radius: 50%;
-      background: #888; transition: transform 0.2s, background 0.2s;
-    }
-    .bpm-auto-toggle.active .bpm-auto-toggle-thumb {
-      transform: translateX(18px); background: #1a1a1a;
-    }
     .bpm-auto-inner { display: flex; flex-direction: column; gap: 0.6rem; }
     .bpm-auto-disabled { opacity: 0.35; pointer-events: none; display: flex; flex-direction: column; gap: 0.6rem; }
     .bpm-auto-trigger-label {
@@ -625,7 +603,8 @@
     /* Footer toggle row inside a CompactSelector popup — label and pill sit
        adjacent on the left so the tap target reads as a single control. */
     .compact-popup-footer-toggle {
-      display: flex; align-items: center; gap: 0.6rem;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 0.6rem;
       width: 100%; min-height: 44px; padding: 0.3rem 0.1rem;
       background: none; border: none; cursor: pointer;
       color: #ccc; font-family: var(--font-mono);
@@ -916,17 +895,17 @@
     .settings-menu-confirm { color: #f5c842; margin-left: 0.4rem; }
     /* Shared menu toggle pill — used by main app settings menu and watch teacher menu */
     .menu-toggle-pill {
-      width: 32px; height: 18px; border-radius: 9px;
+      width: 40px; height: 22px; border-radius: 11px;
       position: relative; background: #333; transition: background 0.15s;
       flex-shrink: 0;
     }
     .menu-toggle-pill.on { background: var(--toggle-on); }
     .menu-toggle-pill::after {
       content: ""; position: absolute; top: 2px; left: 2px;
-      width: 14px; height: 14px; border-radius: 50%;
+      width: 18px; height: 18px; border-radius: 50%;
       background: #0f0f0f; transition: transform 0.15s;
     }
-    .menu-toggle-pill.on::after { transform: translateX(14px); }
+    .menu-toggle-pill.on::after { transform: translateX(18px); }
     .settings-menu-arrow {
       display: inline-block; transition: transform 0.15s ease; font-size: 0.85rem; color: #666;
       font-family: var(--font-body);
@@ -2264,9 +2243,9 @@
                       <button
                         className="compact-popup-footer-toggle"
                         onClick={() => onSendCmd({ subdivCountIn: !(obsSubdivCountIn !== false) })}
-                        disabled={disabled || obsCib === 0}>
+                        disabled={disabled || obsCib === 0 || (obsSubdivision || 1) === 1}>
                         <span>Subdivide count-in</span>
-                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false && obsCib !== 0 ? " on" : "")} />
+                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false && obsCib !== 0 && (obsSubdivision || 1) !== 1 ? " on" : "")} />
                       </button>
                     </>
                   )}
@@ -3766,12 +3745,12 @@
         <>
           <div className="bpm-auto-backdrop" onClick={onClose} />
           <div ref={popupRef} className="bpm-auto-popup" style={popupStyle}>
-            <div className="bpm-auto-master-row" onClick={() => setBpmAuto(v => !v)}>
-              <span className="bpm-auto-master-label">Auto BPM</span>
-              <div className={`bpm-auto-toggle${bpmAuto ? " active" : ""}`}>
-                <div className="bpm-auto-toggle-thumb" />
-              </div>
-            </div>
+            <button
+              className="compact-popup-footer-toggle bpm-auto-master-row"
+              onClick={() => setBpmAuto(v => !v)}>
+              <span>Auto BPM</span>
+              <div className={`menu-toggle-pill${bpmAuto ? " on" : ""}`} />
+            </button>
             <div className={bpmAuto ? "bpm-auto-inner" : "bpm-auto-disabled"}>
               {!isMetronome && (
                 <div className="bpm-auto-unit-row">
@@ -4652,7 +4631,7 @@
             <div className="watch-overlay-subtitle">Watch</div>
             <button className="watch-btn-base watch-btn primary" onClick={handleStartSharing}>Share my session</button>
             <button className="watch-btn-base watch-btn secondary" onClick={() => setWatchScreen("watch-entry")}>Watch a session</button>
-            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.10 · watch 1.26</div>
+            <div style={{ fontSize: "0.55rem", color: "#444", fontFamily: "var(--font-mono)", letterSpacing: "0.1em", marginTop: "0.5rem" }}>v1.10.11 · watch 1.27</div>
           </div>
         )}
         {watchScreen === "share" && (
@@ -5321,7 +5300,7 @@
             document.body
           )}
 
-          <div className="version-footer">v1.10.10 · rossfarley.uk · © 2026 Ross Farley</div>
+          <div className="version-footer">v1.10.11 · rossfarley.uk · © 2026 Ross Farley</div>
 
           {numpadOpen === 'min' && (
             <NumpadPopup
