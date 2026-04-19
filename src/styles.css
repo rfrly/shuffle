@@ -478,6 +478,10 @@
       display: inline-flex; align-items: center; margin-left: 3px; vertical-align: middle;
     }
     .vol-subdiv-badge .subdiv-svg { width: 16px; height: 12px; }
+    .ci-subdiv-badge {
+      display: inline-flex; align-items: center; margin-left: 2px; vertical-align: middle;
+    }
+    .ci-subdiv-badge .subdiv-svg { width: 16px; height: 12px; }
 
     .bpm-widget { display: flex; align-items: center; height: 44px; }
 

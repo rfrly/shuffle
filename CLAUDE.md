@@ -84,7 +84,7 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - iOS background audio stops when the app leaves the screen — this is a fundamental WebKit limitation
 - `.app` uses `overflow: clip` not `overflow: hidden` — `overflow: hidden` creates a scroll container on iOS which constrains `position: fixed` children, preventing them from covering the full screen (home indicator zone)
 - Help overlay renders inside `.app`, not via portal — portalled `position: fixed` elements are constrained by `body { height: 100% }` on iOS PWA and won't reach the bottom of the screen
-- `.display` is a CSS container (`container-type: inline-size`). All text, beat dots, and bar progress inside the display zone are sized with container-query units (`cqw`), not viewport units (`vw`). This keeps text proportional to the display zone itself, which is `max-width`-capped per breakpoint (440 / 560 / 640 / 700 px). Never add per-breakpoint `font-size` overrides for `.exercise-number`, `.countdown-display`, `.exercise-label`, `.next-exercise`, `.idle-summary`, `.bar-progress-counter`, `.beat-dot`, `.bar-block`, or `.bar-progress-track/fill` — the `cqw` clamp already handles every viewport. Overrides will re-introduce the size drift the container query was designed to eliminate. The watch student view (`.watch-active .display`) and teacher observer view (`.observer-app .display`) inherit the same container rules, so there's no need for surface-specific size overrides either. Metronome stopwatch uses `.exercise-number.stopwatch-time` with `letter-spacing: -0.05em` so the wider `M:SS` string fits at the same font-scale as the 2-digit exercise number; `.display--timer .countdown-display` matches so text does not jump when count-in transitions into the timer.
+- `.display` is a CSS container (`container-type: inline-size`); all display-zone text uses `cqw` units, not `vw`. **Never add per-breakpoint `font-size` overrides** for `.exercise-number`, `.countdown-display`, `.exercise-label`, `.next-exercise`, `.idle-summary`, `.bar-progress-counter`, `.beat-dot`, `.bar-block`, or `.bar-progress-track/fill` — the `cqw` clamp handles every viewport and watch surface already.
 
 ---
 
@@ -113,10 +113,10 @@ The deploy workflow runs on every push to `main` or `dev`. Live and watch always
 - Control order (left to right, top to bottom): Mode (full-width), BPM + Time sig (share a row on mobile via `bpm-timesig-row`; split to separate cells on desktop via `display: contents`), Count in, Exercise length, Exercises, Rounds Per Exercise. In Metronome mode: Mode, BPM + Time sig, Count in (Exercise length/Exercises/Rounds Per Exercise hidden).
 - Subdivision is not a grid control — it lives inside the Vol popup. Tap a subdivision icon row to activate it (sets `subdivision` state); tap again to deactivate (sets `subdivision` back to 1).
 - Exercise length, Time sig, and Count in use CompactSelector — a button that opens a popup with options; rendered via React portal into document.body to avoid overflow clipping
-- Count in popup includes "count in every exercise" checkbox (hidden entirely in Metronome mode, not just disabled); button shows ✓ when active
+- Count in popup includes "count in every exercise" checkbox and "Subdivide count-in" toggle (both hidden entirely in Metronome mode); button shows ✓ when count-in-every is active, and the active subdivision SVG badge when subdivide-count-in is on. "Subdivide count-in" is disabled when no subdivision is active (subdivision === 1)
 - No dimming of fixed controls — all controls same visual weight
 - Transport buttons: Pause, Loop, Stop, Vol — consistent dark fill base, amber for active Loop, white for active Pause, red-tinted for Stop. In Metronome mode, Pause and Loop are hidden — Stop fills the full transport bar width
-- Vol button always shows a subdivision note icon badge (♩ when subdivision=1, ♪♪/♬/⋮ when active). Opens a portal-rendered popup with: Master slider always visible; ♪♪/♬/⋮ rows always visible — tap icon to activate/deactivate subdivision, slider controls that subdivision's volume. Inactive rows are heavily dimmed (opacity 0.18). When subdivision=4 (16ths), both ♪♪ and ♬ rows are at full brightness: ♪♪ slider controls `subdivVol` (8th positions within the 16th pattern), ♬ slider controls `subdivVol2` (pure 16th positions). Triplets (⋮) use `subdivVol3` independently. Row order: ♪♪ → ♬ → ⋮. Each slider has −/+ nudge buttons with hold-to-repeat. Defaults: Master 1.0, subdivisions 0.7.
+- Vol button shows the active subdivision SVG badge (♪♪/♬/⋮ when active, ♩ when not). Label is "vol" only — no speaker icon. Opens a portal-rendered popup: Master slider; ♪♪/♬/⋮ rows always visible — tap icon to activate/deactivate subdivision. Inactive rows dimmed (opacity 0.18). 16ths mode: ♪♪ controls `subdivVol` (8th positions), ♬ controls `subdivVol2` (pure 16ths). Triplets use `subdivVol3`. Row order: ♪♪ → ♬ → ⋮. Each slider has −/+ nudge buttons. Defaults: Master 1.0, subdivisions 0.7.
 - Start button amber filled, only visible when idle
 - Header: invisible spacer left, title centre, `☰` menu button right — no separate `?` button; "How to use" is the first item in the ☰ menu
 - Idle state shows a one-line summary of current settings including sets suffix when sets ≠ 1 (e.g. "shuffle ×2", "sequence ∞")
@@ -285,33 +285,3 @@ The `teacher_parity_checks` list in `build.py` is the authoritative record of wh
 - Firebase config (including API key) is embedded in `build.py` — if the Firebase project ever changes, update it there
 - Local testing: open via `python3 -m http.server 8000` and `http://localhost:8000/watch/` rather than `file://` (API key referrer restriction doesn't cover `file://` origins)
 
----
-
-## Future: Swift/SwiftUI native app
-
-The long-term plan is to rewrite Shuffle as a native Swift/SwiftUI app for iPhone, iPad, and Mac. The web app is the reference implementation — no changes to the web codebase are needed to prepare for this, but keep the following in mind:
-
-- **Keep business logic separate from React** — pure functions in `src/` that don't depend on hooks or JSX are the easiest to port
-- **The audio scheduler comments are intentional** — `src/useDrumTimer.js`, `src/audio.js`, and `src/constants.js` contain block comments explaining the timing model and Swift/AVAudioEngine porting notes. Do not remove or shorten these
-- **The Watch feature is planned as a paid unlock** in the native app — keep the watch architecture clean and well-documented for the same reason
-
----
-
-## Referral tracking
-
-GoatCounter is used for analytics. Referrals are tracked via the `?ref=` query parameter.
-
-Redirect pages (in repo root, each as `folder/index.html`):
-- `/me` → `?ref=me` — personal use and testing
-- `/ross` → `?ref=ross` — shared with a friend
-- `/s` → `?ref=student` — shared with students
-
-Direct referral links (no redirect):
-- `?ref=bmc` — Buy Me A Coffee
-- `?ref=web` — rossfarley.com
-- `?ref=facebook`
-- `?ref=bluesky`
-- `?ref=reddit`
-- `?ref=instagram`
-- `?ref=email`
-- `?ref=youtube`
