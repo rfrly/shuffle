@@ -603,6 +603,8 @@
     }
     .compact-popup-footer-toggle span { white-space: normal; line-height: 1.2; flex: 1; min-width: 0; }
     .compact-popup-footer-toggle:active { background: #222; }
+    .compact-popup-footer-toggle:disabled { opacity: 0.35; cursor: default; }
+    .compact-popup-footer-toggle:disabled:active { background: none; }
 
 
     .countin-row {

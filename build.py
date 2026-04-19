@@ -1252,13 +1252,13 @@ firebase_and_observer = r"""
                   setOpenSelector={setOpenSelector}
                   getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : n + " bars")}
                   buttonLabel={(obsCib === 0 ? "None" : (obsCib === 1 ? "1 bar" : (obsCib || 1) + " bars")) + (obsCountInEvery && obsMode !== "clickonly" ? " \u2713" : "")}
-                  footer={(obsCib == null ? 1 : obsCib) > 0 && (
+                  footer={(
                     <>
                       {obsMode !== "clickonly" && (
                         <button
                           className="compact-popup-footer-toggle"
                           onClick={() => onSendCmd({ countInEvery: !obsCountInEvery })}
-                          disabled={disabled}>
+                          disabled={disabled || obsCib === 0}>
                           <span>Count in every exercise</span>
                           <div className={"menu-toggle-pill" + (obsCountInEvery ? " on" : "")} />
                         </button>
@@ -1266,9 +1266,9 @@ firebase_and_observer = r"""
                       <button
                         className="compact-popup-footer-toggle"
                         onClick={() => onSendCmd({ subdivCountIn: !(obsSubdivCountIn !== false) })}
-                        disabled={disabled}>
+                        disabled={disabled || obsCib === 0}>
                         <span>Subdivide count-in</span>
-                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false ? " on" : "")} />
+                        <div className={"menu-toggle-pill" + (obsSubdivCountIn !== false && obsCib !== 0 ? " on" : "")} />
                       </button>
                     </>
                   )}

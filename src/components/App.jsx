@@ -1190,21 +1190,23 @@ export function App() {
               setOpenSelector={setOpenSelector}
               getLabel={n => n === 0 ? "None" : (n === 1 ? "1 bar" : `${n} bars`)}
               buttonLabel={`${countInBars === 0 ? "None" : (countInBars === 1 ? "1 bar" : `${countInBars} bars`)}${countInEvery && !isMetronome ? " ✓" : ""}`}
-              footer={countInBars > 0 && (
+              footer={(
                 <>
                   {!isMetronome && (
                     <button
                       className="compact-popup-footer-toggle"
-                      onClick={() => setCountInEvery(v => !v)}>
+                      onClick={() => setCountInEvery(v => !v)}
+                      disabled={countInBars === 0}>
                       <span>Count in every exercise</span>
                       <div className={`menu-toggle-pill${countInEvery ? " on" : ""}`} />
                     </button>
                   )}
                   <button
                     className="compact-popup-footer-toggle"
-                    onClick={() => setSubdivCountIn(v => !v)}>
+                    onClick={() => setSubdivCountIn(v => !v)}
+                    disabled={countInBars === 0}>
                     <span>Subdivide count-in</span>
-                    <div className={`menu-toggle-pill${subdivCountIn ? " on" : ""}`} />
+                    <div className={`menu-toggle-pill${subdivCountIn && countInBars > 0 ? " on" : ""}`} />
                   </button>
                 </>
               )}
@@ -1358,7 +1360,7 @@ export function App() {
         document.body
       )}
 
-      <div className="version-footer">v1.10.8.beta.10 · rossfarley.uk · © 2026 Ross Farley</div>
+      <div className="version-footer">v1.10.8.beta.12 · rossfarley.uk · © 2026 Ross Farley</div>
 
       {numpadOpen === 'min' && (
         <NumpadPopup
